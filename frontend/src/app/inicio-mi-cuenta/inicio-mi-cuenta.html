@@ -1,0 +1,108 @@
+<div class="home-container">
+  <app-header></app-header>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Destinos Populares -->
+    <section class="destinations-section">
+      <h2 class="section-title">Destinos populares</h2>
+
+      <div class="carousel-wrapper">
+        <p-carousel
+          [value]="destinations"
+          [numVisible]="4"
+          [numScroll]="1"
+          [circular]="true"
+          [responsiveOptions]="responsiveOptions"
+          [showNavigators]="true"
+          [showIndicators]="false"
+        >
+          <ng-template let-destination pTemplate="item">
+            <div class="destination-card">
+
+              <!-- Imagen principal -->
+              <div class="card-image-wrapper">
+                <a routerLink="/detalle/{{ destination.id }}">
+                  <img
+                    [src]="destination.imagenes && destination.imagenes.length > 0
+                      ? destination.imagenes[0].url
+                      : 'https://via.placeholder.com/400x250?text=Sin+Imagen'"
+                    [alt]="destination.nombre"
+                    class="card-image"
+                  />
+                </a>
+
+                <button
+                  class="favorite-button"
+                  [class.active]="destination.favorite"
+                  (click)="toggleFavorite(destination)"
+                >
+                  <i class="pi pi-heart-fill"></i>
+                </button>
+              </div>
+
+              <!-- Contenido -->
+              <div class="card-content">
+                <div class="card-header">
+                  <h3 class="card-title">{{ destination.nombre }}</h3>
+                  <div class="card-rating">
+                    <i class="pi pi-star-fill"></i>
+                    <span>{{ destination.rating || 4.5 }}</span>
+                  </div>
+                </div>
+                <p class="card-location">
+                  <i class="pi pi-map-marker"></i>
+                  {{ destination.direccion }}
+                </p>
+                <p class="card-price">
+                  <strong>${{ destination.precio | number }}</strong> / noche
+                </p>
+              </div>
+
+            </div>
+          </ng-template>
+        </p-carousel>
+      </div>
+    </section>
+
+    <!-- Testimonios -->
+    <section class="testimonials-section">
+      <h2 class="section-title">Testimonios de usuarios</h2>
+
+      <div class="carousel-wrapper">
+        <p-carousel
+          [value]="testimonials"
+          [numVisible]="4"
+          [numScroll]="1"
+          [circular]="true"
+          [responsiveOptions]="responsiveOptions"
+          [showNavigators]="true"
+          [showIndicators]="false"
+        >
+          <ng-template let-testimonial pTemplate="item">
+            <div class="testimonial-card">
+              <div class="testimonial-header">
+                <img
+                  [src]="testimonial.avatar"
+                  [alt]="testimonial.name"
+                  class="testimonial-avatar"
+                />
+                <div class="testimonial-info">
+                  <h4 class="testimonial-name">{{ testimonial.name }}</h4>
+                  <p class="testimonial-date">{{ testimonial.date }}</p>
+                </div>
+              </div>
+              <div class="testimonial-rating">
+                <i
+                  class="pi pi-star-fill"
+                  *ngFor="let star of [1, 2, 3, 4, 5].slice(0, testimonial.rating)"
+                ></i>
+              </div>
+              <p class="testimonial-comment">{{ testimonial.comment }}</p>
+            </div>
+          </ng-template>
+        </p-carousel>
+      </div>
+    </section>
+  </main>
+</div>

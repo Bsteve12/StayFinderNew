@@ -1,0 +1,363 @@
+.register-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #1e1b4b 0%, #3b82f6 50%, #7c3aed 100%);
+    padding: 20px;
+}
+
+.register-card {
+    display: grid;
+    grid-template-columns: 55% 45%;
+    max-width: 1100px;
+    width: 100%;
+    min-height: 650px;
+    background: white;
+    border-radius: 32px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+// Lado Izquierdo - Formulario
+.form-section {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    background: #f8f9fa;
+}
+
+.form-content {
+    width: 100%;
+    max-width: 450px;
+}
+
+.logo-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 32px;
+
+    .logo {
+        width: 70px;
+        height: 70px;
+        margin-bottom: 8px;
+    }
+
+    .logo-text {
+        font-size: 20px;
+        font-weight: 700;
+        color: #5b21b6;
+    }
+}
+
+.register-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+
+    .input-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+
+        .form-input {
+            width: 100%;
+            padding: 14px 44px 14px 16px;
+            border-radius: 12px;
+            border: none;
+            background: #c4b5fd;
+            font-size: 15px;
+            color: #1e1b4b;
+            transition: all 0.3s ease;
+
+            &::placeholder {
+                color: #1e1b4b;
+                opacity: 0.7;
+            }
+
+            &:focus {
+                outline: none;
+                background: #ddd6fe;
+                box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+            }
+
+            &.invalid {
+                border: 2px solid #ef4444;
+                background: #fee2e2;
+            }
+        }
+
+        ::ng-deep .date-input {
+            width: 100%;
+            padding: 14px 44px 14px 16px;
+            border-radius: 12px;
+            border: none;
+            background: #c4b5fd;
+            font-size: 15px;
+            color: #1e1b4b;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            transition: all 0.3s ease;
+
+            &:hover {
+                background: #ddd6fe;
+            }
+
+            span {
+                color: #1e1b4b;
+
+                &.placeholder {
+                    color: #1e1b4b;
+                    opacity: 0.7;
+                }
+            }
+
+            &.invalid {
+                border: 2px solid #ef4444;
+                background: #fee2e2;
+            }
+        }
+
+        .input-icon {
+            position: absolute;
+            right: 16px;
+            color: #1e1b4b;
+            font-size: 18px;
+            pointer-events: none;
+        }
+
+        .input-icon-calendar {
+            position: absolute;
+            right: 16px;
+            color: #1e1b4b;
+            font-size: 18px;
+            pointer-events: none;
+            z-index: 10;
+        }
+    }
+
+    .error-message {
+        color: #ef4444;
+        font-size: 11px;
+        margin-left: 4px;
+    }
+}
+
+.register-button {
+    width: 100%;
+    background: #7c3aed !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 12px !important;
+    padding: 14px !important;
+    font-size: 17px !important;
+    font-weight: 700 !important;
+    transition: all 0.3s ease;
+    margin-top: 8px;
+
+    &:hover:not(:disabled) {
+        background: #6d28d9 !important;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(124, 58, 237, 0.4);
+    }
+
+    &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+}
+
+// Lado Derecho - Bienvenida
+.welcome-section {
+    background: linear-gradient(135deg, #a855f7 0%, #8b5cf6 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    padding: 40px;
+
+    .welcome-content {
+        position: relative;
+        z-index: 2;
+        text-align: center;
+        color: white;
+
+        .welcome-title {
+            font-size: 44px;
+            font-weight: 700;
+            margin: 0 0 16px;
+            line-height: 1.2;
+        }
+
+        .welcome-subtitle {
+            font-size: 18px;
+            margin: 0 0 32px;
+            opacity: 0.95;
+        }
+
+        .login-button {
+            background: transparent !important;
+            color: white !important;
+            border: 2px solid white !important;
+            border-radius: 24px !important;
+            padding: 12px 48px !important;
+            font-size: 16px !important;
+            font-weight: 600 !important;
+            transition: all 0.3s ease;
+
+            &:hover {
+                background: white !important;
+                color: #a855f7 !important;
+                transform: translateY(-2px);
+            }
+        }
+    }
+
+    .decoration-circle {
+        position: absolute;
+        width: 500px;
+        height: 500px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.1);
+        top: -150px;
+        left: -150px;
+        z-index: 1;
+    }
+}
+
+// Estilos para Angular Material Dialog
+::ng-deep {
+    .mat-mdc-dialog-container {
+        --mdc-dialog-container-shape: 20px;
+
+        .mdc-dialog__surface {
+            border-radius: 20px !important;
+        }
+    }
+
+    .mat-mdc-dialog-title {
+        color: #1e1b4b;
+        font-weight: 700;
+    }
+
+    .mat-mdc-raised-button.mat-primary {
+        background-color: #5b21b6 !important;
+
+        &:hover {
+            background-color: #7c3aed !important;
+        }
+    }
+}
+
+// Responsive
+@media (max-width: 968px) {
+    .register-card {
+        grid-template-columns: 1fr;
+        height: auto;
+        max-width: 500px;
+    }
+
+    .form-section {
+        order: 2;
+        padding: 40px 24px;
+    }
+
+    .welcome-section {
+        order: 1;
+        padding: 60px 40px;
+
+        .welcome-content {
+            .welcome-title {
+                font-size: 36px;
+            }
+
+            .welcome-subtitle {
+                font-size: 16px;
+            }
+        }
+
+        .decoration-circle {
+            width: 300px;
+            height: 300px;
+            top: -100px;
+            left: -100px;
+        }
+    }
+}
+
+@media (max-width: 480px) {
+    .register-container {
+        padding: 12px;
+    }
+
+    .welcome-section {
+        padding: 40px 24px;
+
+        .welcome-content {
+            .welcome-title {
+                font-size: 28px;
+            }
+
+            .welcome-subtitle {
+                font-size: 14px;
+                margin-bottom: 24px;
+            }
+        }
+    }
+
+    .form-section {
+        padding: 32px 20px;
+    }
+
+    .logo-container {
+        margin-bottom: 24px;
+
+        .logo {
+            width: 60px;
+            height: 60px;
+        }
+
+        .logo-text {
+            font-size: 18px;
+        }
+    }
+
+    .register-form {
+        gap: 16px;
+    }
+
+    .form-field {
+        .input-wrapper {
+            .form-input {
+                padding: 12px 40px 12px 14px;
+                font-size: 14px;
+            }
+
+            ::ng-deep .date-input {
+                padding: 12px 40px 12px 14px;
+                font-size: 14px;
+            }
+
+            .input-icon,
+            .input-icon-calendar {
+                font-size: 16px;
+                right: 14px;
+            }
+        }
+    }
+
+    .register-button {
+        padding: 12px !important;
+        font-size: 16px !important;
+    }
+}

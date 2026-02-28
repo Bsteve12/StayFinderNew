@@ -1,0 +1,30 @@
+<div class="user-menu-container">
+  <!-- Usuario Autenticado: Mostrar foto/nombre -->
+  <div *ngIf="isAuthenticated" class="user-info" #menuButton (click)="menu.toggle($event)">
+    <div class="user-avatar">
+      <img *ngIf="userPhoto" [src]="userPhoto" [alt]="userName" />
+      <i *ngIf="!userPhoto" class="pi pi-user"></i>
+    </div>
+    <span class="user-name">{{ userName || 'Usuario' }}</span>
+    <i class="pi pi-chevron-down"></i>
+  </div>
+
+
+  <!-- Usuario NO Autenticado: Mostrar botón de menú -->
+  <button
+    *ngIf="!isAuthenticated"
+    #menuButton
+    pButton
+    icon="pi pi-bars"
+    class="p-button-rounded menu-button"
+    (click)="menu.toggle($event)"
+  ></button>
+
+
+  <p-menu
+    #menu
+    [model]="menuItems"
+    [popup]="true"
+    styleClass="custom-menu"
+  ></p-menu>
+</div>

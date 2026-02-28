@@ -1,0 +1,61 @@
+<!-- Header -->
+<header class="header">
+  <div class="header-content">
+    <div class="logo">
+      <a routerLink="/">
+        <img src="StayFinder.png" alt="StayFinder" />
+      </a>
+      <span class="logo-text">StayFinder</span>
+    </div>
+
+    <div class="header-actions">
+      <button *ngIf="!isAuthenticated || userRole === 'CLIENT'" pButton label="Conviértete en Anfitrión"
+        class="host-button" (click)="onBecomeHost()"></button>
+
+      <app-menu [isAuthenticated]="isAuthenticated" [userRole]="userRole" [userName]="userName"
+        [userPhoto]="userPhoto"></app-menu>
+    </div>
+  </div>
+</header>
+
+<!-- Hero Section con Buscador -->
+<section class="hero-section">
+  <div class="hero-content">
+    <div class="hero-title-wrapper">
+      <i class="pi pi-home hero-icon"></i>
+      <h1 class="hero-title">Alojamientos</h1>
+    </div>
+
+    <div class="search-card">
+      <div class="search-row">
+        <div class="search-field">
+          <label>Dónde</label>
+          <input type="text" pInputText placeholder="Explora destinos" [(ngModel)]="searchLocation" />
+        </div>
+
+        <div class="search-field">
+          <label>Check-in</label>
+          <div class="date-input" (click)="openCheckInDialog()">
+            <span [class.placeholder]="!checkInDate">{{ formatDate(checkInDate) }}</span>
+            <i class="pi pi-calendar"></i>
+          </div>
+        </div>
+
+        <div class="search-field">
+          <label>Check-out</label>
+          <div class="date-input" (click)="openCheckOutDialog()">
+            <span [class.placeholder]="!checkOutDate">{{ formatDate(checkOutDate) }}</span>
+            <i class="pi pi-calendar"></i>
+          </div>
+        </div>
+
+        <div class="search-field">
+          <label>Quién</label>
+          <p-inputNumber [(ngModel)]="guests" placeholder="¿Cuántos?" [min]="1" [showButtons]="true"></p-inputNumber>
+        </div>
+
+        <button pButton icon="pi pi-search" label="Buscar" class="search-button" (click)="onSearch()"></button>
+      </div>
+    </div>
+  </div>
+</section>

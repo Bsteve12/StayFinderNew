@@ -1,0 +1,173 @@
+<div class="accommodation-detail-container">
+  <app-header></app-header>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="detail-wrapper">
+      <!-- Título -->
+      <h2 class="accommodation-title">{{ accommodation.title }}</h2>
+
+      <!-- Grid Layout -->
+      <div class="detail-grid">
+        <!-- Columna Izquierda: Carrusel de Imágenes -->
+        <div class="left-column">
+          <div class="images-section">
+            <div class="images-label">Images</div>
+            <p-carousel [value]="accommodation.images" [numVisible]="1" [numScroll]="1" [circular]="true"
+              [showNavigators]="true" [showIndicators]="true" [autoplayInterval]="0">
+              <ng-template let-image pTemplate="item">
+                <div class="carousel-image-wrapper">
+                  <img [src]="image.url" [alt]="image.alt" />
+                </div>
+              </ng-template>
+            </p-carousel>
+          </div>
+
+          <!-- Botón de Reserva -->
+          <div class="reserve-section">
+            <button pButton label="Reserva" icon="pi pi-calendar-plus" class="reserve-button"
+              (click)="onReserve()"></button>
+          </div>
+        </div>
+
+        <!-- Columna Derecha: Información -->
+        <div class="right-column">
+          <div class="info-card">
+            <h3 class="info-title">{{ accommodation.location }}</h3>
+            <p class="info-subtitle">
+              {{ accommodation.bedrooms }} habitaciones - {{ accommodation.bathrooms }}
+            </p>
+
+            <!-- Líneas de información -->
+            <div class="info-line"></div>
+
+            <div class="info-section">
+              <div class="info-item">
+                <i class="pi pi-users"></i>
+                <span>Hasta {{ accommodation.guests }} huéspedes</span>
+              </div>
+              <div class="info-item">
+                <i class="pi pi-star-fill"></i>
+                <span>{{ accommodation.rating }} ({{ accommodation.reviews }} reseñas)</span>
+              </div>
+            </div>
+
+            <div class="info-line"></div>
+
+            <div class="description-section">
+              <h4>Descripción</h4>
+              <p>{{ accommodation.description }}</p>
+            </div>
+
+            <div class="info-line"></div>
+
+            <div class="amenities-section">
+              <h4>Comodidades</h4>
+              <div class="amenities-grid">
+                <div class="amenity-item" *ngFor="let amenity of accommodation.amenities">
+                  <i class="pi pi-check-circle"></i>
+                  <span>{{ amenity }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="info-line"></div>
+
+            <div class="price-section">
+              <span class="price-label">Precio por noche</span>
+              <span class="price-value">\${{ accommodation.price | number }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sección de Comentarios -->
+      <div class="comments-wrapper" style="margin-top: 40px; border-top: 1px solid #eee; padding-top: 20px;">
+        <h3 style="font-size: 24px; color: #1e1b4b; display: flex; align-items: center; gap: 8px;">
+          <i class="pi pi-star-fill" style="color: #fbbf24;"></i>
+          <span>{{ accommodation.rating | number:'1.1-1' }} ({{ accommodation.reviews }} reseñas)</span>
+        </h3>
+
+        <!-- Formulario para Nuevo Comentario (Si está autenticado) -->
+        <div class="new-comment-section"
+          style="margin-top: 20px; background: #f8fafc; padding: 20px; border-radius: 12px;" *ngIf="isAuthenticated">
+          <h4>Dejar un comentario</h4>
+          <p style="font-size: 14px; color: #64748b; margin-bottom: 15px;">Solo puedes calificar alojamientos en los que
+            hayas completado una reserva.</p>
+
+          <div style="margin-bottom: 15px;">
+            <label style="display: block; margin-bottom: 5px; font-weight: 600;">Calificación (1 a 5):</label>
+            <input type="number" pInputText [(ngModel)]="nuevaCalificacion" min="1" max="5" style="width: 100px;" />
+          </div>
+
+          <div style="margin-bottom: 15px;">
+            <label style="display: block; margin-bottom: 5px; font-weight: 600;">Comentario:</label>
+            <textarea pInputTextarea [(ngModel)]="nuevoComentarioTexto" rows="3"
+              style="width: 100%; border-radius: 8px; resize: none;"
+              placeholder="Escribe tu experiencia aquí..."></textarea>
+          </div>
+
+          <button pButton label="Enviar Comentario" icon="pi pi-send" (click)="enviarComentario()"></button>
+        </div>
+
+        <div class="new-comment-section"
+          style="margin-top: 20px; background: #f8fafc; padding: 20px; border-radius: 12px; text-align: center;"
+          *ngIf="!isAuthenticated">
+          <p style="color: #64748b; margin: 0;">Inicia sesión para dejar un comentario sobre este alojamiento.</p>
+        </div>
+
+        <!-- Lista de Comentarios -->
+        <div class="comments-grid"
+          style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; margin-top: 30px;">
+          <div class="comment-card" *ngFor="let comentario of comentarios"
+            style="border: 1px solid #e2e8f0; padding: 20px; border-radius: 12px; height: 100%;">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 10px;">
+              <div class="avatar"
+                style="width: 40px; height: 40px; border-radius: 50%; background: #e0e7ff; color: #4f46e5; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 18px;">
+                {{ comentario.nombreUsuario.charAt(0).toUpperCase() }}
+              </div>
+              <div>
+                <h5 style="margin: 0; font-size: 16px; color: #1e1b4b;">{{ comentario.nombreUsuario }}</h5>
+                <span style="font-size: 12px; color: #64748b;">{{ comentario.fechaCreacion | date:'mediumDate' }}</span>
+              </div>
+            </div>
+
+            <div style="margin-bottom: 10px; color: #fbbf24;">
+              <i class="pi pi-star-fill" *ngFor="let star of [1,2,3,4,5]; let i = index"
+                [ngStyle]="{'opacity': i < comentario.calificacion ? 1 : 0.3}"></i>
+            </div>
+
+            <p style="font-size: 14px; color: #334155; line-height: 1.5; margin: 0;">{{ comentario.mensaje }}</p>
+
+            <!-- Respuesta del anfitrión si la hay -->
+            <div *ngIf="comentario.respuestaAnfitrion"
+              style="background: #f1f5f9; padding: 12px; border-radius: 8px; margin-top: 15px; border-left: 3px solid #8b5cf6;">
+              <h6 style="margin: 0 0 5px 0; font-size: 13px; color: #475569;">Respuesta de {{ comentario.nombreAnfitrion
+                || 'Anfitrión' }}:</h6>
+              <p style="font-size: 13px; margin: 0; color: #334155;">{{ comentario.respuestaAnfitrion }}</p>
+            </div>
+
+            <!-- Interfaz para el Owner si no hay respuesta -->
+            <div *ngIf="!comentario.respuestaAnfitrion && isOwner()" style="margin-top: 15px;">
+              <button *ngIf="comentarioRespuestaActual !== comentario.id" pButton label="Responder"
+                class="p-button-outlined p-button-sm" (click)="abrirRespuesta(comentario.id)"></button>
+
+              <div *ngIf="comentarioRespuestaActual === comentario.id"
+                style="background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                <textarea pInputTextarea [(ngModel)]="textoRespuesta" rows="2"
+                  style="width: 100%; border-radius: 6px; resize: none; margin-bottom: 10px;"
+                  placeholder="Escribe tu respuesta..."></textarea>
+                <div style="display: flex; gap: 10px;">
+                  <button pButton label="Enviar" class="p-button-sm"
+                    (click)="responderComentario(comentario.id)"></button>
+                  <button pButton label="Cancelar" class="p-button-text p-button-sm"
+                    (click)="cancelarRespuesta()"></button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>

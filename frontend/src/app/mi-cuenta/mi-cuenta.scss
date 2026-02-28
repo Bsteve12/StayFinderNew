@@ -1,0 +1,559 @@
+.dashboard-container {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    min-height: 100vh;
+    background: linear-gradient(180deg, #1e1b4b 0%, #3b82f6 50%, #7c3aed 100%);
+}
+
+// ============================================
+// 🔹 Sidebar
+// ============================================
+.sidebar {
+    background: white;
+    border-radius: 0 32px 32px 0;
+    padding: 32px 0;
+    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar-content {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.logo-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0 24px 32px;
+    margin-bottom: 24px;
+
+    .logo {
+        width: 70px;
+        height: 70px;
+        margin-bottom: 12px;
+    }
+
+    .logo-text {
+        font-size: 20px;
+        font-weight: 700;
+        color: #5b21b6;
+    }
+}
+
+.menu {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 0 16px;
+
+    .menu-item {
+        background: transparent;
+        border: none;
+        padding: 16px 24px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 16px;
+        color: #1e1b4b;
+        font-weight: 600;
+        text-align: left;
+        border-bottom: 2px solid transparent;
+
+        i {
+            font-size: 20px;
+            color: #5b21b6;
+        }
+
+        span {
+            flex: 1;
+        }
+
+        &:hover {
+            background: #f3e8ff;
+            transform: translateX(4px);
+        }
+
+        &.active {
+            background: linear-gradient(135deg, #1e40af 0%, #3730a3 100%);
+            color: white;
+            border-bottom-color: white;
+
+            i {
+                color: white;
+            }
+        }
+    }
+}
+
+// ============================================
+// 🔹 Main Content
+// ============================================
+.main-content {
+    display: flex;
+    flex-direction: column;
+    padding: 32px;
+    overflow-y: auto;
+}
+
+.content-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+
+    .page-title {
+        font-size: 32px;
+        font-weight: 700;
+        color: white;
+        margin: 0;
+    }
+
+    .menu-toggle {
+        display: none;
+        background: rgba(255, 255, 255, 0.2) !important;
+        color: white !important;
+        border: none !important;
+    }
+}
+
+.content-area {
+    background: white;
+    border-radius: 24px;
+    padding: 32px;
+    min-height: 600px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+// ============================================
+// 🔹 Vista: Perfil
+// ============================================
+.profile-view {
+    display: flex;
+    justify-content: center;
+    padding: 40px 0;
+}
+
+.profile-card {
+    max-width: 500px;
+    width: 100%;
+    text-align: center;
+
+    .profile-avatar {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #a855f7 0%, #8b5cf6 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 24px;
+
+        i {
+            font-size: 60px;
+            color: white;
+        }
+    }
+
+    h2 {
+        font-size: 28px;
+        font-weight: 700;
+        color: #1e1b4b;
+        margin: 0 0 8px;
+    }
+
+    .email {
+        color: #6b7280;
+        font-size: 16px;
+        margin-bottom: 32px;
+    }
+
+    .profile-info {
+        background: #f9fafb;
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 32px;
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #e5e7eb;
+
+            &:last-child {
+                border-bottom: none;
+            }
+
+            .label {
+                color: #6b7280;
+                font-weight: 600;
+            }
+
+            .value {
+                color: #1e1b4b;
+                font-weight: 700;
+            }
+        }
+    }
+
+    .edit-button {
+        background: #7c3aed !important;
+        border: none !important;
+        padding: 12px 48px !important;
+        font-weight: 600 !important;
+    }
+}
+
+// ============================================
+// 🔹 Loading & Empty States
+// ============================================
+.loading,
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 20px;
+    color: #6b7280;
+
+    i {
+        font-size: 64px;
+        margin-bottom: 16px;
+        color: #c4b5fd;
+    }
+
+    p {
+        font-size: 18px;
+        margin: 0;
+    }
+}
+
+// ============================================
+// 🔹 Vista: Mis Reservas
+// ============================================
+.reservas-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 24px;
+}
+
+.reserva-card {
+    background: white;
+    border: 2px solid #e5e7eb;
+    border-radius: 16px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+
+    &:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    }
+
+    .reserva-image {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+    }
+
+    .reserva-content {
+        padding: 20px;
+
+        h3 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1e1b4b;
+            margin: 0 0 12px;
+        }
+
+        .reserva-dates {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #6b7280;
+            font-size: 14px;
+            margin-bottom: 16px;
+
+            i {
+                color: #7c3aed;
+            }
+        }
+
+        .reserva-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+
+            .estado {
+                padding: 6px 12px;
+                border-radius: 8px;
+                font-size: 12px;
+                font-weight: 700;
+                text-transform: uppercase;
+
+                &.estado-confirmada {
+                    background: #d1fae5;
+                    color: #065f46;
+                }
+
+                &.estado-pendiente {
+                    background: #fef3c7;
+                    color: #92400e;
+                }
+
+                &.estado-completada {
+                    background: #dbeafe;
+                    color: #1e40af;
+                }
+
+                &.estado-cancelada {
+                    background: #fee2e2;
+                    color: #991b1b;
+                }
+            }
+
+            .precio {
+                font-size: 18px;
+                font-weight: 700;
+                color: #7c3aed;
+            }
+        }
+
+        .detail-button {
+            width: 100%;
+            background: #7c3aed !important;
+            border: none !important;
+        }
+    }
+}
+
+// ============================================
+// 🔹 Vista: Favoritos
+// ============================================
+.favoritos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 24px;
+}
+
+.favorito-card {
+    background: white;
+    border: 2px solid #e5e7eb;
+    border-radius: 16px;
+    overflow: hidden;
+    position: relative;
+    transition: all 0.3s ease;
+
+    &:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    }
+
+    .favorito-image {
+        width: 100%;
+        height: 180px;
+        object-fit: cover;
+    }
+
+    .remove-favorite {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: white;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+
+        i {
+            font-size: 20px;
+            color: #ef4444;
+        }
+
+        &:hover {
+            transform: scale(1.1);
+        }
+    }
+
+    .favorito-content {
+        padding: 16px;
+
+        h3 {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1e1b4b;
+            margin: 0 0 8px;
+        }
+
+        .ubicacion {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #6b7280;
+            font-size: 14px;
+            margin-bottom: 12px;
+
+            i {
+                color: #ef4444;
+            }
+        }
+
+        .favorito-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            .precio {
+                font-size: 16px;
+                font-weight: 700;
+                color: #7c3aed;
+            }
+
+            .ver-button {
+                background: transparent !important;
+                color: #7c3aed !important;
+                border: 2px solid #7c3aed !important;
+                padding: 6px 20px !important;
+                font-size: 14px !important;
+            }
+        }
+    }
+}
+
+// ============================================
+// 🔹 Vista: Historial
+// ============================================
+.historial-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.historial-item {
+    display: grid;
+    grid-template-columns: 150px 1fr auto;
+    gap: 20px;
+    background: white;
+    border: 2px solid #e5e7eb;
+    border-radius: 16px;
+    padding: 16px;
+    transition: all 0.3s ease;
+
+    &:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .historial-image {
+        width: 150px;
+        height: 100px;
+        border-radius: 12px;
+        object-fit: cover;
+    }
+
+    .historial-content {
+        flex: 1;
+
+        h3 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1e1b4b;
+            margin: 0 0 8px;
+        }
+
+        .historial-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 8px;
+
+            .fecha {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                color: #6b7280;
+                font-size: 14px;
+
+                i {
+                    color: #7c3aed;
+                }
+            }
+
+            .estado {
+                padding: 4px 10px;
+                border-radius: 6px;
+                font-size: 11px;
+                font-weight: 700;
+                text-transform: uppercase;
+            }
+        }
+
+        .precio-total {
+            color: #1e1b4b;
+            font-weight: 700;
+            font-size: 16px;
+            margin: 0;
+        }
+    }
+
+    .historial-actions {
+        display: flex;
+        align-items: center;
+    }
+}
+
+// ============================================
+// 🔹 Responsive
+// ============================================
+@media (max-width: 1024px) {
+    .dashboard-container {
+        grid-template-columns: 1fr;
+    }
+
+    .sidebar {
+        display: none;
+    }
+
+    .content-header {
+        .menu-toggle {
+            display: flex;
+        }
+    }
+
+    .historial-item {
+        grid-template-columns: 1fr;
+
+        .historial-image {
+            width: 100%;
+            height: 200px;
+        }
+
+        .historial-actions {
+            justify-content: flex-end;
+        }
+    }
+}
+
+@media (max-width: 768px) {
+    .main-content {
+        padding: 16px;
+    }
+
+    .content-area {
+        padding: 20px;
+    }
+
+    .reservas-grid,
+    .favoritos-grid {
+        grid-template-columns: 1fr;
+    }
+}

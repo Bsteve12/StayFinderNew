@@ -1,0 +1,402 @@
+/* --------------------------------------------- */
+/* FONDO GENERAL (TU DISEÑO BONITO ANTERIOR)     */
+/* --------------------------------------------- */
+
+.home-container {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #1e1b4b 0%, #3b2f87 50%, #f5f5f5 100%);
+  display: flex;
+  flex-direction: column;
+}
+
+
+
+/* --------------------------------------------- */
+/* BARRA DE BÚSQUEDA (RESTABLECIDA)              */
+/* --------------------------------------------- */
+
+.search-section {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 40px 20px 0 20px;
+}
+
+.search-box {
+  width: 100%;
+  max-width: 1100px;
+  background: white;
+  padding: 24px;
+  border-radius: 20px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+  display: grid;
+  grid-template-columns: repeat(4, 1fr) auto;
+  gap: 18px;
+  align-items: center;
+}
+
+.search-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.search-item label {
+  font-size: 14px;
+  color: #4b5563;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.search-item input {
+  padding: 12px 16px;
+  border-radius: 14px;
+  border: 2px solid #ddd;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.search-item input:focus {
+  border-color: #5b21b6;
+}
+
+.search-button {
+  height: 48px;
+  padding: 0 26px;
+  border: none;
+  border-radius: 14px;
+  background: #5b21b6;
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+
+.search-button:hover {
+  background: #7c3aed;
+}
+
+
+
+/* --------------------------------------------- */
+/* MAIN CONTENT ACTUAL (NO SE ELIMINÓ NADA)      */
+/* --------------------------------------------- */
+
+.main-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 60px 32px;
+}
+
+.section-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 32px;
+}
+
+
+/* --------------------------------------------- */
+/* DESTINOS POPULARES                            */
+/* --------------------------------------------- */
+
+.destinations-section {
+  margin-bottom: 80px;
+
+  .carousel-wrapper {
+    background: #1e1b4b;
+    border-radius: 24px;
+    padding: 32px 16px;
+  }
+
+  .destination-card {
+    background: #f3e8ff;
+    border-radius: 20px;
+    overflow: hidden;
+    margin: 0 12px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+    &:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+    }
+
+    .card-image-wrapper {
+      position: relative;
+      width: 100%;
+      height: 200px;
+      overflow: hidden;
+
+      .card-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .favorite-button {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: white;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+
+        i {
+          font-size: 20px;
+          color: #d1d5db;
+          transition: color 0.3s ease;
+        }
+
+        &:hover {
+          transform: scale(1.1);
+        }
+
+        &.active i {
+          color: #ef4444;
+        }
+      }
+    }
+
+    .card-content {
+      padding: 16px;
+
+      .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        margin-bottom: 8px;
+
+        .card-title {
+          font-size: 18px;
+          font-weight: 700;
+          color: #1e1b4b;
+          margin: 0;
+          flex: 1;
+        }
+
+        .card-rating {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          color: #1e1b4b;
+          font-weight: 600;
+
+          i {
+            color: #fbbf24;
+          }
+        }
+      }
+
+      .card-location {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: #6b7280;
+        font-size: 14px;
+        margin: 8px 0;
+
+        i {
+          color: #ef4444;
+        }
+      }
+
+      .card-price {
+        color: #1e1b4b;
+        font-size: 16px;
+        margin: 8px 0 0;
+
+        strong {
+          font-size: 18px;
+        }
+      }
+    }
+  }
+}
+
+
+/* --------------------------------------------- */
+/* TESTIMONIOS                                   */
+/* --------------------------------------------- */
+
+.testimonials-section {
+  .carousel-wrapper {
+    background: #1e1b4b;
+    border-radius: 24px;
+    padding: 32px 16px;
+  }
+
+  .testimonial-card {
+    background: #f3e8ff;
+    border-radius: 20px;
+    padding: 24px;
+    margin: 0 12px;
+    min-height: 280px;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+    &:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+    }
+
+    .testimonial-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+
+      .testimonial-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid #5b21b6;
+      }
+
+      .testimonial-info {
+        flex: 1;
+
+        .testimonial-name {
+          font-size: 16px;
+          font-weight: 700;
+          color: #1e1b4b;
+          margin: 0 0 4px;
+        }
+
+        .testimonial-date {
+          font-size: 12px;
+          color: #6b7280;
+          margin: 0;
+        }
+      }
+    }
+
+    .testimonial-rating {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 12px;
+
+      i {
+        color: #fbbf24;
+        font-size: 16px;
+      }
+    }
+
+    .testimonial-comment {
+      color: #374151;
+      font-size: 14px;
+      line-height: 1.6;
+      margin: 0;
+      flex: 1;
+    }
+  }
+}
+
+
+/* --------------------------------------------- */
+/* PRIME NG CAROUSEL                             */
+/* --------------------------------------------- */
+
+::ng-deep {
+  .p-carousel {
+    .p-carousel-content {
+      .p-carousel-prev,
+      .p-carousel-next {
+        background: #5b21b6 !important;
+        color: white !important;
+        width: 40px !important;
+        height: 40px !important;
+        border-radius: 50% !important;
+
+        &:hover {
+          background: #7c3aed !important;
+        }
+
+        &:disabled {
+          opacity: 0.5;
+        }
+      }
+    }
+  }
+
+
+  .p-inputnumber {
+    .p-inputtext {
+      border-radius: 12px !important;
+      border: none !important;
+      padding: 12px 16px !important;
+    }
+
+    .p-button {
+      border-radius: 12px !important;
+    }
+  }
+
+  .mat-mdc-dialog-container {
+    --mdc-dialog-container-shape: 20px;
+
+    .mdc-dialog__surface {
+      border-radius: 20px !important;
+    }
+  }
+
+  .mat-mdc-dialog-title {
+    color: #1e1b4b;
+    font-weight: 700;
+  }
+
+  .mat-mdc-raised-button.mat-primary {
+    background-color: #5b21b6 !important;
+
+    &:hover {
+      background-color: #7c3aed !important;
+    }
+  }
+}
+
+
+
+/* --------------------------------------------- */
+/* RESPONSIVE                                    */
+/* --------------------------------------------- */
+
+@media (max-width: 1200px) {
+  .search-box {
+    grid-template-columns: repeat(2, 1fr) auto;
+  }
+
+  .search-button {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+
+  .main-content {
+    padding: 40px 16px;
+  }
+
+  .section-title {
+    font-size: 22px;
+  }
+
+  .search-box {
+    grid-template-columns: 1fr;
+  }
+
+  .destinations-section,
+  .testimonials-section {
+    .carousel-wrapper {
+      padding: 24px 8px;
+    }
+  }
+}

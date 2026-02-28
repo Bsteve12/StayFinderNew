@@ -1,0 +1,206 @@
+<div class="dashboard-container">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-content">
+      <!-- Logo -->
+      <div class="logo-section">
+        <img src="StayFinder.png" alt="StayFinder" class="logo" />
+        <span class="logo-text">StayFinder</span>
+      </div>
+
+      <!-- Menú de navegación -->
+      <nav class="menu">
+        <button 
+          class="menu-item"
+          [class.active]="currentView === 'profile'"
+          (click)="changeView('profile')"
+        >
+          <i class="pi pi-user"></i>
+          <span>Perfil de usuario</span>
+        </button>
+
+        <button 
+          class="menu-item"
+          [class.active]="currentView === 'reservas'"
+          (click)="changeView('reservas')"
+        >
+          <i class="pi pi-calendar"></i>
+          <span>Mis reservas</span>
+        </button>
+
+        <button 
+          class="menu-item"
+          [class.active]="currentView === 'favoritos'"
+          (click)="changeView('favoritos')"
+        >
+          <i class="pi pi-heart"></i>
+          <span>Favoritos guardados</span>
+        </button>
+
+        <button 
+          class="menu-item"
+          [class.active]="currentView === 'historial'"
+          (click)="changeView('historial')"
+        >
+          <i class="pi pi-history"></i>
+          <span>Historial de viajes</span>
+        </button>
+
+         <button 
+          class="menu-item"
+          [class.active]="currentView === 'historial'"
+          (click)="changeView('historial')"
+        >
+          <i class="pi pi-search"></i>
+          <span>Mis solicitudes</span>
+        </button>
+      </nav>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Header -->
+    <header class="content-header">
+      <h1 class="page-title">
+        {{ currentView === 'profile' ? 'Perfil de Usuario' : 
+           currentView === 'reservas' ? 'Mis Reservas' :
+           currentView === 'favoritos' ? 'Favoritos Guardados' :
+           'Historial de Viajes' }}
+      </h1>
+      <button pButton icon="pi pi-bars" class="p-button-rounded menu-toggle"></button>
+    </header>
+
+    <!-- Content Area -->
+    <div class="content-area">
+      <!-- Vista: Perfil -->
+      <div *ngIf="currentView === 'profile'" class="profile-view">
+        <div class="profile-card">
+          <div class="profile-avatar">
+            <i class="pi pi-user"></i>
+          </div>
+          <h2>{{ usuarioNombre }}</h2>
+          <p class="email">{{ usuarioEmail }}</p>
+          
+          <div class="profile-info">
+            <div class="info-item">
+              <span class="label">Miembro desde:</span>
+              <span class="value">Enero 2024</span>
+            </div>
+            <div class="info-item">
+              <span class="label">Reservas totales:</span>
+              <span class="value">5</span>
+            </div>
+            <div class="info-item">
+              <span class="label">Favoritos:</span>
+              <span class="value">{{ favoritos.length }}</span>
+            </div>
+          </div>
+
+          <button pButton label="Editar Perfil" class="edit-button"></button>
+        </div>
+      </div>
+
+      <!-- Vista: Mis Reservas -->
+      <div *ngIf="currentView === 'reservas'" class="reservas-view">
+        <div *ngIf="loadingReservas" class="loading">
+          <i class="pi pi-spin pi-spinner"></i>
+          <p>Cargando reservas...</p>
+        </div>
+
+        <div *ngIf="!loadingReservas && reservas.length === 0" class="empty-state">
+          <i class="pi pi-calendar"></i>
+          <p>No tienes reservas activas</p>
+        </div>
+
+        <div class="reservas-grid" *ngIf="!loadingReservas && reservas.length > 0">
+          <div class="reserva-card" *ngFor="let reserva of reservas">
+            <img [src]="reserva.alojamientoImagen" [alt]="reserva.alojamientoNombre" class="reserva-image" />
+            <div class="reserva-content">
+              <h3>{{ reserva.alojamientoNombre }}</h3>
+              <div class="reserva-dates">
+                <i class="pi pi-calendar"></i>
+                <span>{{ formatDate(reserva.fechaInicio) }} - {{ formatDate(reserva.fechaFin) }}</span>
+              </div>
+              <div class="reserva-footer">
+                <span class="estado" [ngClass]="getEstadoClass(reserva.estado)">
+                  {{ reserva.estado }}
+                </span>
+                <span class="precio">${{ reserva.precioTotal | number }}</span>
+              </div>
+              <button pButton label="Ver Detalles" class="detail-button" (click)="verDetalleReserva(reserva.id)"></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Vista: Favoritos -->
+      <div *ngIf="currentView === 'favoritos'" class="favoritos-view">
+        <div *ngIf="loadingFavoritos" class="loading">
+          <i class="pi pi-spin pi-spinner"></i>
+          <p>Cargando favoritos...</p>
+        </div>
+
+        <div *ngIf="!loadingFavoritos && favoritos.length === 0" class="empty-state">
+          <i class="pi pi-heart"></i>
+          <p>No tienes favoritos guardados</p>
+        </div>
+
+        <div class="favoritos-grid" *ngIf="!loadingFavoritos && favoritos.length > 0">
+          <div class="favorito-card" *ngFor="let favorito of favoritos">
+            <img [src]="favorito.alojamientoImagen" [alt]="favorito.alojamientoNombre" class="favorito-image" />
+            <button class="remove-favorite" (click)="removeFavorito(favorito.id, favorito.alojamientoId)">
+              <i class="pi pi-heart-fill"></i>
+            </button>
+            <div class="favorito-content">
+              <h3>{{ favorito.alojamientoNombre }}</h3>
+              <p class="ubicacion">
+                <i class="pi pi-map-marker"></i>
+                {{ favorito.alojamientoUbicacion }}
+              </p>
+              <div class="favorito-footer">
+                <span class="precio">${{ favorito.alojamientoPrecio | number }}/noche</span>
+                <button pButton label="Ver" class="ver-button"></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Vista: Historial -->
+      <div *ngIf="currentView === 'historial'" class="historial-view">
+        <div *ngIf="loadingHistorial" class="loading">
+          <i class="pi pi-spin pi-spinner"></i>
+          <p>Cargando historial...</p>
+        </div>
+
+        <div *ngIf="!loadingHistorial && historial.length === 0" class="empty-state">
+          <i class="pi pi-history"></i>
+          <p>No tienes viajes en tu historial</p>
+        </div>
+
+        <div class="historial-list" *ngIf="!loadingHistorial && historial.length > 0">
+          <div class="historial-item" *ngFor="let item of historial">
+            <img [src]="item.alojamientoImagen" [alt]="item.alojamientoNombre" class="historial-image" />
+            <div class="historial-content">
+              <h3>{{ item.alojamientoNombre }}</h3>
+              <div class="historial-info">
+                <span class="fecha">
+                  <i class="pi pi-calendar"></i>
+                  {{ formatDate(item.fechaInicio) }} - {{ formatDate(item.fechaFin) }}
+                </span>
+                <span class="estado" [ngClass]="getEstadoClass(item.estado)">
+                  {{ item.estado }}
+                </span>
+              </div>
+              <p class="precio-total">Total: ${{ item.precioTotal | number }}</p>
+            </div>
+            <div class="historial-actions">
+              <button pButton label="Ver Detalles" class="p-button-outlined"></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>

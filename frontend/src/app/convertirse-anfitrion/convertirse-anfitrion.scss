@@ -1,0 +1,400 @@
+.solicitud-owner-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    padding: 2rem;
+    overflow: hidden;
+
+    .background-gradient {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+        z-index: -1;
+    }
+
+    .content-wrapper {
+        width: 100%;
+        max-width: 1200px;
+        z-index: 1;
+    }
+
+    .solicitud-card {
+        display: grid;
+        grid-template-columns: 45% 55%;
+        background: white;
+        border-radius: 24px;
+        overflow: hidden;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        min-height: 700px;
+
+        @media (max-width: 968px) {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .left-section {
+        background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%);
+        padding: 3rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+
+        &::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 400px;
+            height: 400px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+        }
+
+        .info-content {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            color: white;
+
+            .title {
+                font-size: 2.5rem;
+                font-weight: 700;
+                margin-bottom: 1.5rem;
+                line-height: 1.2;
+
+                @media (max-width: 768px) {
+                    font-size: 2rem;
+                }
+            }
+
+            .subtitle {
+                font-size: 1.1rem;
+                margin-bottom: 2rem;
+                opacity: 0.95;
+            }
+
+            .login-btn {
+                border: 2px solid white;
+                color: white;
+                padding: 0.75rem 3rem;
+                font-size: 1rem;
+                font-weight: 600;
+                border-radius: 12px;
+                transition: all 0.3s ease;
+
+                &:hover {
+                    background: white;
+                    color: #a855f7;
+                    transform: translateY(-2px);
+                    box-shadow: 0 8px 20px rgba(255, 255, 255, 0.3);
+                }
+            }
+        }
+
+        @media (max-width: 968px) {
+            padding: 2rem;
+            min-height: 300px;
+        }
+    }
+
+    .right-section {
+        padding: 2.5rem 3rem;
+        background: #f8f9fa;
+        overflow-y: auto;
+        max-height: 90vh;
+
+        @media (max-width: 768px) {
+            padding: 2rem 1.5rem;
+        }
+
+        .form-container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .logo-container {
+            text-align: center;
+            margin-bottom: 2rem;
+
+            .logo {
+                width: 60px;
+                height: 60px;
+                margin-bottom: 0.5rem;
+            }
+
+            .brand-name {
+                color: #7c3aed;
+                font-size: 1.5rem;
+                font-weight: 700;
+                margin: 0;
+            }
+        }
+
+        .info-message {
+            background: #e0e7ff;
+            border-left: 4px solid #7c3aed;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+
+            p {
+                margin: 0;
+                color: #4c1d95;
+                font-size: 0.9rem;
+                line-height: 1.5;
+            }
+        }
+
+        .alert-warning {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: #92400e;
+
+            i {
+                font-size: 1.2rem;
+            }
+        }
+
+        .form-field {
+            margin-bottom: 1.5rem;
+
+            label {
+                display: block;
+                font-weight: 600;
+                color: #374151;
+                margin-bottom: 0.5rem;
+                font-size: 0.95rem;
+
+                .required {
+                    color: #ef4444;
+                }
+            }
+
+            textarea {
+                width: 100%;
+                border: 2px solid #e5e7eb;
+                border-radius: 12px;
+                padding: 0.75rem;
+                font-size: 0.95rem;
+                transition: all 0.3s ease;
+                font-family: inherit;
+                resize: vertical;
+
+                &:focus {
+                    outline: none;
+                    border-color: #a855f7;
+                    box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.1);
+                }
+
+                &.invalid {
+                    border-color: #ef4444;
+                }
+
+                &::placeholder {
+                    color: #9ca3af;
+                }
+            }
+
+            .character-count {
+                display: block;
+                text-align: right;
+                color: #6b7280;
+                font-size: 0.85rem;
+                margin-top: 0.25rem;
+            }
+
+            .error-message {
+                display: block;
+                color: #ef4444;
+                font-size: 0.85rem;
+                margin-top: 0.25rem;
+            }
+
+            .help-text {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                color: #6b7280;
+                font-size: 0.85rem;
+                margin-top: 0.5rem;
+
+                i {
+                    color: #a855f7;
+                }
+            }
+
+            ::ng-deep {
+                .p-fileupload {
+                    .p-fileupload-buttonbar {
+                        background: transparent;
+                        border: 2px dashed #d1d5db;
+                        border-radius: 12px;
+                        padding: 1.5rem;
+                        transition: all 0.3s ease;
+
+                        &:hover {
+                            border-color: #a855f7;
+                            background: rgba(168, 85, 247, 0.05);
+                        }
+
+                        .p-button {
+                            background: #a855f7;
+                            border: none;
+                            border-radius: 8px;
+                            padding: 0.6rem 1.5rem;
+                            font-weight: 600;
+
+                            &:hover {
+                                background: #9333ea;
+                            }
+                        }
+                    }
+
+                    .p-fileupload-content {
+                        border: none;
+                        background: transparent;
+                        padding: 0;
+                    }
+                }
+            }
+
+            .upload-placeholder {
+                text-align: center;
+                padding: 2rem 1rem;
+
+                i {
+                    font-size: 3rem;
+                    color: #a855f7;
+                    margin-bottom: 1rem;
+                    display: block;
+                }
+
+                p {
+                    color: #374151;
+                    font-weight: 500;
+                    margin-bottom: 0.5rem;
+                }
+
+                small {
+                    color: #6b7280;
+                }
+            }
+        }
+
+        .submit-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%);
+            border: none;
+            color: white;
+            padding: 1rem;
+            font-size: 1rem;
+            font-weight: 700;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+
+            &:not(:disabled):hover {
+                transform: translateY(-2px);
+                box-shadow: 0 10px 25px rgba(168, 85, 247, 0.3);
+            }
+
+            &:disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+            }
+        }
+
+        .additional-info {
+            margin-top: 2rem;
+
+            ::ng-deep {
+                .p-divider {
+                    margin: 1.5rem 0;
+
+                    &::before,
+                    &::after {
+                        border-top: 1px solid #e5e7eb;
+                    }
+
+                    .p-divider-content {
+                        background: #f8f9fa;
+                    }
+                }
+            }
+
+            .divider-text {
+                color: #6b7280;
+                font-size: 0.85rem;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+            }
+
+            .info-list {
+                list-style: none;
+                padding: 0;
+                margin: 1rem 0 0;
+
+                li {
+                    display: flex;
+                    align-items: flex-start;
+                    gap: 0.75rem;
+                    padding: 0.75rem 0;
+                    color: #4b5563;
+                    font-size: 0.9rem;
+                    line-height: 1.5;
+
+                    i {
+                        color: #10b981;
+                        font-size: 1.1rem;
+                        margin-top: 0.15rem;
+                        flex-shrink: 0;
+                    }
+                }
+            }
+        }
+    }
+}
+
+::ng-deep {
+    .p-toast {
+        z-index: 9999;
+
+        .p-toast-message {
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+
+            &.p-toast-message-success {
+                background: #d1fae5;
+                border-left: 4px solid #10b981;
+                color: #065f46;
+            }
+
+            &.p-toast-message-error {
+                background: #fee2e2;
+                border-left: 4px solid #ef4444;
+                color: #991b1b;
+            }
+
+            &.p-toast-message-warn {
+                background: #fef3c7;
+                border-left: 4px solid #f59e0b;
+                color: #92400e;
+            }
+        }
+    }
+}

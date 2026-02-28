@@ -1,0 +1,126 @@
+<div class="solicitud-owner-container">
+  <p-toast></p-toast>
+  
+  <div class="background-gradient"></div>
+  
+  <div class="content-wrapper">
+    <div class="solicitud-card">
+      <!-- Lado izquierdo -->
+      <div class="left-section">
+        <div class="info-content">
+          <h1 class="title">Convertirse en Anfitrión</h1>
+          <p class="subtitle">¿No estás interesado en ser anfitrión?</p>
+          <button 
+            pButton 
+            label="Volver al Inicio" 
+            class="p-button-outlined login-btn"
+            (click)="volverAlInicio()">
+          </button>
+        </div>
+      </div>
+
+      <!-- Lado derecho -->
+      <div class="right-section">
+        <div class="form-container">
+          <div class="logo-container">
+            <img src="StayFinder.png" alt="StayFinder" class="logo">
+            <h2 class="brand-name">StayFinder</h2>
+          </div>
+
+          <div class="info-message">
+            <p>
+              Complete el formulario para solicitar convertirse en anfitrión. 
+              Su solicitud será revisada por nuestro equipo de administración.
+            </p>
+          </div>
+
+          <div *ngIf="tieneSolicitudPendiente" class="alert-warning">
+            <i class="pi pi-info-circle"></i>
+            <span>Ya tienes una solicitud pendiente de revisión</span>
+          </div>
+
+          <form [formGroup]="solicitudForm" (ngSubmit)="enviarSolicitud()">
+            <div class="form-field">
+              <label for="comentario">
+                Motivo de solicitud <span class="required">*</span>
+              </label>
+              <textarea 
+                id="comentario"
+                formControlName="comentario"
+                pInputTextarea
+                rows="5"
+                placeholder="Explique por qué desea convertirse en anfitrión (mínimo 50 caracteres)"
+                [class.invalid]="solicitudForm.get('comentario')?.invalid && solicitudForm.get('comentario')?.touched">
+              </textarea>
+              <small class="character-count">
+                {{ solicitudForm.get('comentario')?.value?.length || 0 }} / 500 caracteres
+              </small>
+              <small 
+                class="error-message" 
+                *ngIf="solicitudForm.get('comentario')?.invalid && solicitudForm.get('comentario')?.touched">
+                El comentario debe tener entre 50 y 500 caracteres
+              </small>
+            </div>
+
+            <div class="form-field">
+              <label for="documento">
+                Documento de verificación (PDF) <span class="required">*</span>
+              </label>
+              <p-fileUpload
+                mode="advanced"
+                [showUploadButton]="false"
+                [showCancelButton]="false"
+                accept="application/pdf"
+                [maxFileSize]="5242880"
+                [auto]="false"
+                chooseLabel="Seleccionar archivo"
+                (onSelect)="onFileSelect($event)"
+                (onRemove)="onFileRemove()">
+                <ng-template pTemplate="content">
+                  <div class="upload-placeholder" *ngIf="!documentoSeleccionado">
+                    <i class="pi pi-cloud-upload"></i>
+                    <p>Arrastra tu archivo PDF aquí o haz clic para seleccionar</p>
+                    <small>Máximo 5MB</small>
+                  </div>
+                </ng-template>
+              </p-fileUpload>
+              <small class="help-text">
+                <i class="pi pi-info-circle"></i>
+                Suba un documento de identidad o certificado que respalde su solicitud
+              </small>
+            </div>
+
+            <button 
+              pButton 
+              type="submit"
+              label="Enviar Solicitud" 
+              class="submit-btn"
+              [disabled]="solicitudForm.invalid || loading || tieneSolicitudPendiente"
+              [loading]="loading">
+            </button>
+
+            <div class="additional-info">
+              <p-divider align="center">
+                <span class="divider-text">Proceso de revisión</span>
+              </p-divider>
+              <ul class="info-list">
+                <li>
+                  <i class="pi pi-check-circle"></i>
+                  <span>Su solicitud será revisada en un plazo de 3-5 días hábiles</span>
+                </li>
+                <li>
+                  <i class="pi pi-check-circle"></i>
+                  <span>Recibirá una notificación por email con la decisión</span>
+                </li>
+                <li>
+                  <i class="pi pi-check-circle"></i>
+                  <span>Puede verificar el estado en la sección "Mis Solicitudes"</span>
+                </li>
+              </ul>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

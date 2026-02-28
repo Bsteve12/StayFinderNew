@@ -1,0 +1,220 @@
+.user-menu-container {
+  position: relative;
+  display: inline-block;
+
+
+  .menu-button {
+    background: #c4b5fd !important;
+    color: #5b21b6 !important;
+    border: none !important;
+    width: 48px;
+    height: 48px;
+    transition: all 0.3s ease;
+
+
+    &:hover {
+      background: #a78bfa !important;
+      transform: scale(1.05);
+    }
+  }
+
+
+  // Usuario autenticado
+  .user-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 16px;
+    background: #c4b5fd;
+    border-radius: 24px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+
+
+    &:hover {
+      background: #a78bfa;
+      transform: scale(1.02);
+    }
+
+
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+
+
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+
+      i {
+        font-size: 20px;
+        color: #5b21b6;
+      }
+    }
+
+
+    .user-name {
+      font-weight: 600;
+      color: #1e1b4b;
+      font-size: 15px;
+      max-width: 120px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+
+    i.pi-chevron-down {
+      font-size: 12px;
+      color: #5b21b6;
+    }
+  }
+}
+
+
+// Estilos personalizados para el menú
+::ng-deep {
+  .custom-menu {
+    position: fixed !important; // Cambiar a fixed para evitar desplazamiento
+    border-radius: 16px !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15) !important;
+    border: 1px solid #e5e7eb !important;
+    overflow: hidden;
+    min-width: 220px;
+    z-index: 9999 !important; // Asegurar que esté por encima de todo
+
+
+    .p-menu-list {
+      padding: 8px !important;
+    }
+
+
+    .p-menuitem {
+      margin: 4px 0;
+
+
+      .p-menuitem-link {
+        border-radius: 8px !important;
+        padding: 12px 16px !important;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+
+        .p-menuitem-icon {
+          color: #5b21b6;
+          font-size: 18px;
+        }
+
+
+        .p-menuitem-text {
+          color: #1e1b4b;
+          font-weight: 600;
+          font-size: 15px;
+        }
+
+
+        &:hover {
+          background: #f3e8ff !important;
+
+
+          .p-menuitem-icon {
+            color: #7c3aed;
+          }
+
+
+          .p-menuitem-text {
+            color: #5b21b6;
+          }
+        }
+
+
+        &:focus {
+          box-shadow: none !important;
+        }
+      }
+
+
+      // Estilo especial para "Cerrar sesión"
+      &.logout-item,
+      &:last-child {
+        .p-menuitem-link {
+          .p-menuitem-icon {
+            color: #dc2626;
+          }
+
+
+          .p-menuitem-text {
+            color: #dc2626;
+          }
+
+
+          &:hover {
+            background: #fee2e2 !important;
+
+
+            .p-menuitem-icon {
+              color: #991b1b;
+            }
+
+
+            .p-menuitem-text {
+              color: #991b1b;
+            }
+          }
+        }
+      }
+    }
+
+
+    .p-menu-separator {
+      margin: 8px 0 !important;
+      border-top: 1px solid #e5e7eb !important;
+    }
+  }
+}
+
+
+// Animación de entrada
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+::ng-deep .custom-menu {
+  animation: fadeInDown 0.3s ease;
+}
+
+
+// Responsive
+@media (max-width: 768px) {
+  .user-menu-container {
+    .user-info {
+      padding: 6px 12px;
+
+
+      .user-name {
+        display: none; // Ocultar nombre en móvil
+      }
+    }
+  }
+}

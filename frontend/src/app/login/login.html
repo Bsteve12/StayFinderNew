@@ -1,0 +1,77 @@
+<!-- src/app/login/login.html -->
+<p-toast></p-toast>
+
+<div class="login-container">
+  <div class="login-card">
+    <!-- Lado Izquierdo - Bienvenida -->
+    <div class="welcome-section">
+      <div class="welcome-content">
+        <h1 class="welcome-title">Hola, bienvenido</h1>
+        <p class="welcome-subtitle">¿No tienes una cuenta?</p>
+        <button pButton label="Regístrate" class="register-button" (click)="goToRegister()"></button>
+      </div>
+      <div class="decoration-circle"></div>
+    </div>
+
+    <!-- Lado Derecho - Formulario -->
+    <div class="form-section">
+      <div class="form-content">
+        <!-- Logo -->
+        <div class="logo-container">
+          <img src="StayFinder.png" alt="StayFinder" class="logo" />
+          <span class="logo-text">StayFinder</span>
+        </div>
+
+        <!-- Formulario -->
+        <form [formGroup]="loginForm" class="login-form">
+          <!-- Campo Usuario -->
+          <div class="form-field">
+            <div class="input-wrapper">
+              <input type="text" pInputText formControlName="email" placeholder="Email" class="form-input"
+                [class.invalid]="isUsernameInvalid" />
+              <i class="pi pi-envelope input-icon"></i>
+            </div>
+            <small class="error-message" *ngIf="isUsernameInvalid">
+              El email es requerido
+            </small>
+          </div>
+
+          <!-- Campo Contraseña -->
+          <div class="form-field">
+            <div class="input-wrapper">
+              <input [type]="showPassword ? 'text' : 'password'" pInputText formControlName="password"
+                placeholder="Contraseña" class="form-input" [class.invalid]="isPasswordInvalid" />
+              <i class="pi pi-lock input-icon"></i>
+            </div>
+            <small class="error-message" *ngIf="isPasswordInvalid">
+              La contraseña debe tener al menos 8 caracteres
+            </small>
+          </div>
+
+          <!-- Link olvidó contraseña -->
+          <div class="forgot-password-wrapper">
+            <a class="forgot-password-link" (click)="goToForgotPassword()">
+              ¿Has olvidado tu contraseña?
+            </a>
+          </div>
+
+          <!-- Botón Login -->
+          <button pButton type="button" label="Login" class="login-button" [disabled]="loginForm.invalid"
+            (click)="onLogin()"></button>
+
+          <!-- Divider para opción social -->
+          <div class="social-divider">
+            <span>o</span>
+          </div>
+
+          <!-- Botón Google -->
+          <button type="button" class="google-button" (click)="loginWithGoogle()">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google"
+              class="google-icon" />
+            Continuar con Google
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

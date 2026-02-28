@@ -1,0 +1,134 @@
+<p-toast></p-toast>
+
+
+<div class="register-container">
+  <div class="register-card">
+    <!-- Lado Izquierdo - Formulario -->
+    <div class="form-section">
+      <div class="form-content">
+        <!-- Logo -->
+        <div class="logo-container">
+          <img src="StayFinder.png" alt="StayFinder" class="logo" />
+          <span class="logo-text">StayFinder</span>
+        </div>
+
+        <!-- Formulario -->
+        <form [formGroup]="registerForm" (ngSubmit)="onRegister()" class="register-form">
+          <!-- Campo Usuario -->
+          <div class="form-field">
+            <div class="input-wrapper">
+              <input
+                type="text"
+                pInputText
+                formControlName="username"
+                placeholder="Usuario"
+                class="form-input"
+                [class.invalid]="isUsernameInvalid"
+              />
+              <i class="pi pi-user input-icon"></i>
+            </div>
+            <small class="error-message" *ngIf="isUsernameInvalid">
+              {{ getUsernameError() }}
+            </small>
+          </div>
+
+          <!-- Campo Email -->
+          <div class="form-field">
+            <div class="input-wrapper">
+              <input
+                type="email"
+                pInputText
+                formControlName="email"
+                placeholder="Email"
+                class="form-input"
+                [class.invalid]="isEmailInvalid"
+              />
+              <i class="pi pi-envelope input-icon"></i>
+            </div>
+            <small class="error-message" *ngIf="isEmailInvalid">
+              {{ getEmailError() }}
+            </small>
+          </div>
+
+          <!-- Campo Contraseña -->
+          <div class="form-field">
+            <div class="input-wrapper">
+              <input
+                type="password"
+                pInputText
+                formControlName="password"
+                placeholder="Contraseña"
+                class="form-input"
+                [class.invalid]="isPasswordInvalid"
+              />
+              <i class="pi pi-lock input-icon"></i>
+            </div>
+            <small class="error-message" *ngIf="isPasswordInvalid">
+              {{ getPasswordError() }}
+            </small>
+          </div>
+
+          <!-- Campo Teléfono -->
+          <div class="form-field">
+            <div class="input-wrapper">
+              <input
+                type="tel"
+                pInputText
+                formControlName="phone"
+                placeholder="Teléfono"
+                class="form-input"
+                [class.invalid]="isPhoneInvalid"
+                maxlength="10"
+              />
+              <i class="pi pi-phone input-icon"></i>
+            </div>
+            <small class="error-message" *ngIf="isPhoneInvalid">
+              {{ getPhoneError() }}
+            </small>
+          </div>
+
+          <!-- Campo Fecha de Nacimiento -->
+          <div class="form-field">
+            <div class="input-wrapper">
+              <div
+                class="date-input"
+                [class.invalid]="isBirthdateInvalid"
+                (click)="openBirthdateDialog()"
+              >
+                <span [class.placeholder]="!birthdate?.value">{{ formatDate(birthdate?.value) }}</span>
+              </div>
+              <i class="pi pi-calendar input-icon-calendar"></i>
+            </div>
+            <small class="error-message" *ngIf="isBirthdateInvalid">
+              {{ getBirthdateError() }}
+            </small>
+          </div>
+
+          <!-- Botón Regístrate -->
+          <button
+            pButton
+            type="submit"
+            label="Regístrate"
+            class="register-button"
+            [disabled]="registerForm.invalid"
+          ></button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Lado Derecho - Bienvenida -->
+    <div class="welcome-section">
+      <div class="welcome-content">
+        <h1 class="welcome-title">¡Bienvenido de nuevo!</h1>
+        <p class="welcome-subtitle">¿Ya tienes una cuenta?</p>
+        <button
+          pButton
+          label="Login"
+          class="login-button"
+          (click)="goToLogin()"
+        ></button>
+      </div>
+      <div class="decoration-circle"></div>
+    </div>
+  </div>
+</div>

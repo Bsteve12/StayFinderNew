@@ -1,0 +1,273 @@
+<div class="dashboard-container">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-content">
+      <!-- Logo -->
+      <div class="logo-section">
+        <img src="StayFinder.png" alt="StayFinder" class="logo" />
+        <span class="logo-text">StayFinder</span>
+      </div>
+
+      <!-- Menú de navegación -->
+      <nav class="menu">
+        <button class="menu-item" [class.active]="currentView === 'perfil'" (click)="changeView('perfil')">
+          Perfil del anfitrión
+        </button>
+
+        <button class="menu-item" [class.active]="currentView === 'historial'" (click)="changeView('historial')">
+          Historial reservas
+        </button>
+
+        <button class="menu-item" [class.active]="currentView === 'servicios'" (click)="changeView('servicios')">
+          Servicios
+        </button>
+
+        <button class="menu-item" [class.active]="currentView === 'gestion'" (click)="changeView('gestion')">
+          Gestión de alojamiento
+        </button>
+
+        <button class="menu-item" [class.active]="currentView === 'calendario'" (click)="changeView('calendario')">
+          Calendario de disponibilidad
+        </button>
+      </nav>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Header -->
+    <header class="content-header">
+      <h1 class="page-title">
+        {{ currentView === 'perfil' ? 'Perfil del Anfitrión' :
+        currentView === 'historial' ? 'Historial de Reservas' :
+        currentView === 'servicios' ? 'Servicios' :
+        currentView === 'gestion' ? 'Gestión de Alojamientos' :
+        currentView === 'calendario' ? 'Calendario de Disponibilidad' :
+        'Solicitar Publicación' }}
+      </h1>
+      <button pButton icon="pi pi-bars" class="p-button-rounded menu-toggle"></button>
+    </header>
+
+    <!-- Content Area -->
+    <div class="content-area">
+      <!-- Vista: Perfil del Anfitrión -->
+      <div *ngIf="currentView === 'perfil'" class="profile-view">
+        <div class="profile-card">
+          <div class="profile-avatar">
+            <i class="pi pi-home"></i>
+          </div>
+          <h2>{{ ownerNombre }}</h2>
+          <p class="email">{{ ownerEmail }}</p>
+          <p class="role">Anfitrión</p>
+
+          <div class="profile-stats">
+            <div class="stat-item">
+              <span class="stat-value">{{ alojamientos.length }}</span>
+              <span class="stat-label">Alojamientos</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-value">{{ historialReservas.length }}</span>
+              <span class="stat-label">Reservas</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-value">4.8</span>
+              <span class="stat-label">Rating</span>
+            </div>
+          </div>
+
+          <button pButton label="Editar Perfil" class="edit-button"></button>
+        </div>
+      </div>
+
+      <!-- Vista: Gestión de Alojamientos -->
+      <div *ngIf="currentView === 'gestion'" class="gestion-view">
+        <div class="gestion-header">
+          <h3>Mis Alojamientos</h3>
+          <button pButton label="Agregar Alojamiento" icon="pi pi-plus" (click)="openCreateDialog()"></button>
+        </div>
+
+        <div *ngIf="loadingAlojamientos" class="loading">
+          <i class="pi pi-spin pi-spinner"></i>
+          <p>Cargando alojamientos...</p>
+        </div>
+
+        <div *ngIf="!loadingAlojamientos && alojamientos.length === 0" class="empty-state">
+          <i class="pi pi-home"></i>
+          <p>No tienes alojamientos registrados</p>
+          <button pButton label="Crear mi primer alojamiento" (click)="openCreateDialog()"></button>
+        </div>
+
+        <div class="alojamientos-grid" *ngIf="!loadingAlojamientos && alojamientos.length > 0">
+          <div class="alojamiento-card" *ngFor="let alojamiento of alojamientos">
+            <img [src]="alojamiento.imagenes[0] || 'assets/placeholder.jpg'" [alt]="alojamiento.nombre"
+              class="alojamiento-image" />
+            <div class="alojamiento-content">
+              <div class="alojamiento-header">
+                <h3>{{ alojamiento.nombre }}</h3>
+                <span class="estado-badge" [ngClass]="getEstadoClass(alojamiento.estado)">
+                  {{ alojamiento.estado }}
+                </span>
+              </div>
+              <p class="ubicacion">
+                <i class="pi pi-map-marker"></i>
+                {{ alojamiento.direccion }}
+              </p>
+              <p class="descripcion">{{ alojamiento.descripcion }}</p>
+              <div class="alojamiento-info">
+                <span><i class="pi pi-users"></i> {{ alojamiento.capacidadMaxima }} Huéspedes</span>
+                <span>💰 ${{ alojamiento.precio | number }} / Noche</span>
+              </div>
+              <div class="alojamiento-actions">
+                <button pButton label="Editar" icon="pi pi-pencil" class="p-button-text"
+                  (click)="openEditDialog(alojamiento)"></button>
+                <button pButton label="Eliminar" icon="pi pi-trash" class="p-button-text p-button-danger"
+                  (click)="eliminarAlojamiento(alojamiento.id)"></button>
+                <button pButton label="Solicitar Publicación" icon="pi pi-send" class="p-button-success"
+                  *ngIf="alojamiento.estado !== 'PUBLICADO'" (click)="openSolicitudDialog(alojamiento)"></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Vista: Historial de Reservas -->
+      <div *ngIf="currentView === 'historial'" class="historial-view">
+        <div *ngIf="loadingHistorial" class="loading">
+          <i class="pi pi-spin pi-spinner"></i>
+          <p>Cargando historial...</p>
+        </div>
+
+        <div *ngIf="!loadingHistorial && historialReservas.length === 0" class="empty-state">
+          <i class="pi pi-calendar"></i>
+          <p>No tienes reservas en el historial</p>
+        </div>
+
+        <div class="historial-list" *ngIf="!loadingHistorial && historialReservas.length > 0">
+          <div class="historial-item" *ngFor="let reserva of historialReservas">
+            <img [src]="reserva.alojamientoImagen" [alt]="reserva.alojamientoNombre" class="historial-image" />
+            <div class="historial-content">
+              <h3>{{ reserva.alojamientoNombre }}</h3>
+              <p class="usuario"><i class="pi pi-user"></i> {{ reserva.usuarioNombre }}</p>
+              <p class="fechas">
+                <i class="pi pi-calendar"></i>
+                {{ formatDate(reserva.fechaInicio) }} - {{ formatDate(reserva.fechaFin) }}
+              </p>
+              <span class="estado-badge">{{ reserva.estado }}</span>
+              <p class="precio">Total: ${{ reserva.precioTotal | number }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Vistas Placeholder -->
+      <div *ngIf="currentView === 'servicios'" class="placeholder-view">
+        <i class="pi pi-cog"></i>
+        <h3>Servicios</h3>
+        <p>Gestiona los servicios disponibles en tus alojamientos</p>
+      </div>
+
+      <div *ngIf="currentView === 'calendario'" class="placeholder-view">
+        <i class="pi pi-calendar"></i>
+        <h3>Calendario de Disponibilidad</h3>
+        <p>Gestiona la disponibilidad de tus alojamientos</p>
+      </div>
+
+      <div *ngIf="currentView === 'solicitar'" class="placeholder-view">
+        <i class="pi pi-send"></i>
+        <h3>Solicitar Publicación</h3>
+        <p>Gestiona tus solicitudes de publicación desde "Gestión de alojamientos"</p>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Dialog: Crear Alojamiento -->
+<p-dialog [(visible)]="showCreateDialog" header="Crear Alojamiento" [modal]="true" [style]="{width: '600px'}">
+  <div class="form-content">
+    <div class="form-field">
+      <label>Nombre</label>
+      <input type="text" pInputText [(ngModel)]="alojamientoForm.nombre" />
+    </div>
+
+    <div class="form-field">
+      <label>Descripción</label>
+      <textarea pInputTextarea [(ngModel)]="alojamientoForm.descripcion" rows="3"></textarea>
+    </div>
+
+    <div class="form-field">
+      <label>Ubicación (Dirección)</label>
+      <input type="text" pInputText [(ngModel)]="alojamientoForm.direccion" />
+    </div>
+
+    <div class="form-row">
+      <div class="form-field">
+        <label>Precio por noche</label>
+        <input type="number" pInputText [(ngModel)]="alojamientoForm.precio" />
+      </div>
+
+      <div class="form-field">
+        <label>Capacidad Máxima</label>
+        <input type="number" pInputText [(ngModel)]="alojamientoForm.capacidadMaxima" />
+      </div>
+    </div>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <button pButton label="Cancelar" class="p-button-text" (click)="showCreateDialog = false"></button>
+    <button pButton label="Guardar" (click)="crearAlojamiento()"></button>
+  </ng-template>
+</p-dialog>
+
+<!-- Dialog: Editar Alojamiento -->
+<p-dialog [(visible)]="showEditDialog" header="Editar Alojamiento" [modal]="true" [style]="{width: '600px'}">
+  <div class="form-content">
+    <div class="form-field">
+      <label>Nombre</label>
+      <input type="text" pInputText [(ngModel)]="alojamientoForm.nombre" />
+    </div>
+
+    <div class="form-field">
+      <label>Descripción</label>
+      <textarea pInputTextarea [(ngModel)]="alojamientoForm.descripcion" rows="3"></textarea>
+    </div>
+
+    <div class="form-field">
+      <label>Ubicación (Dirección)</label>
+      <input type="text" pInputText [(ngModel)]="alojamientoForm.direccion" />
+    </div>
+
+    <div class="form-row">
+      <div class="form-field">
+        <label>Precio por noche</label>
+        <input type="number" pInputText [(ngModel)]="alojamientoForm.precio" />
+      </div>
+
+      <div class="form-field">
+        <label>Capacidad Máxima</label>
+        <input type="number" pInputText [(ngModel)]="alojamientoForm.capacidadMaxima" />
+      </div>
+    </div>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <button pButton label="Cancelar" class="p-button-text" (click)="showEditDialog = false"></button>
+    <button pButton label="Guardar" (click)="editarAlojamiento()"></button>
+  </ng-template>
+</p-dialog>
+
+<!-- Dialog: Solicitar Publicación -->
+<p-dialog [(visible)]="showSolicitudDialog" header="Solicitar Publicación" [modal]="true" [style]="{width: '500px'}">
+  <div class="solicitud-content">
+    <p>Estás a punto de solicitar la publicación de:</p>
+    <h3>{{ selectedAlojamiento?.nombre }}</h3>
+    <div class="form-field">
+      <label>Comentarios (opcional)</label>
+      <textarea #comentarios pInputTextarea rows="4" placeholder="Agrega comentarios adicionales..."></textarea>
+    </div>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <button pButton label="Cancelar" class="p-button-text" (click)="showSolicitudDialog = false"></button>
+    <button pButton label="Enviar Solicitud" (click)="solicitarPublicacion(comentarios.value)"></button>
+  </ng-template>
+</p-dialog>
