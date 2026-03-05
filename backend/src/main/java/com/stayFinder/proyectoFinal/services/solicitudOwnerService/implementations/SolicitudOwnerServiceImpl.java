@@ -11,13 +11,19 @@ import com.stayFinder.proyectoFinal.mapper.SolicitudOwnerMapper;
 import com.stayFinder.proyectoFinal.repository.SolicitudOwnerRepository;
 import com.stayFinder.proyectoFinal.repository.UsuarioRepository;
 import com.stayFinder.proyectoFinal.services.solicitudOwnerService.interfaces.SolicitudOwnerServiceInterface;
+import com.stayFinder.proyectoFinal.services.emailService.interfaces.EmailServiceInterface;
+import org.springframework.security.core.context.SecurityContextHolder;
+import java.util.concurrent.CompletableFuture;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.io.File;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -30,11 +36,15 @@ public class SolicitudOwnerServiceImpl implements SolicitudOwnerServiceInterface
     private final SolicitudOwnerRepository solicitudRepo;
     private final UsuarioRepository usuarioRepo;
     private final SolicitudOwnerMapper mapper;
+    private final EmailServiceInterface emailService;
 
-    private static final String UPLOAD_DIR = "uploads/solicitudes/";
+    // Ruta absoluta explícita para evitar que Tomcat lo redirija a
+    // AppData/Local/Temp
+    private static final String UPLOAD_DIR = "C:/Users/allis/Desktop/Allison-Brandon/StayFinderNew/backend/uploads/solicitudes/";
 
     @Override
-    public SolicitudOwnerResponseDTO crearSolicitud(SolicitudOwnerRequestDTO dto, MultipartFile documento) throws Exception {
+    public SolicitudOwnerResponseDTO crearSolicitud(SolicitudOwnerRequestDTO dto, MultipartFile documento)
+            throws Exception {
         Usuario usuario = usuarioRepo.findById(dto.usuarioId())
                 .orElseThrow(() -> new Exception("Usuario no encontrado"));
 
@@ -47,7 +57,8 @@ public class SolicitudOwnerServiceImpl implements SolicitudOwnerServiceInterface
                 .stream()
                 .anyMatch(s -> s.getUsuario().getId().equals(usuario.getId()));
 
-        if (yaPendiente) throw new Exception("El usuario ya tiene una solicitud pendiente");
+        if (yaPendiente)
+            throw new Exception("El usuario ya tiene una solicitud pendiente");
 
         String ruta = null;
         if (documento != null && !documento.isEmpty()) {
@@ -71,7 +82,8 @@ public class SolicitudOwnerServiceImpl implements SolicitudOwnerServiceInterface
         SolicitudOwner solicitud = solicitudRepo.findById(dto.solicitudId())
                 .orElseThrow(() -> new Exception("Solicitud no encontrada"));
 
-        Usuario admin = usuarioRepo.findById(dto.adminId())
+        String adminEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        Usuario admin = usuarioRepo.findByEmail(adminEmail)
                 .orElseThrow(() -> new Exception("Admin no encontrado"));
 
         if (admin.getRole() != Role.ADMIN) {
@@ -88,6 +100,18 @@ public class SolicitudOwnerServiceImpl implements SolicitudOwnerServiceInterface
         if (LocalDateTime.now().isAfter(limite)) {
             solicitud.setEstado(EstadoSolicitud.RECHAZADA);
             solicitudRepo.save(solicitud);
+
+            CompletableFuture.runAsync(() -> {
+                try {
+                    emailService.sendHostApplicationDecision(solicitud.getUsuario().getEmail(),
+                            "Resolución de tu solicitud para Anfitrión",
+                            "Hola " + solicitud.getUsuario().getNombre() + ",\n\n" +
+                                    "Lamentamos informarte que tu solicitud fue rechazada automáticamente debido a que el límite de revisión de 3 días hábiles expiró.");
+                } catch (Exception e) {
+                    System.err.println("Error enviando email: " + e.getMessage());
+                }
+            });
+
             return mapper.toDto(solicitud);
         }
 
@@ -98,8 +122,33 @@ public class SolicitudOwnerServiceImpl implements SolicitudOwnerServiceInterface
             Usuario usuario = solicitud.getUsuario();
             usuario.setRole(Role.OWNER);
             usuarioRepo.save(usuario);
+
+            CompletableFuture.runAsync(() -> {
+                try {
+                    emailService.sendHostApplicationDecision(usuario.getEmail(),
+                            "¡Felicidades! Ahora eres Anfitrión en StayFinder",
+                            "Hola " + usuario.getNombre() + ",\n\n" +
+                                    "Tu solicitud ha sido aprobada. Ahora puedes administrar y publicar tus propiedades desde el panel de control.\n\n"
+                                    +
+                                    "¡Bienvenido al equipo de anfitriones!");
+                } catch (Exception e) {
+                    System.err.println("Error enviando email: " + e.getMessage());
+                }
+            });
         } else {
             solicitud.setEstado(EstadoSolicitud.RECHAZADA);
+
+            CompletableFuture.runAsync(() -> {
+                try {
+                    emailService.sendHostApplicationDecision(solicitud.getUsuario().getEmail(),
+                            "Resolución de tu solicitud para Anfitrión",
+                            "Hola " + solicitud.getUsuario().getNombre() + ",\n\n" +
+                                    "Lamentamos informarte que tu solicitud no ha sido aprobada en esta ocasión.\n\n" +
+                                    "Comentarios del administrador: " + dto.comentario());
+                } catch (Exception e) {
+                    System.err.println("Error enviando email: " + e.getMessage());
+                }
+            });
         }
 
         solicitudRepo.save(solicitud);
@@ -120,15 +169,47 @@ public class SolicitudOwnerServiceImpl implements SolicitudOwnerServiceInterface
             throw new Exception("Debe adjuntar un documento PDF");
         }
         try {
-            File dir = new File(UPLOAD_DIR);
-            if (!dir.exists()) dir.mkdirs();
+            Path uploadPath = Paths.get(UPLOAD_DIR).toAbsolutePath().normalize();
+
+            if (!Files.exists(uploadPath)) {
+                Files.createDirectories(uploadPath);
+            }
 
             String fileName = "solicitud_" + usuarioId + "_" + System.currentTimeMillis() + ".pdf";
-            File destino = new File(dir, fileName);
-            file.transferTo(destino);
-            return destino.getAbsolutePath();
+            Path destino = uploadPath.resolve(fileName);
+
+            // Escribir los bytes directamente para evitar que Tomcat busque en su carpeta
+            // Temp interna
+            byte[] bytes = file.getBytes();
+            Files.write(destino, bytes);
+
+            return destino.toString();
         } catch (IOException e) {
             throw new Exception("Error al guardar el documento: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public Resource descargarDocumento(Long id) throws Exception {
+        SolicitudOwner solicitud = solicitudRepo.findById(id)
+                .orElseThrow(() -> new Exception("Solicitud no encontrada"));
+
+        String ruta = solicitud.getDocumentoRuta();
+        if (ruta == null || ruta.isEmpty()) {
+            throw new Exception("Esta solicitud no tiene un documento asociado");
+        }
+
+        try {
+            Path file = Paths.get(ruta).normalize();
+            Resource resource = new org.springframework.core.io.UrlResource(file.toUri());
+
+            if (resource.exists() || resource.isReadable()) {
+                return resource;
+            } else {
+                throw new Exception("No se pudo leer el archivo");
+            }
+        } catch (Exception e) {
+            throw new Exception("Error al cargar el archivo: " + e.getMessage());
         }
     }
 

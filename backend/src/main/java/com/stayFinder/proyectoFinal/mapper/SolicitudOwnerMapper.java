@@ -9,5 +9,6 @@ import org.mapstruct.Mapping;
 public interface SolicitudOwnerMapper {
 
     @Mapping(source = "usuario.nombre", target = "nombreUsuario")
+    @Mapping(source = "usuario.email", target = "emailUsuario")
     SolicitudOwnerResponseDTO toDto(SolicitudOwner s);
 }

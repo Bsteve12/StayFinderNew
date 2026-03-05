@@ -26,12 +26,11 @@ public class AlojamientoController {
     @PostMapping
     @Operation(summary = "Crear un alojamiento")
     @ApiResponses({
-            @ApiResponse(responseCode = "200",
-                          description = "Alojamiento creado correctamente"),
+            @ApiResponse(responseCode = "200", description = "Alojamiento creado correctamente"),
             @ApiResponse(responseCode = "400", description = "Datos inválidos")
     })
     public ResponseEntity<AlojamientoResponseDTO> crear(
-            @RequestBody AlojamientoRequestDTO req,
+            @jakarta.validation.Valid @RequestBody AlojamientoRequestDTO req,
             @Parameter(description = "ID del propietario del alojamiento") @RequestParam Long ownerId) {
         return ResponseEntity.ok(alojamientoService.crear(req, ownerId));
     }
@@ -40,7 +39,7 @@ public class AlojamientoController {
     @Operation(summary = "Editar un alojamiento")
     public ResponseEntity<AlojamientoResponseDTO> editar(
             @Parameter(description = "ID del alojamiento a editar") @PathVariable Long id,
-            @RequestBody AlojamientoRequestDTO req,
+            @jakarta.validation.Valid @RequestBody AlojamientoRequestDTO req,
             @Parameter(description = "ID del propietario del alojamiento") @RequestParam Long ownerId) {
         return ResponseEntity.ok(alojamientoService.editar(id, req, ownerId));
     }
@@ -74,10 +73,5 @@ public class AlojamientoController {
         List<AlojamientoResponseDTO> activos = alojamientoService.listarAlojamientosActivos();
         return ResponseEntity.ok(activos);
     }
-
-
-
-
-
 
 }

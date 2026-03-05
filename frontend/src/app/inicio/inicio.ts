@@ -65,9 +65,18 @@ export class Inicio {
 
   getAlojamientosActivos() {
     this.alojamientosService.obtenerAlojamientosActivos().subscribe({
-      next: (data) => {
-        console.log(data)
-        this.destinations = data;
+      next: (data: any[]) => {
+        console.log(data);
+        this.destinations = data.map((item: any) => ({
+          id: item.id,
+          nombre: item.nombre,
+          direccion: item.direccion,
+          precio: item.precio,
+          descripcion: item.descripcion,
+          imagenes: item.imagenes || [],
+          rating: item.rating || 5, // Default rating if missing
+          favorite: false
+        }));
       },
       error: (error) => {
         console.error('Error al obtener alojamientos activos:', error);

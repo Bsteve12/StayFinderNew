@@ -173,21 +173,21 @@ export class Detalle implements OnInit {
     this.alojamientosService.obtenerAlojamientoPorId(Number(id)).subscribe({
       next: (data) => {
         this.alojamiento = data;
-        // Actualizar accommodation con datos reales
+        const d = data as any;
         this.accommodation = {
           ...this.accommodation,
-          id: data.id,
-          title: data.nombre,
-          location: data.ubicacion || data.direccion,
-          price: data.precioPorNoche || data.precio,
-          description: data.descripcion,
-          guests: data.capacidad,
-          bedrooms: data.numHabitaciones,
-          bathrooms: data.numBanos ? `${data.numBanos} baños` : 'Baño compartido',
-          amenities: data.servicios || this.accommodation.amenities,
-          images: data.imagenes?.map((img: string, index: number) => ({
-            url: img,
-            alt: `${data.nombre} - Imagen ${index + 1}`
+          id: d.id,
+          title: d.nombre,
+          location: d.ubicacion || d.direccion,
+          price: d.precioPorNoche || d.precio,
+          description: d.descripcion,
+          guests: d.capacidad || d.capacidadMaxima,
+          bedrooms: d.numHabitaciones || 1, // Fallback if property doesn't exist
+          bathrooms: d.numBanos ? `${d.numBanos} baños` : 'Baño compartido',
+          amenities: d.servicios || this.accommodation.amenities,
+          images: d.imagenes?.map((img: any, index: number) => ({
+            url: img.url || img, // Handle both object with url and string array
+            alt: `${d.nombre} - Imagen ${index + 1}`
           })) || this.accommodation.images
         };
       },

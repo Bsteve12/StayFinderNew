@@ -7,11 +7,16 @@ import com.stayFinder.proyectoFinal.services.solicitudOwnerService.interfaces.So
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 @RestController
@@ -26,7 +31,8 @@ public class SolicitudOwnerController {
         this.solicitudService = solicitudService;
     }
 
-    // Multipart: parte "data" = JSON con usuarioId+comentario, parte "documento" = file
+    // Multipart: parte "data" = JSON con usuarioId+comentario, parte "documento" =
+    // file
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "Crear solicitud (multipart: data + documento)")
     public ResponseEntity<SolicitudOwnerResponseDTO> crearSolicitud(
@@ -39,7 +45,8 @@ public class SolicitudOwnerController {
 
     @PostMapping("/responder")
     @Operation(summary = "Responder solicitud (admin)")
-    public ResponseEntity<SolicitudOwnerResponseDTO> responderSolicitud(@RequestBody RespuestaSolicitudRequestDTO dto) throws Exception {
+    public ResponseEntity<SolicitudOwnerResponseDTO> responderSolicitud(@RequestBody RespuestaSolicitudRequestDTO dto)
+            throws Exception {
         return ResponseEntity.ok(solicitudService.responderSolicitud(dto));
     }
 
@@ -47,5 +54,16 @@ public class SolicitudOwnerController {
     @Operation(summary = "Listar solicitudes pendientes")
     public ResponseEntity<List<SolicitudOwnerResponseDTO>> listarPendientes() throws Exception {
         return ResponseEntity.ok(solicitudService.listarSolicitudesPendientes());
+    }
+
+    @GetMapping("/descargar/{id}")
+    @Operation(summary = "Descargar el documento PDF de la solicitud")
+    public ResponseEntity<Resource> descargarDocumento(@PathVariable Long id) throws Exception {
+        Resource file = solicitudService.descargarDocumento(id);
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getFilename() + "\"")
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(file);
     }
 }

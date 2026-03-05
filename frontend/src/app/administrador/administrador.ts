@@ -10,7 +10,9 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 
+import { Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
+import { environment } from '../../environments/environment';
 
 // Enums
 enum Role {
@@ -56,18 +58,21 @@ interface SolicitudPublicacionResponseDTO {
 
 interface UsuarioResponseDTO {
   id: number;
+  usuarioId: number;
   nombre: string;
-  email: string;
-  role: Role;
+  correo: string;
   telefono?: string;
-  fechaRegistro: string;
+  fechaNacimiento?: string;
+  role: Role;
 }
 
 interface CreateUserDTO {
   nombre: string;
-  email: string;
-  password: string;
+  correo: string;
+  contrasena: string;
   telefono?: string;
+  fechaNacimiento?: string;
+  usuarioId?: number;
 }
 
 @Component({
@@ -88,7 +93,7 @@ interface CreateUserDTO {
   styleUrl: './administrador.scss',
 })
 export class Administrador implements OnInit {
-  private readonly API_URL = 'http://localhost:8080/api';
+  public readonly API_URL = `${environment.apiUrl}/api`;
 
   // Vista actual
   currentView: 'perfil' | 'solicitud-publicaciones' | 'solicitud-anfitriones' | 'asignar-rol' | 'listar-usuarios' | 'listar-por-rol' | 'crear-usuario' = 'perfil';
@@ -96,7 +101,7 @@ export class Administrador implements OnInit {
   // Admin actual
   adminId: number = 1;
   adminNombre: string = 'Admin Principal';
-  adminEmail: string = 'admin@stayfinder.com';
+  adminCorreo: string = 'admin@stayfinder.com';
 
   // Datos
   publicacionesPendientes: PublicacionResponseDTO[] = [];
@@ -129,21 +134,31 @@ export class Administrador implements OnInit {
 
   nuevoUsuario: CreateUserDTO = {
     nombre: '',
-    email: '',
-    password: '',
-    telefono: ''
+    correo: '',
+    contrasena: '',
+    telefono: '',
+    fechaNacimiento: '',
+    usuarioId: null as any
   };
 
-  constructor(private http: HttpClient, private auth: AuthService) { }
+  // Mobile sidebar state
+  sidebarVisible: boolean = false;
+
+  constructor(private http: HttpClient, private auth: AuthService, private router: Router) { }
 
   ngOnInit() {
     this.auth.currentUser$.subscribe(user => {
       if (user) {
         this.adminId = user.id || 1;
         this.adminNombre = user.nombre || 'Admin Principal';
-        this.adminEmail = user.email || 'admin@stayfinder.com';
+        this.adminCorreo = user.email || 'admin@stayfinder.com';
       }
     });
+
+    // Cargar los datos iniciales para el dashboard principal
+    this.loadSolicitudesPublicacion();
+    this.loadSolicitudesOwner();
+    this.loadUsuarios();
   }
 
   // ============================================
@@ -151,6 +166,7 @@ export class Administrador implements OnInit {
   // ============================================
   changeView(view: any) {
     this.currentView = view;
+    this.sidebarVisible = false;
 
     switch (view) {
       case 'solicitud-publicaciones':
@@ -163,6 +179,10 @@ export class Administrador implements OnInit {
         this.loadUsuarios();
         break;
     }
+  }
+
+  irInicio() {
+    this.router.navigate(['/']);
   }
 
   // ============================================
@@ -259,8 +279,9 @@ export class Administrador implements OnInit {
   private enviarRespuestaOwner(solicitudId: number, aprobada: boolean, comentarioRespuesta: string) {
     const dto = {
       solicitudId: solicitudId,
+      adminId: this.adminId,
       aprobada: aprobada,
-      comentarioRespuesta: comentarioRespuesta
+      comentario: comentarioRespuesta
     };
 
     this.http.post<SolicitudOwnerResponseDTO>(`${this.API_URL}/solicitudes-owner/responder`, dto)
@@ -274,7 +295,8 @@ export class Administrador implements OnInit {
         },
         error: (error) => {
           console.error('Error:', error);
-          alert('Hubo un error al procesar la solicitud para ser anfitrión.');
+          const backendMessage = error.error?.message || error.message || 'Error desconocido';
+          alert('Error del servidor: ' + backendMessage);
           this.showRespuestaDialog = false;
         }
       });
@@ -285,7 +307,7 @@ export class Administrador implements OnInit {
   // ============================================
   loadUsuarios() {
     this.loading = true;
-    this.http.get<UsuarioResponseDTO[]>(`${this.API_URL}/users`)
+    this.http.get<UsuarioResponseDTO[]>(`${this.API_URL}/usuario`)
       .subscribe({
         next: (data) => {
           this.usuarios = data;
@@ -298,18 +320,18 @@ export class Administrador implements OnInit {
           this.usuarios = [
             {
               id: 1,
+              usuarioId: 1000000001,
               nombre: 'Admin Principal',
-              email: 'admin@stayfinder.com',
-              role: Role.ADMIN,
-              fechaRegistro: '2025-01-01'
+              correo: 'admin@stayfinder.com',
+              role: Role.ADMIN
             },
             {
               id: 2,
+              usuarioId: 1000000002,
               nombre: 'Juan Pérez',
-              email: 'juan@example.com',
+              correo: 'juan@example.com',
               role: Role.CLIENT,
-              telefono: '3001234567',
-              fechaRegistro: '2025-10-15'
+              telefono: '3001234567'
             }
           ];
         }
@@ -323,7 +345,7 @@ export class Administrador implements OnInit {
     }
 
     this.loading = true;
-    this.http.get<UsuarioResponseDTO[]>(`${this.API_URL}/users/role/${this.selectedRoleFiltro}`)
+    this.http.get<UsuarioResponseDTO[]>(`${this.API_URL}/usuario/role/${this.selectedRoleFiltro}`)
       .subscribe({
         next: (data) => {
           this.usuariosFiltrados = data;
@@ -347,7 +369,7 @@ export class Administrador implements OnInit {
     if (!this.selectedUsuario) return;
 
     this.http.put<UsuarioResponseDTO>(
-      `${this.API_URL}/users/${this.selectedUsuario.id}/role?newRole=${this.selectedRole}&adminUsuarioId=${this.adminId}`,
+      `${this.API_URL}/usuario/${this.selectedUsuario.usuarioId}/role?newRole=${this.selectedRole}&adminUsuarioId=${this.adminId}`,
       null
     ).subscribe({
       next: (response) => {
@@ -367,18 +389,18 @@ export class Administrador implements OnInit {
 
   crearUsuario() {
     this.http.post<UsuarioResponseDTO>(
-      `${this.API_URL}/users?role=${this.selectedRole}&adminUsuarioId=${this.adminId}`,
+      `${this.API_URL}/usuario?role=${this.selectedRole}&adminUsuarioId=${this.adminId}`,
       this.nuevoUsuario
     ).subscribe({
       next: (response) => {
         console.log('Usuario creado:', response);
         alert('Usuario creado exitosamente');
-        this.nuevoUsuario = { nombre: '', email: '', password: '', telefono: '' };
+        this.nuevoUsuario = { nombre: '', correo: '', contrasena: '', telefono: '', fechaNacimiento: '', usuarioId: null as any };
         this.selectedRole = Role.CLIENT;
       },
       error: (error) => {
-        console.error('Error:', error);
-        alert('Usuario creado (modo simulación)');
+        console.error('Error creando usuario en la BD:', error);
+        alert('Ocurrió un error al crear el usuario. Por favor verifica tus permisos y la consola.');
       }
     });
   }

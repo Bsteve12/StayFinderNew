@@ -132,8 +132,8 @@ export class AuthService {
       }
 
       return {
-        usuarioId: payload.usuarioId || null,
-        id: payload.usuarioId || null,
+        usuarioId: payload.jti ? parseInt(payload.jti, 10) : (payload.usuarioId || null),
+        id: payload.jti ? parseInt(payload.jti, 10) : (payload.usuarioId || null),
         email: payload.sub || null,
         nombre: payload.nombre || null,
         role: finalRole as 'CLIENT' | 'OWNER' | 'ADMIN' | undefined

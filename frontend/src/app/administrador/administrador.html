@@ -1,6 +1,9 @@
 <div class="dashboard-container">
+  <!-- Mobile Overlay -->
+  <div class="mobile-overlay" *ngIf="sidebarVisible" (click)="sidebarVisible = false"></div>
+
   <!-- Sidebar -->
-  <aside class="sidebar">
+  <aside class="sidebar" [class.mobile-visible]="sidebarVisible">
     <div class="sidebar-content">
       <!-- Logo -->
       <div class="logo-section">
@@ -42,6 +45,12 @@
           (click)="changeView('crear-usuario')">
           Crear usuario
         </button>
+
+        <div class="menu-divider"></div>
+
+        <button class="menu-item btn-volver" (click)="irInicio()">
+          <i class="pi pi-home"></i> Volver al Inicio
+        </button>
       </nav>
     </div>
   </aside>
@@ -59,7 +68,8 @@
         currentView === 'listar-por-rol' ? 'Listar Usuarios por Rol' :
         'Crear Usuario' }}
       </h1>
-      <button pButton icon="pi pi-bars" class="p-button-rounded menu-toggle"></button>
+      <button pButton icon="pi pi-bars" class="p-button-rounded menu-toggle"
+        (click)="sidebarVisible = !sidebarVisible"></button>
     </header>
 
     <!-- Content Area -->
@@ -71,7 +81,7 @@
             <i class="pi pi-shield"></i>
           </div>
           <h2>{{ adminNombre }}</h2>
-          <p class="email">{{ adminEmail }}</p>
+          <p class="email">{{ adminCorreo }}</p>
           <p class="role">Administrador</p>
 
           <div class="stats-grid">
@@ -169,7 +179,8 @@
               <td>{{ formatDate(solicitud.fechaSolicitud) }}</td>
               <td>{{ solicitud.comentario || 'N/A' }}</td>
               <td>
-                <a *ngIf="solicitud.documentoRuta" [href]="solicitud.documentoRuta" target="_blank">
+                <a *ngIf="solicitud.documentoRuta" [href]="API_URL + '/solicitudes-owner/descargar/' + solicitud.id"
+                  target="_blank">
                   <i class="pi pi-file-pdf"></i> Ver
                 </a>
                 <span *ngIf="!solicitud.documentoRuta">N/A</span>
@@ -206,7 +217,7 @@
               </span>
             </div>
             <h4>{{ usuario.nombre }}</h4>
-            <p class="email">{{ usuario.email }}</p>
+            <p class="email">{{ usuario.correo }}</p>
             <p class="phone" *ngIf="usuario.telefono">
               <i class="pi pi-phone"></i> {{ usuario.telefono }}
             </p>
@@ -236,21 +247,21 @@
               <th>Email</th>
               <th>Rol</th>
               <th>Teléfono</th>
-              <th>Fecha Registro</th>
+              <th>Cédula</th>
             </tr>
           </ng-template>
           <ng-template pTemplate="body" let-usuario>
             <tr>
               <td>{{ usuario.id }}</td>
               <td>{{ usuario.nombre }}</td>
-              <td>{{ usuario.email }}</td>
+              <td>{{ usuario.correo }}</td>
               <td>
                 <span class="role-badge" [ngClass]="'role-' + usuario.role.toLowerCase()">
                   {{ getRoleLabel(usuario.role) }}
                 </span>
               </td>
               <td>{{ usuario.telefono || 'N/A' }}</td>
-              <td>{{ formatDate(usuario.fechaRegistro) }}</td>
+              <td>{{ usuario.usuarioId }}</td>
             </tr>
           </ng-template>
         </p-table>
@@ -288,16 +299,16 @@
               <th>Nombre</th>
               <th>Email</th>
               <th>Teléfono</th>
-              <th>Fecha Registro</th>
+              <th>Cédula</th>
             </tr>
           </ng-template>
           <ng-template pTemplate="body" let-usuario>
             <tr>
               <td>{{ usuario.id }}</td>
               <td>{{ usuario.nombre }}</td>
-              <td>{{ usuario.email }}</td>
+              <td>{{ usuario.correo }}</td>
               <td>{{ usuario.telefono || 'N/A' }}</td>
-              <td>{{ formatDate(usuario.fechaRegistro) }}</td>
+              <td>{{ usuario.usuarioId }}</td>
             </tr>
           </ng-template>
         </p-table>
@@ -316,12 +327,22 @@
 
             <div class="form-field">
               <label>Email</label>
-              <input type="email" pInputText [(ngModel)]="nuevoUsuario.email" placeholder="juan@example.com" />
+              <input type="email" pInputText [(ngModel)]="nuevoUsuario.correo" placeholder="juan@example.com" />
+            </div>
+
+            <div class="form-field">
+              <label>Fecha de Nacimiento</label>
+              <input type="date" pInputText [(ngModel)]="nuevoUsuario.fechaNacimiento" />
             </div>
 
             <div class="form-field">
               <label>Contraseña</label>
-              <input type="password" pInputText [(ngModel)]="nuevoUsuario.password" placeholder="••••••••" />
+              <input type="password" pInputText [(ngModel)]="nuevoUsuario.contrasena" placeholder="••••••••" />
+            </div>
+
+            <div class="form-field">
+              <label>Cédula / Documento de Identidad</label>
+              <input type="number" pInputText [(ngModel)]="nuevoUsuario.usuarioId" placeholder="1234567890" />
             </div>
 
             <div class="form-field">
@@ -329,7 +350,7 @@
               <input type="tel" pInputText [(ngModel)]="nuevoUsuario.telefono" placeholder="3001234567" />
             </div>
 
-            <div class="form-field">
+            <div class="form-field full-width">
               <label>Rol inicial</label>
               <mat-form-field appearance="outline" class="full-width">
                 <mat-label>Selecciona rol</mat-label>
@@ -341,7 +362,9 @@
               </mat-form-field>
             </div>
 
-            <button pButton label="Crear Usuario" icon="pi pi-user-plus" (click)="crearUsuario()"></button>
+            <div class="submit-btn-container">
+              <button pButton label="Crear Usuario" icon="pi pi-user-plus" (click)="crearUsuario()"></button>
+            </div>
           </div>
         </div>
       </div>

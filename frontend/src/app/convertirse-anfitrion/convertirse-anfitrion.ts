@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -57,6 +58,7 @@ export class ConvertirseAnfitrion implements OnInit {
   // Estado del componente
   solicitudForm: FormGroup;
   documentoSeleccionado: File | null = null;
+  documentoPreview: SafeResourceUrl | null = null;
   loading: boolean = false;
   tieneSolicitudPendiente: boolean = false;
 
@@ -72,7 +74,8 @@ export class ConvertirseAnfitrion implements OnInit {
     private fb: FormBuilder,
     private router: Router,
     private messageService: MessageService,
-    private http: HttpClient
+    private http: HttpClient,
+    private sanitizer: DomSanitizer
   ) {
     this.solicitudForm = this.fb.group({
       comentario: ['', [Validators.required, Validators.minLength(50), Validators.maxLength(500)]],
@@ -160,6 +163,9 @@ export class ConvertirseAnfitrion implements OnInit {
     }
 
     this.documentoSeleccionado = file;
+    const objectUrl = URL.createObjectURL(file);
+    this.documentoPreview = this.sanitizer.bypassSecurityTrustResourceUrl(objectUrl);
+
     this.solicitudForm.patchValue({ documento: file });
     this.solicitudForm.get('documento')?.updateValueAndValidity();
 
@@ -172,6 +178,7 @@ export class ConvertirseAnfitrion implements OnInit {
 
   onFileRemove(): void {
     this.documentoSeleccionado = null;
+    this.documentoPreview = null;
     this.solicitudForm.patchValue({ documento: null });
     this.solicitudForm.get('documento')?.updateValueAndValidity();
   }
@@ -198,10 +205,15 @@ export class ConvertirseAnfitrion implements OnInit {
 
     this.loading = true;
 
-    // Crear FormData
+    // Crear Payload
+    const requestData = {
+      usuarioId: this.usuarioActual.id,
+      comentario: this.solicitudForm.value.comentario
+    };
+
+    // Crear FormData y adjuntar el blob JSON
     const formData = new FormData();
-    formData.append('usuarioId', this.usuarioActual.id.toString());
-    formData.append('comentario', this.solicitudForm.value.comentario);
+    formData.append('data', new Blob([JSON.stringify(requestData)], { type: 'application/json' }));
 
     if (this.documentoSeleccionado) {
       formData.append('documento', this.documentoSeleccionado);
@@ -221,7 +233,8 @@ export class ConvertirseAnfitrion implements OnInit {
         });
 
         setTimeout(() => {
-          this.router.navigate(['/mis-solicitudes']);
+          this.loading = false;
+          this.router.navigate(['/inicio']);
         }, 2000);
       },
       error: (error) => {
@@ -232,17 +245,6 @@ export class ConvertirseAnfitrion implements OnInit {
           detail: error.error?.message || 'No se pudo enviar la solicitud. Intente nuevamente.'
         });
         this.loading = false;
-
-        // Simulación en caso de error (remover en producción)
-        setTimeout(() => {
-          this.messageService.add({
-            severity: 'success',
-            summary: 'Éxito (Simulación)',
-            detail: 'Solicitud enviada correctamente en modo simulación'
-          });
-          this.loading = false;
-          this.resetForm();
-        }, 1000);
       }
     });
   }
@@ -270,6 +272,7 @@ export class ConvertirseAnfitrion implements OnInit {
   resetForm(): void {
     this.solicitudForm.reset();
     this.documentoSeleccionado = null;
+    this.documentoPreview = null;
   }
 
   get comentarioInvalido(): boolean {

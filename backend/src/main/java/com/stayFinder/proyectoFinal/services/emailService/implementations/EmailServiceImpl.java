@@ -41,4 +41,19 @@ public class EmailServiceImpl implements EmailServiceInterface {
             System.out.println("⚠️ Simulación de envío de email (cancelación): " + e.getMessage());
         }
     }
+
+    @Override
+    public void sendHostApplicationDecision(String toEmail, String subject, String body) {
+        try {
+            SimpleMailMessage msg = new SimpleMailMessage();
+            msg.setTo(toEmail);
+            msg.setSubject(subject);
+            msg.setText(body);
+            mailSender.send(msg);
+
+            System.out.println("📧 Email de decisión de anfitrión enviado a: " + toEmail);
+        } catch (Exception e) {
+            System.out.println("⚠️ Simulación de envío de email (decisión anfitrión): " + e.getMessage());
+        }
+    }
 }

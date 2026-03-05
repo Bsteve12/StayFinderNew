@@ -7,24 +7,19 @@ import java.time.LocalDateTime;
 @Schema(description = "Respuesta con los datos de una solicitud para convertirse en propietario (Owner)")
 public record SolicitudOwnerResponseDTO(
 
-        @Schema(description = "ID de la solicitud", example = "45")
-        Long id,
+                @Schema(description = "ID de la solicitud", example = "45") Long id,
 
-        @Schema(description = "Nombre del usuario que envió la solicitud", example = "Andrés Torres")
-        String nombreUsuario,
+                @Schema(description = "Nombre del usuario que envió la solicitud", example = "Andrés Torres") String nombreUsuario,
 
-        @Schema(description = "Estado actual de la solicitud", example = "EN_REVISION")
-        EstadoSolicitud estado,
+                @Schema(description = "Email del usuario que envió la solicitud", example = "andres@test.com") String emailUsuario,
 
-        @Schema(description = "Comentario o motivo de la solicitud", example = "Quiero publicar mis propiedades en la plataforma.")
-        String comentario,
+                @Schema(description = "Estado actual de la solicitud", example = "EN_REVISION") EstadoSolicitud estado,
 
-        @Schema(description = "Ruta o URL del documento cargado como soporte", example = "https://cdn.stayfinder.com/documentos/solicitud45.pdf")
-        String documentoRuta,
+                @Schema(description = "Comentario o motivo de la solicitud", example = "Quiero publicar mis propiedades en la plataforma.") String comentario,
 
-        @Schema(description = "Fecha en que se envió la solicitud", example = "2025-03-20T14:45:00")
-        LocalDateTime fechaSolicitud,
+                @Schema(description = "Ruta o URL del documento cargado como soporte", example = "https://cdn.stayfinder.com/documentos/solicitud45.pdf") String documentoRuta,
 
-        @Schema(description = "Fecha en que fue revisada la solicitud (si aplica)", example = "2025-03-22T09:10:00")
-        LocalDateTime fechaRevision
-) {}
+                @Schema(description = "Fecha en que se envió la solicitud", example = "2025-03-20T14:45:00") LocalDateTime fechaSolicitud,
+
+                @Schema(description = "Fecha en que fue revisada la solicitud (si aplica)", example = "2025-03-22T09:10:00") LocalDateTime fechaRevision) {
+}
