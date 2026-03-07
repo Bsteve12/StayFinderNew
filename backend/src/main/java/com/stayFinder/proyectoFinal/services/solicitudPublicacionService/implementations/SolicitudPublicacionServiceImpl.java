@@ -40,7 +40,7 @@ public class SolicitudPublicacionServiceImpl implements SolicitudPublicacionServ
 
     @Override
     public SolicitudPublicacionResponseDTO crearSolicitud(SolicitudPublicacionRequestDTO dto) {
-        Usuario usuario = usuarioRepo.findById(dto.usuarioId())
+        Usuario usuario = usuarioRepo.findByUsuarioId(dto.usuarioId())
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
         if (usuario.getRole() != Role.OWNER) {
@@ -50,10 +50,15 @@ public class SolicitudPublicacionServiceImpl implements SolicitudPublicacionServ
         Alojamiento alojamiento = alojamientoRepo.findById(dto.alojamientoId())
                 .orElseThrow(() -> new RuntimeException("Alojamiento no encontrado"));
 
+        if (solicitudRepo.existsByAlojamientoIdAndEstado(alojamiento.getId(), EstadoSolicitudPublicacion.PENDIENTE)) {
+            throw new RuntimeException("Ya existe una solicitud pendiente para este alojamiento");
+        }
+
         SolicitudPublicacion solicitud = SolicitudPublicacion.builder()
                 .usuario(usuario)
                 .alojamiento(alojamiento)
                 .comentario(dto.comentario())
+                .titulo(alojamiento.getNombre())
                 .estado(EstadoSolicitudPublicacion.PENDIENTE)
                 .fechaSolicitud(LocalDateTime.now())
                 .build();
@@ -66,7 +71,7 @@ public class SolicitudPublicacionServiceImpl implements SolicitudPublicacionServ
         SolicitudPublicacion solicitud = solicitudRepo.findById(dto.solicitudId())
                 .orElseThrow(() -> new RuntimeException("Solicitud no encontrada"));
 
-        Usuario admin = usuarioRepo.findById(dto.adminId())
+        Usuario admin = usuarioRepo.findByUsuarioId(dto.adminId())
                 .orElseThrow(() -> new RuntimeException("Admin no encontrado"));
 
         if (admin.getRole() != Role.ADMIN) {

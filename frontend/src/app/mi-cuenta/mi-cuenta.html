@@ -10,49 +10,35 @@
 
       <!-- Menú de navegación -->
       <nav class="menu">
-        <button 
-          class="menu-item"
-          [class.active]="currentView === 'profile'"
-          (click)="changeView('profile')"
-        >
+        <button class="menu-item" [class.active]="currentView === 'profile'" (click)="changeView('profile')">
           <i class="pi pi-user"></i>
           <span>Perfil de usuario</span>
         </button>
 
-        <button 
-          class="menu-item"
-          [class.active]="currentView === 'reservas'"
-          (click)="changeView('reservas')"
-        >
+        <button class="menu-item" [class.active]="currentView === 'reservas'" (click)="changeView('reservas')">
           <i class="pi pi-calendar"></i>
           <span>Mis reservas</span>
         </button>
 
-        <button 
-          class="menu-item"
-          [class.active]="currentView === 'favoritos'"
-          (click)="changeView('favoritos')"
-        >
+        <button class="menu-item" [class.active]="currentView === 'favoritos'" (click)="changeView('favoritos')">
           <i class="pi pi-heart"></i>
           <span>Favoritos guardados</span>
         </button>
 
-        <button 
-          class="menu-item"
-          [class.active]="currentView === 'historial'"
-          (click)="changeView('historial')"
-        >
+        <button class="menu-item" [class.active]="currentView === 'historial'" (click)="changeView('historial')">
           <i class="pi pi-history"></i>
           <span>Historial de viajes</span>
         </button>
 
-         <button 
-          class="menu-item"
-          [class.active]="currentView === 'historial'"
-          (click)="changeView('historial')"
-        >
+        <button class="menu-item" [class.active]="currentView === 'solicitudes'" (click)="changeView('solicitudes')">
           <i class="pi pi-search"></i>
           <span>Mis solicitudes</span>
+        </button>
+
+        <div class="menu-divider"></div>
+
+        <button class="menu-item btn-volver" (click)="irInicio()">
+          <i class="pi pi-home"></i> <span>Volver al Inicio</span>
         </button>
       </nav>
     </div>
@@ -63,10 +49,10 @@
     <!-- Header -->
     <header class="content-header">
       <h1 class="page-title">
-        {{ currentView === 'profile' ? 'Perfil de Usuario' : 
-           currentView === 'reservas' ? 'Mis Reservas' :
-           currentView === 'favoritos' ? 'Favoritos Guardados' :
-           'Historial de Viajes' }}
+        {{ currentView === 'profile' ? 'Perfil de Usuario' :
+        currentView === 'reservas' ? 'Mis Reservas' :
+        currentView === 'favoritos' ? 'Favoritos Guardados' :
+        'Historial de Viajes' }}
       </h1>
       <button pButton icon="pi pi-bars" class="p-button-rounded menu-toggle"></button>
     </header>
@@ -81,7 +67,7 @@
           </div>
           <h2>{{ usuarioNombre }}</h2>
           <p class="email">{{ usuarioEmail }}</p>
-          
+
           <div class="profile-info">
             <div class="info-item">
               <span class="label">Miembro desde:</span>
@@ -128,7 +114,8 @@
                 </span>
                 <span class="precio">${{ reserva.precioTotal | number }}</span>
               </div>
-              <button pButton label="Ver Detalles" class="detail-button" (click)="verDetalleReserva(reserva.id)"></button>
+              <button pButton label="Ver Detalles" class="detail-button"
+                (click)="verDetalleReserva(reserva.id)"></button>
             </div>
           </div>
         </div>

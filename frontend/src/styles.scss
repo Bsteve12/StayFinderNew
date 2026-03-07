@@ -7,14 +7,12 @@
 @import "primeicons/primeicons.css";
 
 html {
-  @include mat.theme((
-    color: (
-      primary: mat.$azure-palette,
-      tertiary: mat.$blue-palette,
-    ),
-    typography: Roboto,
-    density: 0,
-  ));
+  @include mat.theme((color: (primary: mat.$azure-palette,
+        tertiary: mat.$blue-palette,
+      ),
+      typography: Roboto,
+      density: 0,
+    ));
 }
 
 body {
@@ -33,7 +31,46 @@ body {
   // Reset the user agent margin.
   margin: 0;
 }
+
 /* You can add global styles to this file, and also import other style files */
 
-html, body { height: 100%; }
-body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+}
+
+// ============================================
+// 🔹 Global PrimeNG Overrides
+// ============================================
+.custom-dialog {
+  .p-dialog-content {
+
+    .p-inputtext,
+    .p-password-input,
+    input {
+      background-color: #f9fafb !important;
+      color: #1f2937 !important;
+      border: 1px solid #d1d5db !important;
+      box-shadow: none !important;
+
+      &:not(:disabled):hover {
+        border-color: #a78bfa !important;
+      }
+
+      &:not(:disabled):focus {
+        background-color: #ffffff !important;
+        border-color: #7c3aed !important;
+        box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1) !important;
+      }
+
+      &::placeholder {
+        color: #9ca3af !important;
+      }
+    }
+  }
+}

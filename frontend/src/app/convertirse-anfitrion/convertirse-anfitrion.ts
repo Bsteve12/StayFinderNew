@@ -20,7 +20,8 @@ interface SolicitudOwnerRequestDTO {
 interface SolicitudOwnerResponseDTO {
   id: number;
   usuarioId: number;
-  usuarioNombre: string;
+  nombreUsuario: string;
+  emailUsuario: string;
   estado: 'PENDIENTE' | 'APROBADA' | 'RECHAZADA';
   comentario: string;
   fechaSolicitud: string;

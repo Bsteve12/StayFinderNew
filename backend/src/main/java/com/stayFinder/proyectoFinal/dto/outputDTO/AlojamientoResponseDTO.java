@@ -23,9 +23,15 @@ public class AlojamientoResponseDTO {
     @Schema(description = "Descripción del alojamiento", example = "Hermosa casa con vista al lago y piscina privada")
     private String descripcion;
 
+    @Schema(description = "Capacidad máxima de huéspedes", example = "6")
+    private Integer capacidadMaxima;
+
     @Schema(description = "ID del propietario", example = "3")
     private Long ownerId;
 
     @Schema(description = "Lista de imágenes asociadas al alojamiento")
     private List<ImagenAlojamientoResponseDTO> imagenes;
+
+    @Schema(description = "Estado actual de publicación")
+    private String estado;
 }

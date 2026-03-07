@@ -34,6 +34,7 @@ public class ServicioServiceImpl implements ServicioServiceInterface {
         Servicio servicio = servicioRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Servicio no encontrado"));
         servicio.setNombre(dto.nombre());
+        servicio.setDescripcion(dto.descripcion());
         servicio.setPrecio(dto.precio());
         return mapper.toDto(servicioRepo.save(servicio));
     }

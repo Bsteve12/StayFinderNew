@@ -27,6 +27,12 @@
           (click)="currentView === 'calendario' ? null : changeView('calendario')">
           Calendario de disponibilidad
         </button>
+
+        <div class="menu-divider"></div>
+
+        <button class="menu-item btn-volver" (click)="irInicio()">
+          <i class="pi pi-home"></i> <span>Volver al Inicio</span>
+        </button>
       </nav>
     </div>
   </aside>
@@ -69,14 +75,14 @@
             </div>
           </div>
 
-          <button pButton label="Editar Perfil" class="edit-button"></button>
+          <button pButton label="Editar Perfil" class="edit-button" (click)="openEditProfileDialog()"></button>
         </div>
       </div>
 
       <div *ngIf="currentView === 'gestion'" class="gestion-view">
         <div class="gestion-header">
           <h3>Mis Alojamientos</h3>
-          <button pButton label="Agregar Alojamiento" icon="pi pi-plus" (click)="openCreateDialog()"></button>
+          <button pButton label="Crear Nuevo" class="btn-crear-nuevo" (click)="openCreateDialog()"></button>
         </div>
 
         <div *ngIf="loadingAlojamientos" class="loading">
@@ -84,16 +90,29 @@
           <p>Cargando alojamientos...</p>
         </div>
 
-        <div *ngIf="!loadingAlojamientos && alojamientos.length === 0" class="empty-state">
-          <i class="pi pi-home"></i>
-          <p>No tienes alojamientos registrados</p>
-          <button pButton label="Crear mi primer alojamiento" (click)="openCreateDialog()"></button>
+        <div *ngIf="!loadingAlojamientos && alojamientos.length === 0" class="empty-state-gestion-purple">
+          <h4>No tienes alojamiento todavía</h4>
+          <p>Agrega tu primer alojamiento para comenzar a recibir reservas.</p>
+          <button pButton label="Crear Alojamiento" class="btn-crear-alojamiento-purple"
+            (click)="openCreateDialog()"></button>
         </div>
 
         <div class="alojamientos-grid" *ngIf="!loadingAlojamientos && alojamientos.length > 0">
           <div class="alojamiento-card" *ngFor="let alojamiento of alojamientos">
-            <img [src]="alojamiento.imagenes[0] || 'assets/placeholder.jpg'" [alt]="alojamiento.nombre"
-              class="alojamiento-image" />
+            <!-- Carrusel de imágenes -->
+            <div class="alojamiento-image-container">
+              <p-carousel *ngIf="alojamiento.imagenes && alojamiento.imagenes.length > 0" [value]="alojamiento.imagenes"
+                [numVisible]="1" [numScroll]="1" [circular]="true">
+                <ng-template let-imagen pTemplate="item">
+                  <img [src]="imagen.url" [alt]="alojamiento.nombre" class="alojamiento-image" />
+                </ng-template>
+              </p-carousel>
+
+              <!-- Imagen por defecto si no hay URLs subidas -->
+              <img *ngIf="!alojamiento.imagenes || alojamiento.imagenes.length === 0"
+                src="https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=400" [alt]="alojamiento.nombre"
+                class="alojamiento-image" />
+            </div>
             <div class="alojamiento-content">
               <div class="alojamiento-header">
                 <h3>{{ alojamiento.nombre }}</h3>
@@ -115,8 +134,11 @@
                   (click)="openEditDialog(alojamiento)"></button>
                 <button pButton label="Eliminar" icon="pi pi-trash" class="p-button-text p-button-danger"
                   (click)="eliminarAlojamiento(alojamiento.id)"></button>
-                <button pButton label="Solicitar Publicación" icon="pi pi-send" class="p-button-success"
-                  *ngIf="alojamiento.estado !== 'PUBLICADO'" (click)="openSolicitudDialog(alojamiento)"></button>
+                <button pButton
+                  [label]="alojamiento.estado === 'PENDIENTE' ? 'Solicitud Pendiente' : 'Solicitar Publicación'"
+                  [icon]="alojamiento.estado === 'PENDIENTE' ? 'pi pi-clock' : 'pi pi-send'" class="p-button-success"
+                  [disabled]="alojamiento.estado === 'PENDIENTE'" *ngIf="alojamiento.estado !== 'PUBLICADO'"
+                  (click)="openSolicitudDialog(alojamiento)"></button>
               </div>
             </div>
           </div>
@@ -151,10 +173,43 @@
         </div>
       </div>
 
-      <div *ngIf="currentView === 'servicios'" class="placeholder-view">
-        <i class="pi pi-cog"></i>
-        <h3>Servicios</h3>
-        <p>Gestiona los servicios disponibles en tus alojamientos</p>
+      <div *ngIf="currentView === 'servicios'" class="gestion-view">
+        <div class="gestion-header">
+          <h3>Mis Servicios</h3>
+          <button pButton label="Crear Nuevo" class="btn-crear-nuevo" (click)="openCreateServicioDialog()"></button>
+        </div>
+
+        <div *ngIf="loadingServicios" class="loading">
+          <i class="pi pi-spin pi-spinner"></i>
+          <p>Cargando servicios...</p>
+        </div>
+
+        <div *ngIf="!loadingServicios && servicios.length === 0" class="empty-state-gestion-purple">
+          <h4>No tienes servicios todavía</h4>
+          <p>Crea servicios como 'WiFi' o 'Desayuno' para ofrecer en tus alojamientos.</p>
+          <button pButton label="Crear Servicio" class="btn-crear-alojamiento-purple"
+            (click)="openCreateServicioDialog()"></button>
+        </div>
+
+        <div class="alojamientos-grid" *ngIf="!loadingServicios && servicios.length > 0">
+          <div class="alojamiento-card servicio-card" *ngFor="let servicio of servicios">
+            <div class="alojamiento-content">
+              <div class="alojamiento-header">
+                <h3>{{ servicio.nombre }}</h3>
+              </div>
+              <p class="descripcion">{{ servicio.descripcion }}</p>
+              <div class="alojamiento-info">
+                <span class="servicio-price">💰 ${{ servicio.precio | number }}</span>
+              </div>
+              <div class="alojamiento-actions">
+                <button pButton label="Editar" icon="pi pi-pencil" class="p-button-text"
+                  (click)="openEditServicioDialog(servicio)"></button>
+                <button pButton label="Eliminar" icon="pi pi-trash" class="p-button-text p-button-danger"
+                  (click)="eliminarServicio(servicio.id)"></button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div *ngIf="currentView === 'calendario'" class="placeholder-view">
@@ -200,6 +255,22 @@
         <input type="number" pInputText [(ngModel)]="alojamientoForm.capacidadMaxima" />
       </div>
     </div>
+
+    <div class="form-field">
+      <label>Imágenes (URLs)</label>
+      <div class="image-input-group">
+        <input type="text" pInputText [(ngModel)]="imageUrlInput" placeholder="Ej: https://..."
+          (keyup.enter)="addImageUrl()" />
+        <button pButton icon="pi pi-plus" (click)="addImageUrl()" class="btn-add-image"></button>
+      </div>
+      <div class="images-preview">
+        <div class="image-tag" *ngFor="let url of imagenesUrls; let i = index">
+          <span class="url-text">{{ url }}</span>
+          <button pButton icon="pi pi-times" class="p-button-rounded p-button-danger p-button-text p-button-sm"
+            (click)="removeImageUrl(i)"></button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <ng-template pTemplate="footer">
@@ -236,6 +307,22 @@
         <input type="number" pInputText [(ngModel)]="alojamientoForm.capacidadMaxima" />
       </div>
     </div>
+
+    <div class="form-field">
+      <label>Imágenes (URLs)</label>
+      <div class="image-input-group">
+        <input type="text" pInputText [(ngModel)]="imageUrlInput" placeholder="Ej: https://..."
+          (keyup.enter)="addImageUrl()" />
+        <button pButton icon="pi pi-plus" (click)="addImageUrl()" class="btn-add-image"></button>
+      </div>
+      <div class="images-preview">
+        <div class="image-tag" *ngFor="let url of imagenesUrls; let i = index">
+          <span class="url-text">{{ url }}</span>
+          <button pButton icon="pi pi-times" class="p-button-rounded p-button-danger p-button-text p-button-sm"
+            (click)="removeImageUrl(i)"></button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <ng-template pTemplate="footer">
@@ -257,5 +344,60 @@
   <ng-template pTemplate="footer">
     <button pButton label="Cancelar" class="p-button-text" (click)="showSolicitudDialog = false"></button>
     <button pButton label="Enviar Solicitud" (click)="solicitarPublicacion(comentarios.value)"></button>
+  </ng-template>
+</p-dialog>
+
+<p-dialog [(visible)]="showServicioDialog" [header]="selectedServicio ? 'Editar Servicio' : 'Crear Servicio'"
+  [modal]="true" [style]="{width: '500px'}">
+  <div class="form-content">
+    <div class="form-field">
+      <label>Nombre del servicio</label>
+      <input type="text" pInputText [(ngModel)]="servicioForm.nombre" placeholder="Ej: WiFi o Piscina" />
+    </div>
+
+    <div class="form-field">
+      <label>Descripción</label>
+      <textarea pInputTextarea [(ngModel)]="servicioForm.descripcion" rows="3"
+        placeholder="Información adicional..."></textarea>
+    </div>
+
+    <div class="form-field">
+      <label>Precio (Opcional si es gratis)</label>
+      <input type="number" pInputText [(ngModel)]="servicioForm.precio" />
+    </div>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <button pButton label="Cancelar" class="p-button-text" (click)="showServicioDialog = false"></button>
+    <button pButton label="Guardar" (click)="guardarServicio()"></button>
+  </ng-template>
+</p-dialog>
+
+<!-- Dialog para Editar Perfil -->
+<p-dialog header="Editar Perfil" [(visible)]="showEditProfileDialog" [modal]="true" [style]="{width: '450px'}"
+  styleClass="custom-dialog">
+  <div class="p-fluid">
+    <div class="field">
+      <label for="perfilNombre">Nombre Completo</label>
+      <input id="perfilNombre" type="text" pInputText [(ngModel)]="profileForm.nombre" />
+    </div>
+    <div class="field">
+      <label for="perfilTel">Teléfono</label>
+      <input id="perfilTel" type="tel" pInputText [(ngModel)]="profileForm.telefono" />
+    </div>
+    <div class="field">
+      <label for="perfilNacimiento">Fecha de Nacimiento</label>
+      <input id="perfilNacimiento" type="date" pInputText [(ngModel)]="profileForm.fechaNacimiento" />
+    </div>
+    <div class="field">
+      <label for="perfilPassword">Nueva Contraseña (Opcional)</label>
+      <input id="perfilPassword" type="password" pInputText [(ngModel)]="profileForm.contrasena"
+        placeholder="Dejar en blanco para mantener la actual" />
+    </div>
+  </div>
+  <ng-template pTemplate="footer">
+    <button pButton label="Cancelar" icon="pi pi-times" class="p-button-text"
+      (click)="showEditProfileDialog = false"></button>
+    <button pButton label="Guardar" icon="pi pi-check" class="p-button-primary" (click)="guardarPerfil()"></button>
   </ng-template>
 </p-dialog>

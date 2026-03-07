@@ -38,9 +38,8 @@ interface PublicacionResponseDTO {
 
 interface SolicitudOwnerResponseDTO {
   id: number;
-  usuarioId: number;
-  usuarioNombre: string;
-  usuarioEmail: string;
+  nombreUsuario: string;
+  emailUsuario: string;
   estado: string;
   comentario?: string;
   documentoRuta?: string;
@@ -64,6 +63,15 @@ interface UsuarioResponseDTO {
   telefono?: string;
   fechaNacimiento?: string;
   role: Role;
+}
+
+interface UpdateUserDTO {
+  id: number;
+  nombre: string;
+  telefono: string;
+  fechaNacimiento: string;
+  contrasena: string;
+  usuarioId: number;
 }
 
 interface CreateUserDTO {
@@ -141,6 +149,16 @@ export class Administrador implements OnInit {
     usuarioId: null as any
   };
 
+  showEditProfileDialog: boolean = false;
+  profileForm: UpdateUserDTO = {
+    id: 0,
+    nombre: '',
+    telefono: '',
+    fechaNacimiento: '',
+    contrasena: '',
+    usuarioId: 0
+  };
+
   // Mobile sidebar state
   sidebarVisible: boolean = false;
 
@@ -159,6 +177,55 @@ export class Administrador implements OnInit {
     this.loadSolicitudesPublicacion();
     this.loadSolicitudesOwner();
     this.loadUsuarios();
+  }
+
+  // ============================================
+  // 🔹 Editar Perfil
+  // ============================================
+
+  openEditProfileDialog() {
+    this.auth.currentUser$.subscribe(user => {
+      if (user) {
+        // Carga los datos base desde el token JWT o los datos de la sesión guardados
+        this.profileForm = {
+          id: user.id || this.adminId, // Database PK
+          nombre: user.nombre || this.adminNombre,
+          telefono: '', // Inicialmente vacio hasta traer de DB, opcional refinar si guardan en cache
+          fechaNacimiento: '',
+          contrasena: '',     // Siempre en blanco hasta que el user quiera cambiarla
+          usuarioId: user.usuarioId || this.adminId // Logical Id
+        };
+
+        // Hacemos una consulta GET extra para popular teléfono y fecha correcta
+        this.http.get<UsuarioResponseDTO[]>(`${this.API_URL}/usuario`).subscribe(users => {
+          const myself = users.find(u => u.usuarioId === this.adminId);
+          if (myself) {
+            this.profileForm.nombre = myself.nombre;
+            this.profileForm.telefono = myself.telefono || '';
+            this.profileForm.fechaNacimiento = myself.fechaNacimiento || '';
+          }
+          this.showEditProfileDialog = true;
+        });
+      }
+    }).unsubscribe(); // nos desuscribimos de inmediato para un 'on-demand' snapshot
+  }
+
+  guardarPerfil() {
+    this.http.put<UsuarioResponseDTO>(
+      `${this.API_URL}/usuario/${this.adminId}`,
+      this.profileForm
+    ).subscribe({
+      next: (data) => {
+        alert('Perfil actualizado con éxito');
+        this.adminNombre = data.nombre;
+        this.showEditProfileDialog = false;
+        // Refrescar auth token o requerir login nuevamente para JWT update? Temporalmente actualizar visual.
+      },
+      error: (err) => {
+        console.error('Error al editar perfil', err);
+        alert('Error editando perfil');
+      }
+    });
   }
 
   // ============================================
@@ -221,8 +288,9 @@ export class Administrador implements OnInit {
   private enviarRespuestaPublicacion(solicitudId: number, aprobada: boolean, comentarioRespuesta: string) {
     const dto = {
       solicitudId: solicitudId,
+      adminId: this.adminId, // 🔹 Agregado el ID del administrador
       aprobada: aprobada,
-      comentarioRespuesta: comentarioRespuesta
+      comentario: comentarioRespuesta // 🔹 Cambiado de comentarioRespuesta a comentario
     };
 
     this.http.post<SolicitudPublicacionResponseDTO>(`${this.API_URL}/solicitudes-publicacion/responder`, dto)
@@ -236,7 +304,8 @@ export class Administrador implements OnInit {
         },
         error: (error) => {
           console.error('Error:', error);
-          alert('Hubo un error al responder la solicitud.');
+          const backendMessage = error.error?.message || error.message || 'Error desconocido';
+          alert('Hubo un error al responder la solicitud: ' + backendMessage);
           this.showRespuestaDialog = false;
         }
       });

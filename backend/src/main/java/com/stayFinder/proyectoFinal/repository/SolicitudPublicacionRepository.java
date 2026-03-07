@@ -8,4 +8,5 @@ import java.util.List;
 
 public interface SolicitudPublicacionRepository extends JpaRepository<SolicitudPublicacion, Long> {
     List<SolicitudPublicacion> findByEstado(EstadoSolicitudPublicacion estado);
+    boolean existsByAlojamientoIdAndEstado(Long alojamientoId, EstadoSolicitudPublicacion estado);
 }

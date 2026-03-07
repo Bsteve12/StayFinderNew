@@ -4,6 +4,7 @@ import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { Observable } from 'rxjs';
+import { Router } from '@angular/router';
 
 // Interfaces
 interface ReservaResponseDTO {
@@ -51,26 +52,26 @@ interface ReservaHistorialResponseDTO {
 })
 export class MiCuenta implements OnInit {
   private readonly API_URL = 'http://localhost:8080/api';
-  
+
   // Estado de la vista actual
-  currentView: 'profile' | 'reservas' | 'favoritos' | 'historial' = 'profile';
-  
+  currentView: 'profile' | 'reservas' | 'favoritos' | 'historial' | 'solicitudes' = 'profile';
+
   // Usuario actual (simulado - debería venir del servicio de autenticación)
   usuarioId: number = 1;
   usuarioNombre: string = 'Juan Pérez';
   usuarioEmail: string = 'juan.perez@example.com';
-  
+
   // Datos
   reservas: ReservaResponseDTO[] = [];
   favoritos: FavoriteResponseDTO[] = [];
   historial: ReservaHistorialResponseDTO[] = [];
-  
+
   // Loading states
   loadingReservas: boolean = false;
   loadingFavoritos: boolean = false;
   loadingHistorial: boolean = false;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private router: Router) { }
 
   ngOnInit() {
     this.loadReservas();
@@ -79,11 +80,11 @@ export class MiCuenta implements OnInit {
   // ============================================
   // 🔹 Cambiar Vista
   // ============================================
-  changeView(view: 'profile' | 'reservas' | 'favoritos' | 'historial') {
+  changeView(view: 'profile' | 'reservas' | 'favoritos' | 'historial' | 'solicitudes') {
     this.currentView = view;
-    
+
     // Cargar datos según la vista
-    switch(view) {
+    switch (view) {
       case 'reservas':
         this.loadReservas();
         break;
@@ -96,12 +97,16 @@ export class MiCuenta implements OnInit {
     }
   }
 
+  irInicio() {
+    this.router.navigate(['/']);
+  }
+
   // ============================================
   // 🔹 Cargar Reservas Activas
   // ============================================
   loadReservas() {
     if (this.loadingReservas) return;
-    
+
     this.loadingReservas = true;
     // Simulación - reemplazar con llamada real al API
     setTimeout(() => {
@@ -134,7 +139,7 @@ export class MiCuenta implements OnInit {
   // ============================================
   loadFavoritos() {
     if (this.loadingFavoritos) return;
-    
+
     this.loadingFavoritos = true;
     this.http.get<FavoriteResponseDTO[]>(`${this.API_URL}/favoritos/usuario/${this.usuarioId}`)
       .subscribe({
@@ -166,16 +171,16 @@ export class MiCuenta implements OnInit {
   // ============================================
   loadHistorial(filtros?: HistorialReservasRequestDTO) {
     if (this.loadingHistorial) return;
-    
+
     this.loadingHistorial = true;
-    
+
     let url = `${this.API_URL}/reservas/usuario/${this.usuarioId}`;
     const params: string[] = [];
-    
+
     if (filtros?.fechaInicio) params.push(`fechaInicio=${filtros.fechaInicio}`);
     if (filtros?.fechaFin) params.push(`fechaFin=${filtros.fechaFin}`);
     if (filtros?.estado) params.push(`estado=${filtros.estado}`);
-    
+
     if (params.length > 0) {
       url += '?' + params.join('&');
     }
@@ -246,7 +251,7 @@ export class MiCuenta implements OnInit {
   // 🔹 Helpers
   // ============================================
   getEstadoClass(estado: string): string {
-    switch(estado.toLowerCase()) {
+    switch (estado.toLowerCase()) {
       case 'confirmada': return 'estado-confirmada';
       case 'pendiente': return 'estado-pendiente';
       case 'completada': return 'estado-completada';

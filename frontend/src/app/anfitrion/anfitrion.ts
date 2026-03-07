@@ -7,7 +7,10 @@ import { CardModule } from 'primeng/card';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { TextareaModule } from 'primeng/textarea';
-import { Observable } from 'rxjs';
+import { CarouselModule } from 'primeng/carousel';
+import { Observable, forkJoin } from 'rxjs';
+import { Router } from '@angular/router';
+import { AuthService } from '../services/auth.service';
 
 // Interfaces
 interface AlojamientoRequestDTO {
@@ -16,8 +19,6 @@ interface AlojamientoRequestDTO {
   direccion: string;
   precio: number;
   capacidadMaxima: number;
-  imagenes?: any[];
-  servicios?: string[];
 }
 
 interface AlojamientoResponseDTO {
@@ -27,15 +28,15 @@ interface AlojamientoResponseDTO {
   direccion: string;
   precio: number;
   capacidadMaxima: number;
-  imagenes: any[];
-  servicios: string[];
   estado?: string;
   ownerId: number;
+  imagenes?: { id: number; url: string; alojamientoId: number }[];
 }
 
 interface SolicitudPublicacionRequestDTO {
+  usuarioId: number;
   alojamientoId: number;
-  comentarios?: string;
+  comentario?: string;
 }
 
 interface SolicitudPublicacionResponseDTO {
@@ -59,6 +60,28 @@ interface ReservaHistorialResponseDTO {
   fechaReserva: string;
 }
 
+interface ServicioRequestDTO {
+  nombre: string;
+  descripcion: string;
+  precio: number;
+}
+
+interface ServicioResponseDTO {
+  id: number;
+  nombre: string;
+  descripcion: string;
+  precio: number;
+}
+
+interface UpdateUserDTO {
+  id: number;
+  nombre: string;
+  telefono: string;
+  fechaNacimiento: string;
+  contrasena: string;
+  usuarioId: number;
+}
+
 @Component({
   selector: 'app-anfitrion',
   imports: [
@@ -69,7 +92,8 @@ interface ReservaHistorialResponseDTO {
     CardModule,
     DialogModule,
     InputTextModule,
-    TextareaModule
+    TextareaModule,
+    CarouselModule
   ],
   templateUrl: './anfitrion.html',
   styleUrls: ['./anfitrion.scss'],
@@ -93,20 +117,94 @@ export class Anfitrion implements OnInit {
   // Loading states
   loadingAlojamientos: boolean = false;
   loadingHistorial: boolean = false;
+  loadingServicios: boolean = false;
 
   // Dialog states
   showCreateDialog: boolean = false;
   showEditDialog: boolean = false;
   showSolicitudDialog: boolean = false;
+  showServicioDialog: boolean = false;
 
-  // Formulario
+  // Formulario Alojamiento
   alojamientoForm: AlojamientoRequestDTO = this.getEmptyForm();
   selectedAlojamiento: AlojamientoResponseDTO | null = null;
 
-  constructor(private http: HttpClient) { }
+  // Formulario Servicio
+  servicios: ServicioResponseDTO[] = [];
+  servicioForm: ServicioRequestDTO = this.getEmptyServicioForm();
+  selectedServicio: ServicioResponseDTO | null = null;
+
+  // Variables auxiliares para subir imágenes
+  imageUrlInput: string = '';
+  imagenesUrls: string[] = [];
+
+  showEditProfileDialog: boolean = false;
+  profileForm: UpdateUserDTO = {
+    id: 0,
+    nombre: '',
+    telefono: '',
+    fechaNacimiento: '',
+    contrasena: '',
+    usuarioId: 0
+  };
+
+  constructor(private http: HttpClient, private auth: AuthService, private router: Router) { }
 
   ngOnInit() {
-    this.loadAlojamientos();
+    this.auth.currentUser$.subscribe(user => {
+      if (user) {
+        this.ownerId = user.id || 1;
+        this.ownerNombre = user.nombre || 'Nombre del Anfitrión';
+        this.ownerEmail = user.email || 'correo@ejemplo.com';
+        this.loadAlojamientos();
+      }
+    });
+  }
+
+  // ============================================
+  // 🔹 Editar Perfil
+  // ============================================
+  openEditProfileDialog() {
+    this.auth.currentUser$.subscribe(user => {
+      if (user) {
+        this.profileForm = {
+          id: user.id || this.ownerId,
+          nombre: user.nombre || this.ownerNombre,
+          telefono: '',
+          fechaNacimiento: '',
+          contrasena: '',
+          usuarioId: user.usuarioId || this.ownerId
+        };
+
+        // Cargar telefono y fechaNacimiento reales
+        this.http.get<any[]>(`${this.API_URL}/usuario`).subscribe(users => {
+          const myself = users.find(u => u.usuarioId === this.ownerId);
+          if (myself) {
+            this.profileForm.nombre = myself.nombre;
+            this.profileForm.telefono = myself.telefono || '';
+            this.profileForm.fechaNacimiento = myself.fechaNacimiento || '';
+          }
+          this.showEditProfileDialog = true;
+        });
+      }
+    }).unsubscribe();
+  }
+
+  guardarPerfil() {
+    this.http.put<any>(
+      `${this.API_URL}/usuario/${this.ownerId}`,
+      this.profileForm
+    ).subscribe({
+      next: (data) => {
+        alert('Perfil actualizado con éxito');
+        this.ownerNombre = data.nombre;
+        this.showEditProfileDialog = false;
+      },
+      error: (err) => {
+        console.error('Error al editar perfil', err);
+        alert('Error editando perfil');
+      }
+    });
   }
 
   // ============================================
@@ -122,7 +220,120 @@ export class Anfitrion implements OnInit {
       case 'historial':
         this.loadHistorialReservas();
         break;
+      case 'servicios':
+        this.loadServicios();
+        break;
     }
+  }
+
+  irInicio() {
+    this.router.navigate(['/']);
+  }
+
+  // ============================================
+  // 🔹 Gestión de Servicios
+  // ============================================
+
+  getEmptyServicioForm(): ServicioRequestDTO {
+    return {
+      nombre: '',
+      descripcion: '',
+      precio: 0
+    };
+  }
+
+  loadServicios() {
+    if (this.loadingServicios) return;
+    this.loadingServicios = true;
+
+    this.http.get<ServicioResponseDTO[]>(`${this.API_URL}/servicios`).subscribe({
+      next: (data) => {
+        this.servicios = data;
+        this.loadingServicios = false;
+      },
+      error: (err) => {
+        console.error('Error cargando servicios:', err);
+        this.loadingServicios = false;
+      }
+    });
+  }
+
+  openCreateServicioDialog() {
+    this.servicioForm = this.getEmptyServicioForm();
+    this.selectedServicio = null;
+    this.showServicioDialog = true;
+  }
+
+  openEditServicioDialog(servicio: ServicioResponseDTO) {
+    this.selectedServicio = servicio;
+    this.servicioForm = {
+      nombre: servicio.nombre,
+      descripcion: servicio.descripcion,
+      precio: servicio.precio
+    };
+    this.showServicioDialog = true;
+  }
+
+  guardarServicio() {
+    if (this.selectedServicio) {
+      // Editar
+      this.http.put<ServicioResponseDTO>(
+        `${this.API_URL}/servicios/${this.selectedServicio.id}`,
+        this.servicioForm
+      ).subscribe({
+        next: () => {
+          this.showServicioDialog = false;
+          this.loadServicios();
+        },
+        error: (err) => {
+          console.error('Error editando servicio:', err);
+          alert('Error al editar servicio');
+        }
+      });
+    } else {
+      // Crear
+      this.http.post<ServicioResponseDTO>(
+        `${this.API_URL}/servicios`,
+        this.servicioForm
+      ).subscribe({
+        next: () => {
+          this.showServicioDialog = false;
+          this.loadServicios();
+        },
+        error: (err) => {
+          console.error('Error creando servicio:', err);
+          alert('Error al crear servicio');
+        }
+      });
+    }
+  }
+
+  eliminarServicio(id: number) {
+    if (confirm('¿Estás seguro de que quieres eliminar este servicio?')) {
+      this.http.delete(`${this.API_URL}/servicios/${id}`).subscribe({
+        next: () => {
+          this.loadServicios();
+        },
+        error: (err) => {
+          console.error('Error eliminando servicio:', err);
+          alert('Error al eliminar servicio');
+        }
+      });
+    }
+  }
+
+  // ============================================
+  // 🔹 Manejo de Imágenes
+  // ============================================
+  addImageUrl() {
+    if (this.imageUrlInput && this.imageUrlInput.trim().length > 0) {
+      this.imagenesUrls.push(this.imageUrlInput.trim());
+      this.imageUrlInput = '';
+    }
+  }
+
+  removeImageUrl(index: number) {
+    this.imagenesUrls.splice(index, 1);
   }
 
   // ============================================
@@ -137,7 +348,7 @@ export class Anfitrion implements OnInit {
         next: (data) => {
           this.alojamientos = data.map(a => ({
             ...a,
-            estado: a.estado || 'BORRADOR' // TODO: Leer de la publicación real
+            estado: a.estado || 'BORRADOR'
           }));
           this.loadingAlojamientos = false;
         },
@@ -153,6 +364,8 @@ export class Anfitrion implements OnInit {
   // ============================================
   openCreateDialog() {
     this.alojamientoForm = this.getEmptyForm();
+    this.imagenesUrls = [];
+    this.imageUrlInput = '';
     this.showCreateDialog = true;
   }
 
@@ -163,22 +376,34 @@ export class Anfitrion implements OnInit {
     ).subscribe({
       next: (response) => {
         console.log('Alojamiento creado:', response);
-        this.alojamientos.push(response);
-        this.showCreateDialog = false;
-        this.alojamientoForm = this.getEmptyForm();
+        const newAlojamientoId = response.id;
+
+        // Guardar imágenes si hay URLs
+        if (this.imagenesUrls && this.imagenesUrls.length > 0) {
+          const imageRequests = this.imagenesUrls.map(url =>
+            this.http.post(`${this.API_URL}/imagenes-alojamiento`, {
+              alojamientoId: newAlojamientoId,
+              url: url
+            })
+          );
+
+          forkJoin(imageRequests).subscribe({
+            next: () => {
+              console.log('Todas las imágenes guardadas');
+              this.finalizarGuardado();
+            },
+            error: (err) => {
+              console.error('Error guardando imágenes', err);
+              this.finalizarGuardado();
+            }
+          });
+        } else {
+          this.finalizarGuardado();
+        }
       },
       error: (error) => {
         console.error('Error creando alojamiento:', error);
-        // Simulación en caso de error
-        const newAlojamiento: AlojamientoResponseDTO = {
-          id: Date.now(),
-          ...this.alojamientoForm,
-          imagenes: this.alojamientoForm.imagenes || [],
-          servicios: this.alojamientoForm.servicios || [],
-          estado: 'BORRADOR',
-          ownerId: this.ownerId
-        };
-        this.alojamientos.push(newAlojamiento);
+        alert('Error al crear el alojamiento: ' + (error.error?.message || error.message));
         this.showCreateDialog = false;
       }
     });
@@ -194,10 +419,10 @@ export class Anfitrion implements OnInit {
       descripcion: alojamiento.descripcion,
       direccion: alojamiento.direccion,
       precio: alojamiento.precio,
-      capacidadMaxima: alojamiento.capacidadMaxima,
-      imagenes: alojamiento.imagenes,
-      servicios: alojamiento.servicios
+      capacidadMaxima: alojamiento.capacidadMaxima || 1
     };
+    this.imagenesUrls = alojamiento.imagenes ? alojamiento.imagenes.map(i => i.url) : [];
+    this.imageUrlInput = '';
     this.showEditDialog = true;
   }
 
@@ -210,23 +435,64 @@ export class Anfitrion implements OnInit {
     ).subscribe({
       next: (response) => {
         console.log('Alojamiento editado:', response);
-        const index = this.alojamientos.findIndex(a => a.id === this.selectedAlojamiento!.id);
-        if (index !== -1) {
-          this.alojamientos[index] = response;
+        const alojamientoId = response.id;
+
+        // El backend actualmente no tiene un endpoint para eliminar URLs antiguas o sobreescribirlas fácilmente por lista,
+        // así que por ahora solo enviaremos las imágenes que el usuario añada a la lista como un batch completo
+        // (En el futuro podrías agregar lógica para borrar las viejas primero con DELETE /imagenes-alojamiento/{id})
+
+        if (this.imagenesUrls && this.imagenesUrls.length > 0) {
+          // Primero borramos todas las imágenes anteriores basándonos en las listadas en selectedAlojamiento
+          let prevImages = this.selectedAlojamiento?.imagenes || [];
+          const deleteRequests = prevImages.map(img =>
+            this.http.delete(`${this.API_URL}/imagenes-alojamiento/${img.id}`)
+          );
+
+          if (deleteRequests.length > 0) {
+            forkJoin(deleteRequests).subscribe({
+              next: () => this.guardarNuevasImagenes(alojamientoId),
+              error: () => this.guardarNuevasImagenes(alojamientoId) // Intentar guardar las nuevas de todos modos
+            });
+          } else {
+            this.guardarNuevasImagenes(alojamientoId);
+          }
+        } else {
+          this.finalizarGuardado();
         }
-        this.showEditDialog = false;
-        this.selectedAlojamiento = null;
       },
       error: (error) => {
         console.error('Error editando alojamiento:', error);
-        // Simulación
-        const index = this.alojamientos.findIndex(a => a.id === this.selectedAlojamiento!.id);
-        if (index !== -1) {
-          this.alojamientos[index] = { ...this.alojamientos[index], ...this.alojamientoForm };
-        }
+        alert('Error editando alojamiento: ' + (error.error?.message || error.message));
         this.showEditDialog = false;
       }
     });
+  }
+
+  private guardarNuevasImagenes(alojamientoId: number) {
+    const imageRequests = this.imagenesUrls.map(url =>
+      this.http.post(`${this.API_URL}/imagenes-alojamiento`, {
+        alojamientoId: alojamientoId,
+        url: url
+      })
+    );
+
+    if (imageRequests.length > 0) {
+      forkJoin(imageRequests).subscribe({
+        next: () => this.finalizarGuardado(),
+        error: () => this.finalizarGuardado()
+      });
+    } else {
+      this.finalizarGuardado();
+    }
+  }
+
+  private finalizarGuardado() {
+    this.showCreateDialog = false;
+    this.showEditDialog = false;
+    this.selectedAlojamiento = null;
+    this.alojamientoForm = this.getEmptyForm();
+    this.imagenesUrls = [];
+    this.loadAlojamientos(); // Recargar la lista para traer las imágenes nested reales del backend
   }
 
   // ============================================
@@ -244,8 +510,7 @@ export class Anfitrion implements OnInit {
       },
       error: (error) => {
         console.error('Error eliminando alojamiento:', error);
-        // Simulación
-        this.alojamientos = this.alojamientos.filter(a => a.id !== id);
+        alert('Error eliminando alojamiento: ' + (error.error?.message || error.message));
       }
     });
   }
@@ -258,12 +523,13 @@ export class Anfitrion implements OnInit {
     this.showSolicitudDialog = true;
   }
 
-  solicitarPublicacion(comentarios?: string) {
+  solicitarPublicacion(comentario?: string) {
     if (!this.selectedAlojamiento) return;
 
     const solicitud: SolicitudPublicacionRequestDTO = {
+      usuarioId: this.ownerId,
       alojamientoId: this.selectedAlojamiento.id,
-      comentarios: comentarios
+      comentario: comentario
     };
 
     this.http.post<SolicitudPublicacionResponseDTO>(
@@ -278,7 +544,7 @@ export class Anfitrion implements OnInit {
       },
       error: (error) => {
         console.error('Error creando solicitud:', error);
-        alert('Solicitud enviada (modo simulación)');
+        alert('Hubo un error al crear la solicitud: ' + (error.error?.message || error.message));
         this.showSolicitudDialog = false;
       }
     });
@@ -339,9 +605,7 @@ export class Anfitrion implements OnInit {
       descripcion: '',
       direccion: '',
       precio: 0,
-      capacidadMaxima: 1,
-      imagenes: [],
-      servicios: []
+      capacidadMaxima: 1
     };
   }
 

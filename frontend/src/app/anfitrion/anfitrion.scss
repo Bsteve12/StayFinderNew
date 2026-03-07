@@ -88,6 +88,30 @@
             }
         }
     }
+
+    .menu-divider {
+        height: 1px;
+        background: #e5e7eb;
+        margin: 16px 20px;
+    }
+
+    .btn-volver {
+        color: #6b7280;
+        margin-top: auto;
+
+        i {
+            color: #6b7280;
+        }
+
+        &:hover {
+            background: #f3e8ff;
+            color: #5b21b6;
+
+            i {
+                color: #5b21b6;
+            }
+        }
+    }
 }
 
 // ============================================
@@ -200,6 +224,43 @@
         }
     }
 
+    .profile-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+        margin-bottom: 32px;
+
+        .stat-item {
+            background: #f9fafb;
+            border-radius: 16px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+
+            &:hover {
+                transform: translateY(-4px);
+                box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            }
+
+            .stat-value {
+                font-size: 28px;
+                font-weight: 700;
+                color: #5b21b6;
+            }
+
+            .stat-label {
+                font-size: 13px;
+                color: #6b7280;
+                text-align: center;
+                font-weight: 600;
+            }
+        }
+    }
+
     .edit-button {
         background: #7c3aed !important;
         border: none !important;
@@ -229,6 +290,298 @@
     p {
         font-size: 18px;
         margin: 0;
+    }
+}
+
+.empty-state-gestion-purple {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 20px;
+    background-color: #f5f3ff;
+    border: 1px dashed #a855f7;
+    border-radius: 16px;
+    margin-top: 24px;
+
+    h4 {
+        font-size: 20px;
+        font-weight: 700;
+        color: #1e1b4b;
+        margin: 0 0 10px;
+    }
+
+    p {
+        font-size: 14px;
+        margin: 0 0 24px 0;
+        color: #6b7280;
+    }
+}
+
+.btn-crear-alojamiento-purple {
+    background: #6d28d9 !important;
+    border: none !important;
+    color: white !important;
+    font-weight: 600 !important;
+    border-radius: 8px !important;
+    padding: 12px 28px !important;
+
+    &:hover {
+        background: #5b21b6 !important;
+        transform: translateY(-2px);
+    }
+}
+
+.gestion-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+    padding: 0 8px;
+
+    h3 {
+        font-size: 24px;
+        font-weight: 700;
+        color: #1e1b4b;
+        margin: 0;
+    }
+}
+
+.btn-crear-nuevo {
+    background: #6d28d9 !important;
+    border: none !important;
+    color: white !important;
+    font-weight: 600 !important;
+    border-radius: 8px !important;
+    padding: 12px 32px !important;
+
+    &:hover {
+        background: #5b21b6 !important;
+        transform: translateY(-2px);
+    }
+}
+
+// ============================================
+// 🔹 Grid de Alojamientos y Tarjetas
+// ============================================
+.alojamientos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 24px;
+    margin-top: 24px;
+}
+
+.alojamiento-card {
+    background: white;
+    border: 2px solid #e5e7eb;
+    border-radius: 16px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+
+    &:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+        border-color: #c4b5fd;
+    }
+
+    .alojamiento-image-container {
+        width: 100%;
+        height: 240px;
+        position: relative;
+        background: #f3f4f6;
+
+        .alojamiento-image {
+            width: 100%;
+            height: 240px;
+            object-fit: cover;
+        }
+
+        // Estilos para el p-carousel
+        ::ng-deep .p-carousel {
+            height: 100%;
+
+            .p-carousel-content {
+                height: 100%;
+                overflow: hidden;
+            }
+
+            .p-carousel-item {
+                height: 100%;
+                display: flex;
+            }
+
+            // Flechas
+            .p-carousel-prev,
+            .p-carousel-next {
+                position: absolute;
+                top: 50%;
+                transform: translateY(-50%);
+                background: rgba(255, 255, 255, 0.8) !important;
+                color: #5b21b6 !important;
+                width: 32px !important;
+                height: 32px !important;
+                border: none !important;
+                border-radius: 50% !important;
+                z-index: 10;
+                opacity: 0;
+                transition: opacity 0.3s ease, background 0.3s ease;
+
+                &:hover {
+                    background: white !important;
+                }
+            }
+
+            .p-carousel-prev {
+                left: 8px;
+            }
+
+            .p-carousel-next {
+                right: 8px;
+            }
+
+            // Indicadores
+            .p-carousel-indicators {
+                position: absolute;
+                bottom: 8px;
+                left: 0;
+                right: 0;
+                padding: 0;
+                margin: 0;
+                z-index: 10;
+
+                .p-carousel-indicator {
+                    button {
+                        background-color: rgba(255, 255, 255, 0.5) !important;
+                        width: 8px !important;
+                        height: 8px !important;
+                        border-radius: 50% !important;
+                    }
+
+                    &.p-highlight button {
+                        background-color: white !important;
+                        transform: scale(1.2);
+                    }
+                }
+            }
+        }
+
+        // Mostrar flechas al hacer hover en la card
+        &:hover ::ng-deep .p-carousel .p-carousel-prev,
+        &:hover ::ng-deep .p-carousel .p-carousel-next {
+            opacity: 1;
+        }
+    }
+
+    .alojamiento-content {
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+
+        .alojamiento-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+
+            h3 {
+                font-size: 20px;
+                font-weight: 700;
+                color: #1e1b4b;
+                margin: 0;
+                line-height: 1.3;
+            }
+        }
+
+        .ubicacion {
+            color: #6b7280;
+            font-size: 14px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+
+            i {
+                color: #7c3aed;
+            }
+        }
+
+        .descripcion {
+            color: #4b5563;
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 20px;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            flex: 1;
+        }
+
+        .alojamiento-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 0;
+            border-top: 1px solid #e5e7eb;
+            border-bottom: 1px solid #e5e7eb;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #374151;
+            font-weight: 600;
+
+            i {
+                color: #7c3aed;
+                margin-right: 6px;
+            }
+        }
+
+        .alojamiento-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+
+            button {
+                flex: 1;
+                justify-content: center;
+                border-radius: 8px !important;
+                font-weight: 600 !important;
+                padding: 10px 16px !important;
+                min-width: calc(50% - 4px);
+
+                &.p-button-text {
+                    background: #f3f4f6 !important;
+                    color: #4b5563 !important;
+
+                    &:hover {
+                        background: #e5e7eb !important;
+                    }
+                }
+
+                &.p-button-danger {
+                    color: #dc2626 !important;
+                    background: #fee2e2 !important;
+
+                    &:hover {
+                        background: #fecaca !important;
+                    }
+                }
+
+                &.p-button-success {
+                    background: #10b981 !important;
+                    color: white !important;
+                    min-width: 100%;
+                    margin-top: 4px;
+
+                    &:hover {
+                        background: #059669 !important;
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -555,5 +908,377 @@
     .reservas-grid,
     .favoritos-grid {
         grid-template-columns: 1fr;
+    }
+}
+
+// ============================================
+// 🔹 Forzar Modo Claro en Modales (Dialogs)
+// ============================================
+::ng-deep {
+    .p-dialog {
+        background-color: #ffffff !important;
+        border-radius: 16px !important;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+        border: 1px solid #e5e7eb !important;
+
+        .p-dialog-header {
+            background-color: #ffffff !important;
+            color: #1e1b4b !important;
+            padding: 24px !important;
+            border-bottom: 1px solid #f3f4f6 !important;
+            border-top-left-radius: 16px !important;
+            border-top-right-radius: 16px !important;
+
+            .p-dialog-title {
+                font-size: 20px !important;
+                font-weight: 700 !important;
+            }
+
+            .p-dialog-header-icon {
+                color: #6b7280 !important;
+
+                &:hover {
+                    background: #f3f4f6 !important;
+                    color: #1e1b4b !important;
+                }
+            }
+        }
+
+        .p-dialog-content {
+            background-color: #ffffff !important;
+            color: #4b5563 !important;
+            padding: 24px !important;
+
+            .form-field {
+                margin-bottom: 20px;
+
+                label {
+                    display: block;
+                    font-weight: 600;
+                    color: #374151;
+                    margin-bottom: 8px;
+                    font-size: 14px;
+                }
+
+                input,
+                textarea {
+                    width: 100%;
+                    padding: 12px;
+                    border: 1px solid #d1d5db !important;
+                    border-radius: 8px !important;
+                    background-color: #ffffff !important;
+                    color: #1f2937 !important;
+                    font-size: 14px;
+                    transition: border-color 0.2s, box-shadow 0.2s;
+
+                    &:focus {
+                        outline: none;
+                        border-color: #7c3aed !important;
+                        box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1) !important;
+                    }
+
+                    &::placeholder {
+                        color: #9ca3af !important;
+                    }
+                }
+
+                .image-input-group {
+                    display: flex;
+                    gap: 8px;
+                    margin-bottom: 12px;
+
+                    input {
+                        flex: 1;
+                    }
+
+                    .btn-add-image {
+                        background: #34d399 !important;
+                        border: none !important;
+                        color: #064e3b !important;
+                        border-radius: 8px !important;
+                        transition: all 0.2s;
+
+                        &:hover {
+                            background: #10b981 !important;
+                            transform: translateY(-2px);
+                        }
+                    }
+                }
+
+                .images-preview {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 8px;
+                    max-height: 150px;
+                    overflow-y: auto;
+                    padding-right: 4px;
+
+                    .image-tag {
+                        display: flex;
+                        align-items: center;
+                        justify-content: space-between;
+                        background: #f3f4f6;
+                        padding: 8px 12px;
+                        border-radius: 6px;
+                        border: 1px solid #e5e7eb;
+
+                        .url-text {
+                            font-size: 13px;
+                            color: #4b5563;
+                            white-space: nowrap;
+                            overflow: hidden;
+                            text-overflow: ellipsis;
+                            max-width: 90%;
+                        }
+
+                        button {
+                            width: 24px !important;
+                            height: 24px !important;
+                            padding: 0 !important;
+
+                            .p-button-icon {
+                                font-size: 12px !important;
+                            }
+                        }
+                    }
+                }
+            }
+
+            .form-row {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 16px;
+            }
+        }
+
+        .p-dialog-footer {
+            background-color: #ffffff !important;
+            padding: 16px 24px !important;
+            border-top: 1px solid #f3f4f6 !important;
+            border-bottom-left-radius: 16px !important;
+            border-bottom-right-radius: 16px !important;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+
+            button {
+                border-radius: 8px !important;
+                padding: 10px 24px !important;
+                font-weight: 600 !important;
+
+                &.p-button-text {
+                    background: transparent !important;
+                    color: #6b7280 !important;
+                    border: 1px solid #d1d5db !important;
+
+                    &:hover {
+                        background: #f3f4f6 !important;
+                        color: #374151 !important;
+                    }
+                }
+
+                &:not(.p-button-text) {
+                    background: #6d28d9 !important;
+                    color: white !important;
+                    border: none !important;
+
+                    &:hover {
+                        background: #5b21b6 !important;
+                    }
+                }
+            }
+        }
+    }
+
+    // ============================================
+    // 🔹 Vista: Servicios
+    // ============================================
+
+    .servicio-card {
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: space-between !important;
+        min-height: 200px !important;
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+
+        &:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .alojamiento-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 24px;
+        }
+
+        .alojamiento-header h3 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1e1b4b;
+            margin-bottom: 12px;
+        }
+
+        .descripcion {
+            color: #6b7280;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 24px;
+            flex: 1;
+        }
+
+        .alojamiento-info {
+            margin-bottom: 24px;
+            padding-top: 16px;
+            border-top: 1px solid #e5e7eb;
+
+            .servicio-price {
+                font-size: 18px;
+                font-weight: 700;
+                color: #7c3aed;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+        }
+
+        .alojamiento-actions {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            border-top: 1px solid #e5e7eb;
+            padding-top: 16px;
+            margin-top: auto;
+
+            button {
+                flex: 1;
+            }
+        }
+    }
+}
+
+// ============================================
+// 🔹 Dialog Styles (Editar Perfil & Servicios)
+// ============================================
+
+::ng-deep {
+    .p-dialog.custom-dialog {
+        background: #ffffff;
+        border-radius: 16px;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        border: none;
+        overflow: hidden;
+
+        .p-dialog-header {
+            background: linear-gradient(135deg, #1e1b4b 0%, #4c1d95 100%);
+            color: white;
+            padding: 24px;
+            border-bottom: none;
+
+            .p-dialog-title {
+                font-size: 1.25rem;
+                font-weight: 600;
+            }
+
+            .p-dialog-header-icon {
+                color: rgba(255, 255, 255, 0.8);
+                transition: color 0.2s;
+
+                &:hover {
+                    color: white;
+                    background: rgba(255, 255, 255, 0.1);
+                }
+            }
+        }
+
+        .p-dialog-content {
+            padding: 24px;
+            background: #ffffff;
+
+            .p-fluid {
+                display: flex;
+                flex-direction: column;
+                gap: 1.5rem;
+
+                .field {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.5rem;
+
+                    label {
+                        font-weight: 600;
+                        color: #374151;
+                        font-size: 0.95rem;
+                        background: transparent !important;
+                    }
+
+                    .p-inputtext,
+                    input {
+                        padding: 0.75rem 1rem !important;
+                        border-radius: 8px !important;
+                        border: 1px solid #d1d5db !important;
+                        background-color: #f9fafb !important;
+                        color: #1f2937 !important;
+                        transition: all 0.2s;
+                        font-size: 0.95rem;
+                        box-shadow: none !important;
+
+                        &:focus {
+                            outline: none !important;
+                            border-color: #7c3aed !important;
+                            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1) !important;
+                            background-color: #ffffff !important;
+                        }
+
+                        &::placeholder {
+                            color: #9ca3af !important;
+                        }
+                    }
+                }
+            }
+        }
+
+        .p-dialog-footer {
+            background-color: #ffffff !important;
+            padding: 16px 24px !important;
+            border-top: 1px solid #f3f4f6 !important;
+            border-bottom-left-radius: 16px !important;
+            border-bottom-right-radius: 16px !important;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+
+            button {
+                border-radius: 8px !important;
+                padding: 10px 24px !important;
+                font-weight: 600 !important;
+
+                &.p-button-text {
+                    background: transparent !important;
+                    color: #6b7280 !important;
+                    border: 1px solid #d1d5db !important;
+
+                    &:hover {
+                        background: #f3f4f6 !important;
+                        color: #374151 !important;
+                    }
+                }
+
+                &:not(.p-button-text) {
+                    background: #6d28d9 !important;
+                    color: white !important;
+                    border: none !important;
+
+                    &:hover {
+                        background: #5b21b6 !important;
+                    }
+                }
+            }
+        }
     }
 }

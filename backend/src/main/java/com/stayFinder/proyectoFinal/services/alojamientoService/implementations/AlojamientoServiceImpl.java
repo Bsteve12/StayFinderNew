@@ -10,6 +10,8 @@ import com.stayFinder.proyectoFinal.entity.enums.Role;
 import com.stayFinder.proyectoFinal.repository.AlojamientoRepository;
 import com.stayFinder.proyectoFinal.repository.ReservaRepository;
 import com.stayFinder.proyectoFinal.repository.UsuarioRepository;
+import com.stayFinder.proyectoFinal.repository.SolicitudPublicacionRepository;
+import com.stayFinder.proyectoFinal.entity.enums.EstadoSolicitudPublicacion;
 import com.stayFinder.proyectoFinal.services.alojamientoService.interfaces.AlojamientoServiceInterface;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -25,10 +27,11 @@ public class AlojamientoServiceImpl implements AlojamientoServiceInterface {
     private final AlojamientoRepository alojamientoRepo;
     private final UsuarioRepository usuarioRepo;
     private final ReservaRepository reservaRepo;
+    private final SolicitudPublicacionRepository solicitudRepo;
 
     @Override
     public AlojamientoResponseDTO crear(AlojamientoRequestDTO req, Long ownerId) {
-        Usuario owner = usuarioRepo.findById(ownerId)
+        Usuario owner = usuarioRepo.findByUsuarioId(ownerId)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
         // Validación de roles permitidos
@@ -54,7 +57,9 @@ public class AlojamientoServiceImpl implements AlojamientoServiceInterface {
         dto.setDireccion(alojamiento.getDireccion());
         dto.setPrecio(alojamiento.getPrecio());
         dto.setDescripcion(alojamiento.getDescripcion());
-        dto.setOwnerId(alojamiento.getOwner().getId());
+        dto.setCapacidadMaxima(alojamiento.getCapacidadMaxima());
+        dto.setOwnerId(alojamiento.getOwner().getUsuarioId());
+        dto.setEstado(determinarEstado(alojamiento));
         return dto;
     }
 
@@ -67,7 +72,7 @@ public class AlojamientoServiceImpl implements AlojamientoServiceInterface {
             throw new RuntimeException("El alojamiento fue eliminado");
         }
 
-        if (!alojamiento.getOwner().getId().equals(ownerId)) {
+        if (!alojamiento.getOwner().getUsuarioId().equals(ownerId)) {
             throw new RuntimeException("No puedes editar un alojamiento que no es tuyo");
         }
 
@@ -85,12 +90,17 @@ public class AlojamientoServiceImpl implements AlojamientoServiceInterface {
         dto.setDireccion(alojamiento.getDireccion());
         dto.setPrecio(alojamiento.getPrecio());
         dto.setDescripcion(alojamiento.getDescripcion());
-        dto.setOwnerId(alojamiento.getOwner().getId());
+        dto.setCapacidadMaxima(alojamiento.getCapacidadMaxima());
+        dto.setOwnerId(alojamiento.getOwner().getUsuarioId());
+        dto.setEstado(determinarEstado(alojamiento));
         return dto;
     }
 
     public List<AlojamientoResponseDTO> obtenerAlojamientosDeOwner(Long ownerId) {
-        return alojamientoRepo.findByOwnerIdAndEliminadoFalse(ownerId).stream()
+        Usuario owner = usuarioRepo.findByUsuarioId(ownerId)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+                
+        return alojamientoRepo.findByOwnerIdAndEliminadoFalse(owner.getId()).stream()
                 .map(a -> {
                     AlojamientoResponseDTO dto = new AlojamientoResponseDTO();
                     dto.setId(a.getId());
@@ -98,7 +108,9 @@ public class AlojamientoServiceImpl implements AlojamientoServiceInterface {
                     dto.setDireccion(a.getDireccion());
                     dto.setPrecio(a.getPrecio());
                     dto.setDescripcion(a.getDescripcion());
-                    dto.setOwnerId(a.getOwner().getId());
+                    dto.setCapacidadMaxima(a.getCapacidadMaxima());
+                    dto.setOwnerId(a.getOwner().getUsuarioId());
+                    dto.setEstado(determinarEstado(a));
 
                     // Mapeamos las imágenes si existen
                     if (a.getImagenes() != null && !a.getImagenes().isEmpty()) {
@@ -129,7 +141,9 @@ public class AlojamientoServiceImpl implements AlojamientoServiceInterface {
                     dto.setDireccion(a.getDireccion());
                     dto.setPrecio(a.getPrecio());
                     dto.setDescripcion(a.getDescripcion());
-                    dto.setOwnerId(a.getOwner().getId());
+                    dto.setCapacidadMaxima(a.getCapacidadMaxima());
+                    dto.setOwnerId(a.getOwner().getUsuarioId());
+                    dto.setEstado(determinarEstado(a));
 
                     // 🔹 Mapeamos las imágenes asociadas al alojamiento
                     if (a.getImagenes() != null && !a.getImagenes().isEmpty()) {
@@ -156,7 +170,7 @@ public class AlojamientoServiceImpl implements AlojamientoServiceInterface {
         Alojamiento alojamiento = alojamientoRepo.findById(alojamientoId)
                 .orElseThrow(() -> new RuntimeException("Alojamiento no encontrado"));
 
-        if (!alojamiento.getOwner().getId().equals(ownerId)) {
+        if (!alojamiento.getOwner().getUsuarioId().equals(ownerId)) {
             throw new RuntimeException("No puedes eliminar un alojamiento que no es tuyo");
         }
 
@@ -190,7 +204,9 @@ public class AlojamientoServiceImpl implements AlojamientoServiceInterface {
         dto.setDireccion(alojamiento.getDireccion());
         dto.setPrecio(alojamiento.getPrecio());
         dto.setDescripcion(alojamiento.getDescripcion());
-        dto.setOwnerId(alojamiento.getOwner().getId());
+        dto.setCapacidadMaxima(alojamiento.getCapacidadMaxima());
+        dto.setOwnerId(alojamiento.getOwner().getUsuarioId());
+        dto.setEstado(determinarEstado(alojamiento));
 
         // 👇 Mapeamos las imágenes
         if (alojamiento.getImagenes() != null && !alojamiento.getImagenes().isEmpty()) {
@@ -207,5 +223,15 @@ public class AlojamientoServiceImpl implements AlojamientoServiceInterface {
         }
 
         return dto;
+    }
+
+    private String determinarEstado(Alojamiento alojamiento) {
+        if (alojamiento.getPublicacion() != null && alojamiento.getPublicacion().getEstado() == EstadoSolicitudPublicacion.APROBADA) {
+            return "PUBLICADO";
+        }
+        if (solicitudRepo.existsByAlojamientoIdAndEstado(alojamiento.getId(), EstadoSolicitudPublicacion.PENDIENTE)) {
+            return "PENDIENTE";
+        }
+        return "BORRADOR";
     }
 }

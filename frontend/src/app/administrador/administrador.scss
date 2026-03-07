@@ -223,6 +223,23 @@
             }
         }
     }
+
+    .edit-button {
+        background: linear-gradient(135deg, #4f46e5 0%, #1e40af 100%);
+        border: none;
+        padding: 12px 32px;
+        font-weight: 600;
+        border-radius: 12px;
+        color: white;
+        transition: all 0.3s ease;
+        margin-top: 2rem;
+
+        &:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+            background: linear-gradient(135deg, #4338ca 0%, #1e3a8a 100%);
+        }
+    }
 }
 
 // ============================================
@@ -313,9 +330,35 @@
     }
 
     .p-paginator {
-        background: #f9fafb;
-        border: none;
-        padding: 16px;
+        background: #f9fafb !important;
+        border: none !important;
+        padding: 16px !important;
+        color: #374151 !important;
+
+        .p-paginator-pages .p-paginator-page {
+            color: #374151 !important;
+
+            &.p-highlight {
+                background: #e0e7ff !important;
+                color: #4f46e5 !important;
+                font-weight: 600;
+            }
+
+            &:not(.p-highlight):hover {
+                background: #e5e7eb !important;
+            }
+        }
+
+        .p-paginator-first,
+        .p-paginator-prev,
+        .p-paginator-next,
+        .p-paginator-last {
+            color: #6b7280 !important;
+
+            &:hover {
+                background: #e5e7eb !important;
+            }
+        }
     }
 }
 
@@ -764,6 +807,132 @@
     .filter-section {
         ::ng-deep .mat-mdc-form-field {
             width: 100%;
+        }
+    }
+}
+
+// ============================================
+// 🔹 Dialog Styles (Editar Perfil)
+// ============================================
+
+::ng-deep {
+    .p-dialog.custom-dialog {
+        background: #ffffff;
+        border-radius: 16px;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        border: none;
+        overflow: hidden;
+
+        .p-dialog-header {
+            background: linear-gradient(135deg, #1e1b4b 0%, #4c1d95 100%);
+            color: white;
+            padding: 24px;
+            border-bottom: none;
+
+            .p-dialog-title {
+                font-size: 1.25rem;
+                font-weight: 600;
+            }
+
+            .p-dialog-header-icon {
+                color: rgba(255, 255, 255, 0.8);
+                transition: color 0.2s;
+
+                &:hover {
+                    color: white;
+                    background: rgba(255, 255, 255, 0.1);
+                }
+            }
+        }
+
+        .p-dialog-content {
+            padding: 24px;
+            background: #ffffff;
+
+            .p-fluid {
+                display: flex;
+                flex-direction: column;
+                gap: 1.5rem;
+
+                .field {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.5rem;
+
+                    label {
+                        font-weight: 600;
+                        color: #374151;
+                        font-size: 0.95rem;
+                        background: transparent !important;
+                        display: block !important;
+                        margin-bottom: 0.5rem;
+                    }
+
+                    .p-inputtext,
+                    input {
+                        display: block !important;
+                        width: 100% !important;
+                        box-sizing: border-box !important;
+                        padding: 0.75rem 1rem !important;
+                        border-radius: 8px !important;
+                        border: 1px solid #d1d5db !important;
+                        background-color: #f9fafb !important;
+                        color: #1f2937 !important;
+                        transition: all 0.2s;
+                        font-size: 0.95rem;
+                        box-shadow: none !important;
+
+                        &:focus {
+                            outline: none !important;
+                            border-color: #7c3aed !important;
+                            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1) !important;
+                            background-color: #ffffff !important;
+                        }
+
+                        &::placeholder {
+                            color: #9ca3af !important;
+                        }
+                    }
+                }
+            }
+        }
+
+        .p-dialog-footer {
+            background-color: #ffffff !important;
+            padding: 16px 24px !important;
+            border-top: 1px solid #f3f4f6 !important;
+            border-bottom-left-radius: 16px !important;
+            border-bottom-right-radius: 16px !important;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+
+            button {
+                border-radius: 8px !important;
+                padding: 10px 24px !important;
+                font-weight: 600 !important;
+
+                &.p-button-text {
+                    background: transparent !important;
+                    color: #6b7280 !important;
+                    border: 1px solid #d1d5db !important;
+
+                    &:hover {
+                        background: #f3f4f6 !important;
+                        color: #374151 !important;
+                    }
+                }
+
+                &:not(.p-button-text) {
+                    background: #6d28d9 !important;
+                    color: white !important;
+                    border: none !important;
+
+                    &:hover {
+                        background: #5b21b6 !important;
+                    }
+                }
+            }
         }
     }
 }

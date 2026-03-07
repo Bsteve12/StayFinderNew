@@ -101,6 +101,9 @@
               <span class="stat-label">Usuarios Totales</span>
             </div>
           </div>
+
+          <button pButton label="Editar Perfil" class="edit-button" style="margin-top: 2rem;"
+            (click)="openEditProfileDialog()"></button>
         </div>
       </div>
 
@@ -174,8 +177,8 @@
           <ng-template pTemplate="body" let-solicitud>
             <tr>
               <td>{{ solicitud.id }}</td>
-              <td>{{ solicitud.usuarioNombre }}</td>
-              <td>{{ solicitud.usuarioEmail }}</td>
+              <td>{{ solicitud.nombreUsuario }}</td>
+              <td>{{ solicitud.emailUsuario }}</td>
               <td>{{ formatDate(solicitud.fechaSolicitud) }}</td>
               <td>{{ solicitud.comentario || 'N/A' }}</td>
               <td>
@@ -406,5 +409,34 @@
     <button pButton label="Cancelar" class="p-button-text" (click)="showRespuestaDialog = false"></button>
     <button pButton label="Confirmar Rechazo" class="p-button-danger"
       (click)="currentView === 'solicitud-anfitriones' ? confirmarRechazoSolicitudOwner() : confirmarRespuestaSolicitudPublicacion(false)"></button>
+  </ng-template>
+</p-dialog>
+
+<!-- Dialog para Editar Perfil -->
+<p-dialog header="Editar Perfil" [(visible)]="showEditProfileDialog" [modal]="true" [style]="{width: '450px'}"
+  styleClass="custom-dialog">
+  <div class="p-fluid">
+    <div class="field">
+      <label for="perfilNombre">Nombre Completo</label>
+      <input id="perfilNombre" type="text" pInputText [(ngModel)]="profileForm.nombre" />
+    </div>
+    <div class="field">
+      <label for="perfilTel">Teléfono</label>
+      <input id="perfilTel" type="tel" pInputText [(ngModel)]="profileForm.telefono" />
+    </div>
+    <div class="field">
+      <label for="perfilNacimiento">Fecha de Nacimiento</label>
+      <input id="perfilNacimiento" type="date" pInputText [(ngModel)]="profileForm.fechaNacimiento" />
+    </div>
+    <div class="field">
+      <label for="perfilPassword">Nueva Contraseña (Opcional)</label>
+      <input id="perfilPassword" type="password" pInputText [(ngModel)]="profileForm.contrasena"
+        placeholder="Dejar en blanco para mantener la actual" />
+    </div>
+  </div>
+  <ng-template pTemplate="footer">
+    <button pButton label="Cancelar" icon="pi pi-times" class="p-button-text"
+      (click)="showEditProfileDialog = false"></button>
+    <button pButton label="Guardar" icon="pi pi-check" class="p-button-primary" (click)="guardarPerfil()"></button>
   </ng-template>
 </p-dialog>

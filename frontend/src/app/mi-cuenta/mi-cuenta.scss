@@ -88,6 +88,30 @@
             }
         }
     }
+
+    .menu-divider {
+        height: 1px;
+        background: #e5e7eb;
+        margin: 16px 20px;
+    }
+
+    .btn-volver {
+        color: #6b7280;
+        margin-top: auto;
+
+        i {
+            color: #6b7280;
+        }
+
+        &:hover {
+            background: #f3e8ff;
+            color: #5b21b6;
+
+            i {
+                color: #5b21b6;
+            }
+        }
+    }
 }
 
 // ============================================
