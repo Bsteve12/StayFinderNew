@@ -31,6 +31,7 @@ interface AlojamientoResponseDTO {
   estado?: string;
   ownerId: number;
   imagenes?: { id: number; url: string; alojamientoId: number }[];
+  imagenesCompletas?: any[]; // Array for resolved actual URLs
 }
 
 interface SolicitudPublicacionRequestDTO {
@@ -135,8 +136,12 @@ export class Anfitrion implements OnInit {
   selectedServicio: ServicioResponseDTO | null = null;
 
   // Variables auxiliares para subir imágenes
+  imagenesArchivos: File[] = [];
+  imagenesPreviews: string[] = [];
+  imagenesAntiguasUrls: string[] = []; // URLs de imágenes ya subidas cuando se edita
+
   imageUrlInput: string = '';
-  imagenesUrls: string[] = [];
+  imagenesUrls: string[] = []; // URLs nuevas que se agregan manualmente
 
   showEditProfileDialog: boolean = false;
   profileForm: UpdateUserDTO = {
@@ -325,8 +330,38 @@ export class Anfitrion implements OnInit {
   // ============================================
   // 🔹 Manejo de Imágenes
   // ============================================
+  onFilesSelected(event: any) {
+    const files: FileList = event.target.files;
+    if (files) {
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        this.imagenesArchivos.push(file);
+
+        // Crear preview
+        const reader = new FileReader();
+        reader.onload = (e: any) => {
+          this.imagenesPreviews.push(e.target.result);
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+  }
+
+  removeImage(index: number, isPreview: boolean) {
+    if (isPreview) {
+      this.imagenesArchivos.splice(index, 1);
+      this.imagenesPreviews.splice(index, 1);
+    } else {
+      this.imagenesAntiguasUrls.splice(index, 1);
+    }
+  }
+
   addImageUrl() {
-    if (this.imageUrlInput && this.imageUrlInput.trim().length > 0) {
+    if (this.imageUrlInput && this.imageUrlInput.trim() !== '') {
+      if (!this.imageUrlInput.startsWith('http://') && !this.imageUrlInput.startsWith('https://')) {
+        alert('Por favor, ingresa una URL válida que empiece con http:// o https://');
+        return;
+      }
       this.imagenesUrls.push(this.imageUrlInput.trim());
       this.imageUrlInput = '';
     }
@@ -334,6 +369,11 @@ export class Anfitrion implements OnInit {
 
   removeImageUrl(index: number) {
     this.imagenesUrls.splice(index, 1);
+  }
+
+  validarMinimoImagenes(): boolean {
+    const totalImagenes = this.imagenesArchivos.length + this.imagenesAntiguasUrls.length + this.imagenesUrls.length;
+    return totalImagenes >= 3;
   }
 
   // ============================================
@@ -346,10 +386,20 @@ export class Anfitrion implements OnInit {
     this.http.get<AlojamientoResponseDTO[]>(`${this.API_URL}/alojamientos/owner/${this.ownerId}`)
       .subscribe({
         next: (data) => {
-          this.alojamientos = data.map(a => ({
-            ...a,
-            estado: a.estado || 'BORRADOR'
-          }));
+          this.alojamientos = data.map(a => {
+            // Fix relative URIs by prepending localhost server explicitly
+            const imgs = a.imagenes?.map(img => {
+              return {
+                ...img,
+                url: img.url.startsWith('/api') ? `http://localhost:8080${img.url}` : img.url
+              };
+            }) || [];
+            return {
+              ...a,
+              estado: a.estado || 'BORRADOR',
+              imagenesCompletas: imgs
+            };
+          });
           this.loadingAlojamientos = false;
         },
         error: (error) => {
@@ -364,12 +414,20 @@ export class Anfitrion implements OnInit {
   // ============================================
   openCreateDialog() {
     this.alojamientoForm = this.getEmptyForm();
+    this.imagenesArchivos = [];
+    this.imagenesPreviews = [];
+    this.imagenesAntiguasUrls = [];
     this.imagenesUrls = [];
     this.imageUrlInput = '';
     this.showCreateDialog = true;
   }
 
   crearAlojamiento() {
+    if (!this.validarMinimoImagenes()) {
+      alert('Debes agregar al menos 3 imágenes para publicar el alojamiento.');
+      return;
+    }
+
     this.http.post<AlojamientoResponseDTO>(
       `${this.API_URL}/alojamientos?ownerId=${this.ownerId}`,
       this.alojamientoForm
@@ -378,22 +436,25 @@ export class Anfitrion implements OnInit {
         console.log('Alojamiento creado:', response);
         const newAlojamientoId = response.id;
 
-        // Guardar imágenes si hay URLs
-        if (this.imagenesUrls && this.imagenesUrls.length > 0) {
-          const imageRequests = this.imagenesUrls.map(url =>
-            this.http.post(`${this.API_URL}/imagenes-alojamiento`, {
-              alojamientoId: newAlojamientoId,
-              url: url
-            })
-          );
+        // Guardar imágenes físicas y/o URLs
+        if (this.imagenesArchivos.length > 0 || this.imagenesUrls.length > 0) {
+          const formData = new FormData();
+          formData.append('alojamientoId', newAlojamientoId.toString());
+          this.imagenesArchivos.forEach(file => {
+            formData.append('imagenes', file);
+          });
+          this.imagenesUrls.forEach(url => {
+            formData.append('nuevasUrls', url);
+          });
 
-          forkJoin(imageRequests).subscribe({
+          this.http.post(`${this.API_URL}/imagenes-alojamiento/multiples`, formData).subscribe({
             next: () => {
-              console.log('Todas las imágenes guardadas');
+              console.log('Todas las imágenes subidas con éxito');
               this.finalizarGuardado();
             },
             error: (err) => {
               console.error('Error guardando imágenes', err);
+              // Como falló, se podría considerar eliminar el alojamiento creado o advertir al usuario
               this.finalizarGuardado();
             }
           });
@@ -421,13 +482,21 @@ export class Anfitrion implements OnInit {
       precio: alojamiento.precio,
       capacidadMaxima: alojamiento.capacidadMaxima || 1
     };
-    this.imagenesUrls = alojamiento.imagenes ? alojamiento.imagenes.map(i => i.url) : [];
+    this.imagenesAntiguasUrls = alojamiento.imagenes ? alojamiento.imagenes.map(i => i.url) : [];
+    this.imagenesArchivos = [];
+    this.imagenesPreviews = [];
+    this.imagenesUrls = [];
     this.imageUrlInput = '';
     this.showEditDialog = true;
   }
 
   editarAlojamiento() {
     if (!this.selectedAlojamiento) return;
+
+    if (!this.validarMinimoImagenes()) {
+      alert('Debes agregar al menos 3 imágenes para publicar el alojamiento.');
+      return;
+    }
 
     this.http.put<AlojamientoResponseDTO>(
       `${this.API_URL}/alojamientos/${this.selectedAlojamiento.id}?ownerId=${this.ownerId}`,
@@ -437,27 +506,21 @@ export class Anfitrion implements OnInit {
         console.log('Alojamiento editado:', response);
         const alojamientoId = response.id;
 
-        // El backend actualmente no tiene un endpoint para eliminar URLs antiguas o sobreescribirlas fácilmente por lista,
-        // así que por ahora solo enviaremos las imágenes que el usuario añada a la lista como un batch completo
-        // (En el futuro podrías agregar lógica para borrar las viejas primero con DELETE /imagenes-alojamiento/{id})
+        // Si el usuario eliminó URLs antiguas, las sacamos del backend
+        let currImages = this.selectedAlojamiento?.imagenes || [];
+        const imgsToDelete = currImages.filter(img => !this.imagenesAntiguasUrls.includes(img.url));
 
-        if (this.imagenesUrls && this.imagenesUrls.length > 0) {
-          // Primero borramos todas las imágenes anteriores basándonos en las listadas en selectedAlojamiento
-          let prevImages = this.selectedAlojamiento?.imagenes || [];
-          const deleteRequests = prevImages.map(img =>
-            this.http.delete(`${this.API_URL}/imagenes-alojamiento/${img.id}`)
-          );
+        const deleteRequests = imgsToDelete.map(img =>
+          this.http.delete(`${this.API_URL}/imagenes-alojamiento/${img.id}`)
+        );
 
-          if (deleteRequests.length > 0) {
-            forkJoin(deleteRequests).subscribe({
-              next: () => this.guardarNuevasImagenes(alojamientoId),
-              error: () => this.guardarNuevasImagenes(alojamientoId) // Intentar guardar las nuevas de todos modos
-            });
-          } else {
-            this.guardarNuevasImagenes(alojamientoId);
-          }
+        if (deleteRequests.length > 0) {
+          forkJoin(deleteRequests).subscribe({
+            next: () => this.guardarNuevasImagenes(alojamientoId),
+            error: () => this.guardarNuevasImagenes(alojamientoId) // Intentar guardar de todos modos
+          });
         } else {
-          this.finalizarGuardado();
+          this.guardarNuevasImagenes(alojamientoId);
         }
       },
       error: (error) => {
@@ -469,15 +532,17 @@ export class Anfitrion implements OnInit {
   }
 
   private guardarNuevasImagenes(alojamientoId: number) {
-    const imageRequests = this.imagenesUrls.map(url =>
-      this.http.post(`${this.API_URL}/imagenes-alojamiento`, {
-        alojamientoId: alojamientoId,
-        url: url
-      })
-    );
+    if (this.imagenesArchivos.length > 0 || this.imagenesUrls.length > 0) {
+      const formData = new FormData();
+      formData.append('alojamientoId', alojamientoId.toString());
+      this.imagenesArchivos.forEach(file => {
+        formData.append('imagenes', file);
+      });
+      this.imagenesUrls.forEach(url => {
+        formData.append('nuevasUrls', url);
+      });
 
-    if (imageRequests.length > 0) {
-      forkJoin(imageRequests).subscribe({
+      this.http.post(`${this.API_URL}/imagenes-alojamiento/multiples`, formData).subscribe({
         next: () => this.finalizarGuardado(),
         error: () => this.finalizarGuardado()
       });
@@ -491,7 +556,11 @@ export class Anfitrion implements OnInit {
     this.showEditDialog = false;
     this.selectedAlojamiento = null;
     this.alojamientoForm = this.getEmptyForm();
+    this.imagenesArchivos = [];
+    this.imagenesPreviews = [];
+    this.imagenesAntiguasUrls = [];
     this.imagenesUrls = [];
+    this.imageUrlInput = '';
     this.loadAlojamientos(); // Recargar la lista para traer las imágenes nested reales del backend
   }
 

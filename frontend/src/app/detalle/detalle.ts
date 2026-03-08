@@ -185,10 +185,13 @@ export class Detalle implements OnInit {
           bedrooms: d.numHabitaciones || 1, // Fallback if property doesn't exist
           bathrooms: d.numBanos ? `${d.numBanos} baños` : 'Baño compartido',
           amenities: d.servicios || this.accommodation.amenities,
-          images: d.imagenes?.map((img: any, index: number) => ({
-            url: img.url || img, // Handle both object with url and string array
-            alt: `${d.nombre} - Imagen ${index + 1}`
-          })) || this.accommodation.images
+          images: d.imagenes?.map((img: any, index: number) => {
+            const rawUrl = img.url || img;
+            return {
+              url: rawUrl.startsWith('/api') ? `http://localhost:8080${rawUrl}` : rawUrl,
+              alt: `${d.nombre} - Imagen ${index + 1}`
+            };
+          }) || this.accommodation.images
         };
       },
       error: (error) => {

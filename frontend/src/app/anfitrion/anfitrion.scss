@@ -1282,3 +1282,58 @@
         }
     }
 }
+
+// ============================================
+// 🔹 Imágenes Preview
+// ============================================
+.image-input-group {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+
+    .btn-add-image {
+        width: auto;
+        justify-content: center;
+    }
+
+    .btn-add-image-url {
+        background: #7c3aed !important;
+        border: none !important;
+        width: 48px;
+    }
+}
+
+.images-preview {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 16px;
+
+    .image-preview-item {
+        position: relative;
+        width: 100px;
+        height: 100px;
+        border-radius: 8px;
+        overflow: hidden;
+        border: 2px solid #e5e7eb;
+        background: #f3f4f6;
+
+        .thumbnail-preview {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .btn-remove-img {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            width: 24px !important;
+            height: 24px !important;
+
+            .p-button-icon {
+                font-size: 10px !important;
+            }
+        }
+    }
+}

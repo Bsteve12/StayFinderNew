@@ -101,15 +101,15 @@
           <div class="alojamiento-card" *ngFor="let alojamiento of alojamientos">
             <!-- Carrusel de imágenes -->
             <div class="alojamiento-image-container">
-              <p-carousel *ngIf="alojamiento.imagenes && alojamiento.imagenes.length > 0" [value]="alojamiento.imagenes"
-                [numVisible]="1" [numScroll]="1" [circular]="true">
+              <p-carousel *ngIf="alojamiento.imagenesCompletas && alojamiento.imagenesCompletas.length > 0"
+                [value]="alojamiento.imagenesCompletas" [numVisible]="1" [numScroll]="1" [circular]="true">
                 <ng-template let-imagen pTemplate="item">
                   <img [src]="imagen.url" [alt]="alojamiento.nombre" class="alojamiento-image" />
                 </ng-template>
               </p-carousel>
 
               <!-- Imagen por defecto si no hay URLs subidas -->
-              <img *ngIf="!alojamiento.imagenes || alojamiento.imagenes.length === 0"
+              <img *ngIf="!alojamiento.imagenesCompletas || alojamiento.imagenesCompletas.length === 0"
                 src="https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=400" [alt]="alojamiento.nombre"
                 class="alojamiento-image" />
             </div>
@@ -257,16 +257,28 @@
     </div>
 
     <div class="form-field">
-      <label>Imágenes (URLs)</label>
+      <label>Imágenes (Mínimo 3)</label>
       <div class="image-input-group">
-        <input type="text" pInputText [(ngModel)]="imageUrlInput" placeholder="Ej: https://..."
-          (keyup.enter)="addImageUrl()" />
-        <button pButton icon="pi pi-plus" (click)="addImageUrl()" class="btn-add-image"></button>
+        <input type="file" multiple accept="image/*" (change)="onFilesSelected($event)" class="file-input" #fileInput
+          style="display: none;" />
+        <button pButton icon="pi pi-upload" label="Archivos Locales" (click)="fileInput.click()"
+          class="btn-add-image p-button-outlined"></button>
+
+        <input type="text" pInputText [(ngModel)]="imageUrlInput" placeholder="URL de web..."
+          (keyup.enter)="addImageUrl()" style="flex: 1;" />
+        <button pButton icon="pi pi-plus" (click)="addImageUrl()" class="btn-add-image-url"></button>
       </div>
       <div class="images-preview">
-        <div class="image-tag" *ngFor="let url of imagenesUrls; let i = index">
-          <span class="url-text">{{ url }}</span>
-          <button pButton icon="pi pi-times" class="p-button-rounded p-button-danger p-button-text p-button-sm"
+        <!-- Previews de archivos locales -->
+        <div class="image-preview-item" *ngFor="let preview of imagenesPreviews; let i = index">
+          <img [src]="preview" alt="Preview Local" class="thumbnail-preview" />
+          <button pButton icon="pi pi-times" class="p-button-rounded p-button-danger p-button-sm btn-remove-img"
+            (click)="removeImage(i, true)"></button>
+        </div>
+        <!-- Previews de URLs externas -->
+        <div class="image-preview-item" *ngFor="let url of imagenesUrls; let i = index">
+          <img [src]="url" alt="Preview URL" class="thumbnail-preview" />
+          <button pButton icon="pi pi-times" class="p-button-rounded p-button-danger p-button-sm btn-remove-img"
             (click)="removeImageUrl(i)"></button>
         </div>
       </div>
@@ -309,16 +321,42 @@
     </div>
 
     <div class="form-field">
-      <label>Imágenes (URLs)</label>
+      <label>Imágenes (Mínimo 3 combinadas)</label>
       <div class="image-input-group">
-        <input type="text" pInputText [(ngModel)]="imageUrlInput" placeholder="Ej: https://..."
-          (keyup.enter)="addImageUrl()" />
-        <button pButton icon="pi pi-plus" (click)="addImageUrl()" class="btn-add-image"></button>
+        <input type="file" multiple accept="image/*" (change)="onFilesSelected($event)" class="file-input"
+          #editFileInput style="display: none;" />
+        <button pButton icon="pi pi-upload" label="Archivos Locales" (click)="editFileInput.click()"
+          class="btn-add-image p-button-outlined"></button>
+
+        <input type="text" pInputText [(ngModel)]="imageUrlInput" placeholder="URL de web..."
+          (keyup.enter)="addImageUrl()" style="flex: 1;" />
+        <button pButton icon="pi pi-plus" (click)="addImageUrl()" class="btn-add-image-url"></button>
       </div>
+
+      <p style="font-size: 0.85rem; color: #666; margin-bottom: 0.5rem;" *ngIf="imagenesAntiguasUrls.length > 0">
+        Imágenes previas (Guardadas):</p>
       <div class="images-preview">
-        <div class="image-tag" *ngFor="let url of imagenesUrls; let i = index">
-          <span class="url-text">{{ url }}</span>
-          <button pButton icon="pi pi-times" class="p-button-rounded p-button-danger p-button-text p-button-sm"
+        <div class="image-preview-item" *ngFor="let url of imagenesAntiguasUrls; let i = index">
+          <img [src]="url.startsWith('/api') ? 'http://localhost:8080' + url : url" alt="Previa antigua"
+            class="thumbnail-preview" />
+          <button pButton icon="pi pi-times" class="p-button-rounded p-button-danger p-button-sm btn-remove-img"
+            (click)="removeImage(i, false)"></button>
+        </div>
+      </div>
+
+      <p style="font-size: 0.85rem; color: #666; margin-top: 1rem; margin-bottom: 0.5rem;"
+        *ngIf="imagenesPreviews.length > 0 || imagenesUrls.length > 0">Nuevas imágenes a subir:</p>
+      <div class="images-preview">
+        <!-- Previews de archivos locales -->
+        <div class="image-preview-item" *ngFor="let preview of imagenesPreviews; let i = index">
+          <img [src]="preview" alt="Preview nueva local" class="thumbnail-preview" />
+          <button pButton icon="pi pi-times" class="p-button-rounded p-button-danger p-button-sm btn-remove-img"
+            (click)="removeImage(i, true)"></button>
+        </div>
+        <!-- Previews de URLs externas -->
+        <div class="image-preview-item" *ngFor="let url of imagenesUrls; let i = index">
+          <img [src]="url" alt="Preview nueva URL" class="thumbnail-preview" />
+          <button pButton icon="pi pi-times" class="p-button-rounded p-button-danger p-button-sm btn-remove-img"
             (click)="removeImageUrl(i)"></button>
         </div>
       </div>

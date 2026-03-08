@@ -38,9 +38,8 @@ public class SolicitudOwnerServiceImpl implements SolicitudOwnerServiceInterface
     private final SolicitudOwnerMapper mapper;
     private final EmailServiceInterface emailService;
 
-    // Ruta absoluta explícita para evitar que Tomcat lo redirija a
-    // AppData/Local/Temp
-    private static final String UPLOAD_DIR = "C:/Users/allis/Desktop/Allison-Brandon/StayFinderNew/backend/uploads/solicitudes/";
+    // Ruta relativa al directorio del proyecto para la subida de documentos
+    private static final String UPLOAD_DIR = "uploads/solicitudes/";
 
     @Override
     public SolicitudOwnerResponseDTO crearSolicitud(SolicitudOwnerRequestDTO dto, MultipartFile documento)

@@ -67,16 +67,23 @@ export class Inicio {
     this.alojamientosService.obtenerAlojamientosActivos().subscribe({
       next: (data: any[]) => {
         console.log(data);
-        this.destinations = data.map((item: any) => ({
-          id: item.id,
-          nombre: item.nombre,
-          direccion: item.direccion,
-          precio: item.precio,
-          descripcion: item.descripcion,
-          imagenes: item.imagenes || [],
-          rating: item.rating || 5, // Default rating if missing
-          favorite: false
-        }));
+        this.destinations = data.map((item: any) => {
+          const imgs = item.imagenes?.map((img: any) => ({
+            ...img,
+            url: img.url.startsWith('/api') ? `http://localhost:8080${img.url}` : img.url
+          })) || [];
+
+          return {
+            id: item.id,
+            nombre: item.nombre,
+            direccion: item.direccion,
+            precio: item.precio,
+            descripcion: item.descripcion,
+            imagenes: imgs,
+            rating: item.rating || 5, // Default rating if missing
+            favorite: false
+          };
+        });
       },
       error: (error) => {
         console.error('Error al obtener alojamientos activos:', error);

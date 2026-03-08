@@ -164,7 +164,6 @@ public class AlojamientoServiceImpl implements AlojamientoServiceInterface {
                 .toList();
     }
 
-
     @Override
     public void eliminar(Long alojamientoId, Long ownerId) {
         Alojamiento alojamiento = alojamientoRepo.findById(alojamientoId)
