@@ -244,26 +244,11 @@ public class AlojamientoServiceImpl implements AlojamientoServiceInterface {
             throw new RuntimeException("No puedes eliminar un alojamiento con reservas confirmadas futuras");
         }
 
-        // 1. Unlink Reservations
-        List<Reserva> historicoReservas = reservaRepo.findByAlojamientoId(alojamiento.getId());
-        for (Reserva r : historicoReservas) {
-            r.setAlojamiento(null);
-            reservaRepo.save(r);
-        }
-
-        // 2. Delete Bloqueos
-        List<BloqueoDisponibilidad> bloqueos = bloqueoRepo.findAll();
-        for (BloqueoDisponibilidad bd : bloqueos) {
-            if (bd.getAlojamiento().getId().equals(alojamiento.getId())) {
-                bloqueoRepo.delete(bd);
-            }
-        }
-
-        // 3. Borrar servicios asociados
-        alojamientoServicioRepo.deleteByAlojamientoId(alojamiento.getId());
-
-        // 4. Hard delete
-        alojamientoRepo.delete(alojamiento);
+        // Soft delete: En lugar de borrar físicamente el alojamiento y sus relaciones,
+        // simplemente lo marcamos como eliminado y lo pasamos a estado inactivo.
+        alojamiento.setEliminado(true);
+        alojamiento.setEstado(EstadoAlojamiento.SUSPENDIDO);
+        alojamientoRepo.save(alojamiento);
     }
 
     @Override
