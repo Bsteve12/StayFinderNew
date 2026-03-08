@@ -1,29 +1,31 @@
 package com.stayFinder.proyectoFinal.services.alojamientoService.implementations;
 
 import com.stayFinder.proyectoFinal.dto.inputDTO.AlojamientoRequestDTO;
+import com.stayFinder.proyectoFinal.dto.inputDTO.BloqueoDisponibilidadRequestDTO;
 import com.stayFinder.proyectoFinal.dto.outputDTO.AlojamientoResponseDTO;
+import com.stayFinder.proyectoFinal.dto.outputDTO.BloqueoDisponibilidadResponseDTO;
 import com.stayFinder.proyectoFinal.dto.outputDTO.ImagenAlojamientoResponseDTO;
 import com.stayFinder.proyectoFinal.entity.Alojamiento;
+import com.stayFinder.proyectoFinal.entity.BloqueoDisponibilidad;
 import com.stayFinder.proyectoFinal.entity.Usuario;
+import com.stayFinder.proyectoFinal.entity.enums.EstadoAlojamiento;
 import com.stayFinder.proyectoFinal.entity.enums.EstadoReserva;
+import com.stayFinder.proyectoFinal.entity.enums.EstadoSolicitudPublicacion;
 import com.stayFinder.proyectoFinal.entity.enums.Role;
 import com.stayFinder.proyectoFinal.repository.AlojamientoRepository;
-import com.stayFinder.proyectoFinal.repository.ReservaRepository;
-import com.stayFinder.proyectoFinal.repository.UsuarioRepository;
-import com.stayFinder.proyectoFinal.repository.SolicitudPublicacionRepository;
 import com.stayFinder.proyectoFinal.repository.BloqueoDisponibilidadRepository;
-import com.stayFinder.proyectoFinal.dto.inputDTO.BloqueoDisponibilidadRequestDTO;
-import com.stayFinder.proyectoFinal.dto.outputDTO.BloqueoDisponibilidadResponseDTO;
-import com.stayFinder.proyectoFinal.dto.outputDTO.DisponibilidadDTO;
-import com.stayFinder.proyectoFinal.entity.BloqueoDisponibilidad;
-import com.stayFinder.proyectoFinal.entity.enums.EstadoAlojamiento;
-import com.stayFinder.proyectoFinal.entity.enums.EstadoSolicitudPublicacion;
+import com.stayFinder.proyectoFinal.repository.ReservaRepository;
+import com.stayFinder.proyectoFinal.repository.SolicitudPublicacionRepository;
+import com.stayFinder.proyectoFinal.repository.UsuarioRepository;
 import com.stayFinder.proyectoFinal.services.alojamientoService.interfaces.AlojamientoServiceInterface;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -54,6 +56,7 @@ public class AlojamientoServiceImpl implements AlojamientoServiceInterface {
                 .capacidadMaxima(req.capacidadMaxima())
                 .owner(owner)
                 .eliminado(false)
+                .estado(EstadoAlojamiento.BORRADOR)
                 .build();
 
         alojamientoRepo.save(alojamiento);
@@ -106,7 +109,7 @@ public class AlojamientoServiceImpl implements AlojamientoServiceInterface {
     public List<AlojamientoResponseDTO> obtenerAlojamientosDeOwner(Long ownerId) {
         Usuario owner = usuarioRepo.findByUsuarioId(ownerId)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
-
+                
         return alojamientoRepo.findByOwnerIdAndEliminadoFalse(owner.getId()).stream()
                 .map(a -> {
                     AlojamientoResponseDTO dto = new AlojamientoResponseDTO();
@@ -231,84 +234,72 @@ public class AlojamientoServiceImpl implements AlojamientoServiceInterface {
         return dto;
     }
 
-    private String determinarEstado(Alojamiento alojamiento) {
-        if (alojamiento.getEstado() != null) {
-            return alojamiento.getEstado().name();
-        }
-        if (alojamiento.getPublicacion() != null
-                && alojamiento.getPublicacion().getEstado() == EstadoSolicitudPublicacion.APROBADA) {
-            return "PUBLICADO";
-        }
-        if (solicitudRepo.existsByAlojamientoIdAndEstado(alojamiento.getId(), EstadoSolicitudPublicacion.PENDIENTE)) {
-            return "PENDIENTE";
-        }
-        return "BORRADOR";
-    }
-
     @Override
-    public void cambiarEstado(Long alojamientoId, EstadoAlojamiento nuevoEstado, Long adminId) {
-        // En un caso ideal, verificaríamos que adminId corresponde a un ADMIN.
+    public AlojamientoResponseDTO cambiarEstado(Long alojamientoId, EstadoAlojamiento nuevoEstado, Long ownerId) {
         Alojamiento alojamiento = alojamientoRepo.findById(alojamientoId)
                 .orElseThrow(() -> new RuntimeException("Alojamiento no encontrado"));
-
+                
+        if (!alojamiento.getOwner().getUsuarioId().equals(ownerId) && !alojamiento.getOwner().getRole().equals(Role.ADMIN)) {
+            throw new RuntimeException("No tienes permisos para cambiar el estado de este alojamiento");
+        }
+        
         alojamiento.setEstado(nuevoEstado);
         alojamientoRepo.save(alojamiento);
+        
+        return obtenerPorId(alojamientoId);
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public List<DisponibilidadDTO> obtenerCalendario(Long alojamientoId) {
-        List<DisponibilidadDTO> calendario = new java.util.ArrayList<>();
-
-        // 1. Agregar reservas confirmadas
-        reservaRepo.findByAlojamientoIdAndEstado(alojamientoId, EstadoReserva.CONFIRMADA)
-                .forEach(r -> calendario.add(new DisponibilidadDTO(
-                        r.getFechaInicio(), r.getFechaFin(), "RESERVA", "CONFIRMADA")));
-
-        // 2. Agregar bloqueos manuales
-        bloqueoRepo.findByAlojamientoId(alojamientoId)
-                .forEach(b -> calendario.add(new DisponibilidadDTO(
-                        b.getFechaInicio(), b.getFechaFin(), "BLOQUEO",
-                        b.getMotivo() != null ? b.getMotivo() : "MANTENIMIENTO")));
-
-        return calendario;
-    }
-
-    @Override
-    public BloqueoDisponibilidadResponseDTO agregarBloqueo(BloqueoDisponibilidadRequestDTO request, Long ownerId) {
-        Alojamiento alojamiento = alojamientoRepo.findById(request.alojamientoId())
+    public BloqueoDisponibilidadResponseDTO bloquearFechas(Long alojamientoId, BloqueoDisponibilidadRequestDTO req, Long ownerId) {
+        Alojamiento alojamiento = alojamientoRepo.findById(alojamientoId)
                 .orElseThrow(() -> new RuntimeException("Alojamiento no encontrado"));
-
+                
         if (!alojamiento.getOwner().getUsuarioId().equals(ownerId)) {
-            throw new RuntimeException("No puedes bloquear un alojamiento que no es tuyo");
+            throw new RuntimeException("No puedes bloquear fechas de un alojamiento que no es tuyo");
         }
-
+        
         BloqueoDisponibilidad bloqueo = BloqueoDisponibilidad.builder()
                 .alojamiento(alojamiento)
-                .fechaInicio(request.fechaInicio())
-                .fechaFin(request.fechaFin())
-                .motivo(request.motivo())
+                .fechaInicio(req.fechaInicio())
+                .fechaFin(req.fechaFin())
+                .motivo(req.motivo())
                 .build();
-
+                
         bloqueo = bloqueoRepo.save(bloqueo);
-
+        
         return new BloqueoDisponibilidadResponseDTO(
                 bloqueo.getId(),
                 bloqueo.getAlojamiento().getId(),
                 bloqueo.getFechaInicio(),
                 bloqueo.getFechaFin(),
-                bloqueo.getMotivo());
+                bloqueo.getMotivo()
+        );
     }
 
     @Override
-    public void eliminarBloqueo(Long bloqueoId, Long ownerId) {
-        BloqueoDisponibilidad bloqueo = bloqueoRepo.findById(bloqueoId)
-                .orElseThrow(() -> new RuntimeException("Bloqueo no encontrado"));
+    @Transactional(readOnly = true)
+    public List<BloqueoDisponibilidadResponseDTO> obtenerBloqueos(Long alojamientoId) {
+        List<BloqueoDisponibilidad> bloqueos = bloqueoRepo.findByAlojamientoId(alojamientoId);
+        return bloqueos.stream().map(b -> new BloqueoDisponibilidadResponseDTO(
+                b.getId(),
+                b.getAlojamiento().getId(),
+                b.getFechaInicio(),
+                b.getFechaFin(),
+                b.getMotivo()
+        )).toList();
+    }
 
-        if (!bloqueo.getAlojamiento().getOwner().getUsuarioId().equals(ownerId)) {
-            throw new RuntimeException("No puedes eliminar un bloqueo de un alojamiento que no es tuyo");
-        }
+    @Override
+    @Transactional(readOnly = true)
+    public Map<String, Object> obtenerEstadisticasDashboard() {
+        Map<String, Object> stats = new HashMap<>();
+        stats.put("totalActivos", alojamientoRepo.countByEstadoAndEliminadoFalse(EstadoAlojamiento.ACTIVO));
+        stats.put("creadosUltimos30Dias", alojamientoRepo.countByCreatedAtAfter(LocalDateTime.now().minusDays(30)));
+        stats.put("cantidadPorEstado", alojamientoRepo.findCountByEstado());
+        return stats;
+    }
 
-        bloqueoRepo.delete(bloqueo);
+    private String determinarEstado(Alojamiento alojamiento) {
+        return alojamiento.getEstado() != null ? alojamiento.getEstado().name() : EstadoAlojamiento.BORRADOR.name();
     }
 }

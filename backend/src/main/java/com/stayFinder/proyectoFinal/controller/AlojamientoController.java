@@ -4,7 +4,6 @@ import com.stayFinder.proyectoFinal.dto.inputDTO.AlojamientoRequestDTO;
 import com.stayFinder.proyectoFinal.dto.inputDTO.BloqueoDisponibilidadRequestDTO;
 import com.stayFinder.proyectoFinal.dto.outputDTO.AlojamientoResponseDTO;
 import com.stayFinder.proyectoFinal.dto.outputDTO.BloqueoDisponibilidadResponseDTO;
-import com.stayFinder.proyectoFinal.dto.outputDTO.DisponibilidadDTO;
 import com.stayFinder.proyectoFinal.entity.enums.EstadoAlojamiento;
 import com.stayFinder.proyectoFinal.services.alojamientoService.interfaces.AlojamientoServiceInterface;
 import io.swagger.v3.oas.annotations.Operation;
@@ -17,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @Tag(name = "Alojamientos", description = "Operaciones para gestionar alojamientos")
 @RestController
@@ -78,41 +78,34 @@ public class AlojamientoController {
         return ResponseEntity.ok(activos);
     }
 
-    // --- Nuevos Endpoints de Gestión de Estado y Calendario ---
-
     @PutMapping("/{id}/estado")
-    @Operation(summary = "Cambiar el estado de un alojamiento", description = "Idealmente solo para ADMIN. Transiciona entre BORRADOR, ACTIVO, SUSPENDIDO.")
-    public ResponseEntity<Void> cambiarEstado(
-            @PathVariable Long id,
-            @RequestParam EstadoAlojamiento estado,
-            @RequestParam Long adminId) {
-        alojamientoService.cambiarEstado(id, estado, adminId);
-        return ResponseEntity.ok().build();
-    }
-
-    @GetMapping("/{id}/calendario")
-    @Operation(summary = "Obtener el calendario de disponibilidad de un alojamiento", description = "Combina reservas confirmadas y bloqueos manuales.")
-    public ResponseEntity<List<DisponibilidadDTO>> obtenerCalendario(@PathVariable Long id) {
-        return ResponseEntity.ok(alojamientoService.obtenerCalendario(id));
+    @Operation(summary = "Cambiar el estado de un alojamiento")
+    public ResponseEntity<AlojamientoResponseDTO> cambiarEstado(
+            @Parameter(description = "ID del alojamiento") @PathVariable Long id,
+            @Parameter(description = "Nuevo estado") @RequestParam EstadoAlojamiento estado,
+            @Parameter(description = "ID del owner o admin") @RequestParam Long ownerId) {
+        return ResponseEntity.ok(alojamientoService.cambiarEstado(id, estado, ownerId));
     }
 
     @PostMapping("/{id}/bloqueos")
-    @Operation(summary = "Agregar un bloqueo manual al calendario del alojamiento")
-    public ResponseEntity<BloqueoDisponibilidadResponseDTO> agregarBloqueo(
+    @Operation(summary = "Registrar un bloqueo de fechas para un alojamiento")
+    public ResponseEntity<BloqueoDisponibilidadResponseDTO> bloquearFechas(
             @PathVariable Long id,
-            @RequestBody BloqueoDisponibilidadRequestDTO dto,
+            @RequestBody BloqueoDisponibilidadRequestDTO req,
             @RequestParam Long ownerId) {
-        BloqueoDisponibilidadRequestDTO request = new BloqueoDisponibilidadRequestDTO(
-                id, dto.fechaInicio(), dto.fechaFin(), dto.motivo());
-        return ResponseEntity.ok(alojamientoService.agregarBloqueo(request, ownerId));
+        return ResponseEntity.ok(alojamientoService.bloquearFechas(id, req, ownerId));
     }
 
-    @DeleteMapping("/bloqueos/{bloqueoId}")
-    @Operation(summary = "Eliminar un bloqueo manual del calendario")
-    public ResponseEntity<Void> eliminarBloqueo(
-            @PathVariable Long bloqueoId,
-            @RequestParam Long ownerId) {
-        alojamientoService.eliminarBloqueo(bloqueoId, ownerId);
-        return ResponseEntity.noContent().build();
+    @GetMapping("/{id}/bloqueos")
+    @Operation(summary = "Obtener bloqueos de fechas de un alojamiento")
+    public ResponseEntity<List<BloqueoDisponibilidadResponseDTO>> obtenerBloqueos(
+            @PathVariable Long id) {
+        return ResponseEntity.ok(alojamientoService.obtenerBloqueos(id));
+    }
+
+    @GetMapping("/dashboard-stats")
+    @Operation(summary = "Obtener estadísticas básicas de alojamientos para el Dashboard")
+    public ResponseEntity<Map<String, Object>> obtenerEstadisticas() {
+        return ResponseEntity.ok(alojamientoService.obtenerEstadisticasDashboard());
     }
 }
