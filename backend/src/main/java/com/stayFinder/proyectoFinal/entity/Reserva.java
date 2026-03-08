@@ -3,6 +3,7 @@ package com.stayFinder.proyectoFinal.entity;
 import com.stayFinder.proyectoFinal.entity.enums.EstadoReserva;
 
 import com.stayFinder.proyectoFinal.entity.enums.TipoReserva;
+import com.stayFinder.proyectoFinal.entity.base.Auditable;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -20,7 +21,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @Builder
 @Table(name = "reservas")
-public class Reserva {
+public class Reserva extends Auditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -44,4 +45,3 @@ public class Reserva {
 
     private TipoReserva tipoReserva;
 }
-

@@ -1,7 +1,11 @@
 package com.stayFinder.proyectoFinal.controller;
 
 import com.stayFinder.proyectoFinal.dto.inputDTO.AlojamientoRequestDTO;
+import com.stayFinder.proyectoFinal.dto.inputDTO.BloqueoDisponibilidadRequestDTO;
 import com.stayFinder.proyectoFinal.dto.outputDTO.AlojamientoResponseDTO;
+import com.stayFinder.proyectoFinal.dto.outputDTO.BloqueoDisponibilidadResponseDTO;
+import com.stayFinder.proyectoFinal.dto.outputDTO.DisponibilidadDTO;
+import com.stayFinder.proyectoFinal.entity.enums.EstadoAlojamiento;
 import com.stayFinder.proyectoFinal.services.alojamientoService.interfaces.AlojamientoServiceInterface;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -74,4 +78,41 @@ public class AlojamientoController {
         return ResponseEntity.ok(activos);
     }
 
+    // --- Nuevos Endpoints de Gestión de Estado y Calendario ---
+
+    @PutMapping("/{id}/estado")
+    @Operation(summary = "Cambiar el estado de un alojamiento", description = "Idealmente solo para ADMIN. Transiciona entre BORRADOR, ACTIVO, SUSPENDIDO.")
+    public ResponseEntity<Void> cambiarEstado(
+            @PathVariable Long id,
+            @RequestParam EstadoAlojamiento estado,
+            @RequestParam Long adminId) {
+        alojamientoService.cambiarEstado(id, estado, adminId);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/{id}/calendario")
+    @Operation(summary = "Obtener el calendario de disponibilidad de un alojamiento", description = "Combina reservas confirmadas y bloqueos manuales.")
+    public ResponseEntity<List<DisponibilidadDTO>> obtenerCalendario(@PathVariable Long id) {
+        return ResponseEntity.ok(alojamientoService.obtenerCalendario(id));
+    }
+
+    @PostMapping("/{id}/bloqueos")
+    @Operation(summary = "Agregar un bloqueo manual al calendario del alojamiento")
+    public ResponseEntity<BloqueoDisponibilidadResponseDTO> agregarBloqueo(
+            @PathVariable Long id,
+            @RequestBody BloqueoDisponibilidadRequestDTO dto,
+            @RequestParam Long ownerId) {
+        BloqueoDisponibilidadRequestDTO request = new BloqueoDisponibilidadRequestDTO(
+                id, dto.fechaInicio(), dto.fechaFin(), dto.motivo());
+        return ResponseEntity.ok(alojamientoService.agregarBloqueo(request, ownerId));
+    }
+
+    @DeleteMapping("/bloqueos/{bloqueoId}")
+    @Operation(summary = "Eliminar un bloqueo manual del calendario")
+    public ResponseEntity<Void> eliminarBloqueo(
+            @PathVariable Long bloqueoId,
+            @RequestParam Long ownerId) {
+        alojamientoService.eliminarBloqueo(bloqueoId, ownerId);
+        return ResponseEntity.noContent().build();
+    }
 }

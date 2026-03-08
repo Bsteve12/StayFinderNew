@@ -1,6 +1,7 @@
 package com.stayFinder.proyectoFinal.entity;
 
 import com.stayFinder.proyectoFinal.entity.enums.EstadoSolicitudPublicacion;
+import com.stayFinder.proyectoFinal.entity.base.Auditable;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -10,7 +11,8 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Publicacion {
+@EqualsAndHashCode(callSuper = false)
+public class Publicacion extends Auditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

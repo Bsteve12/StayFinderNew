@@ -1,5 +1,7 @@
 package com.stayFinder.proyectoFinal.entity;
 
+import com.stayFinder.proyectoFinal.entity.base.Auditable;
+import com.stayFinder.proyectoFinal.entity.enums.EstadoAlojamiento;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -13,7 +15,7 @@ import java.util.List;
 @Builder
 @Entity
 @Table(name = "alojamientos")
-public class Alojamiento {
+public class Alojamiento extends Auditable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -33,7 +35,12 @@ public class Alojamiento {
 
     @OneToOne(mappedBy = "alojamiento", cascade = CascadeType.ALL, orphanRemoval = true)
     private Publicacion publicacion;
+    @Builder.Default
     @Column(nullable = false)
     private boolean eliminado = false;
+
+    @Builder.Default
+    @Enumerated(EnumType.STRING)
+    private EstadoAlojamiento estado = EstadoAlojamiento.BORRADOR;
 
 }

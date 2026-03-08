@@ -2,6 +2,7 @@ package com.stayFinder.proyectoFinal.entity;
 
 import java.io.Serializable;
 
+import com.stayFinder.proyectoFinal.entity.base.Auditable;
 import com.stayFinder.proyectoFinal.entity.enums.Role;
 
 import jakarta.persistence.*;
@@ -18,7 +19,7 @@ import lombok.Setter;
 @Builder
 @Entity
 @Table(name = "usuarios")
-public class Usuario implements Serializable {
+public class Usuario extends Auditable implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -40,4 +41,3 @@ public class Usuario implements Serializable {
     @Enumerated(EnumType.STRING)
     private Role role;
 }
-

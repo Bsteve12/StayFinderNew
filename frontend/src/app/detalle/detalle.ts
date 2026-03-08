@@ -21,10 +21,12 @@ interface AccommodationImage {
 }
 
 interface ReservaRequestDTO {
+  usuarioId: number;
   alojamientoId: number;
   fechaInicio: string;
   fechaFin: string;
   numeroHuespedes: number;
+  tipoReserva: string;
 }
 
 interface ReservaResponseDTO {
@@ -298,6 +300,11 @@ export class Detalle implements OnInit {
   }
 
   onReserve() {
+    if (!this.isAuthenticated || !this.usuarioId) {
+      alert('Debes iniciar sesión para realizar una reserva.');
+      return;
+    }
+
     const dialogRef = this.dialog.open(ReservaDialog, {
       width: '600px',
       data: {
@@ -316,10 +323,12 @@ export class Detalle implements OnInit {
 
   crearReserva(datos: any) {
     const reservaDTO: ReservaRequestDTO = {
+      usuarioId: this.usuarioId!,
       alojamientoId: Number(this.alojamientoId()),
       fechaInicio: this.formatDateToString(datos.fechaInicio),
       fechaFin: this.formatDateToString(datos.fechaFin),
-      numeroHuespedes: datos.numeroHuespedes
+      numeroHuespedes: datos.numeroHuespedes,
+      tipoReserva: 'SENCILLA'
     };
 
     console.log('Creando reserva:', reservaDTO);
