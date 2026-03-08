@@ -63,6 +63,9 @@ public class SolicitudPublicacionServiceImpl implements SolicitudPublicacionServ
                 .fechaSolicitud(LocalDateTime.now())
                 .build();
 
+        alojamiento.setEstado(com.stayFinder.proyectoFinal.entity.enums.EstadoAlojamiento.PENDIENTE_REVISION);
+        alojamientoRepo.save(alojamiento);
+
         return mapper.toDto(solicitudRepo.save(solicitud));
     }
 
@@ -84,6 +87,10 @@ public class SolicitudPublicacionServiceImpl implements SolicitudPublicacionServ
 
         if (dto.aprobada()) {
             solicitud.setEstado(EstadoSolicitudPublicacion.APROBADA);
+            
+            Alojamiento alojamiento = solicitud.getAlojamiento();
+            alojamiento.setEstado(com.stayFinder.proyectoFinal.entity.enums.EstadoAlojamiento.ACTIVO);
+            alojamientoRepo.save(alojamiento);
 
             // Crear publicación aprobada directamente
             Publicacion publicacion = new Publicacion();
@@ -97,6 +104,10 @@ public class SolicitudPublicacionServiceImpl implements SolicitudPublicacionServ
 
         } else {
             solicitud.setEstado(EstadoSolicitudPublicacion.RECHAZADA);
+            
+            Alojamiento alojamiento = solicitud.getAlojamiento();
+            alojamiento.setEstado(com.stayFinder.proyectoFinal.entity.enums.EstadoAlojamiento.BORRADOR);
+            alojamientoRepo.save(alojamiento);
         }
 
         return mapper.toDto(solicitudRepo.save(solicitud));

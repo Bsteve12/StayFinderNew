@@ -8,6 +8,7 @@ import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { TextareaModule } from 'primeng/textarea';
 import { CarouselModule } from 'primeng/carousel';
+import { MultiSelectModule } from 'primeng/multiselect';
 import { Observable, forkJoin } from 'rxjs';
 import { Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
@@ -19,6 +20,7 @@ interface AlojamientoRequestDTO {
   direccion: string;
   precio: number;
   capacidadMaxima: number;
+  serviciosIds?: number[];
 }
 
 interface AlojamientoResponseDTO {
@@ -32,6 +34,7 @@ interface AlojamientoResponseDTO {
   ownerId: number;
   imagenes?: { id: number; url: string; alojamientoId: number }[];
   imagenesCompletas?: any[]; // Array for resolved actual URLs
+  servicios?: ServicioResponseDTO[];
 }
 
 interface SolicitudPublicacionRequestDTO {
@@ -94,7 +97,8 @@ interface UpdateUserDTO {
     DialogModule,
     InputTextModule,
     TextareaModule,
-    CarouselModule
+    CarouselModule,
+    MultiSelectModule
   ],
   templateUrl: './anfitrion.html',
   styleUrls: ['./anfitrion.scss'],
@@ -162,6 +166,7 @@ export class Anfitrion implements OnInit {
         this.ownerNombre = user.nombre || 'Nombre del Anfitrión';
         this.ownerEmail = user.email || 'correo@ejemplo.com';
         this.loadAlojamientos();
+        this.loadServicios(); // Cargar los servicios por defecto
       }
     });
   }
@@ -480,7 +485,8 @@ export class Anfitrion implements OnInit {
       descripcion: alojamiento.descripcion,
       direccion: alojamiento.direccion,
       precio: alojamiento.precio,
-      capacidadMaxima: alojamiento.capacidadMaxima || 1
+      capacidadMaxima: alojamiento.capacidadMaxima || 1,
+      serviciosIds: alojamiento.servicios ? alojamiento.servicios.map(s => s.id) : []
     };
     this.imagenesAntiguasUrls = alojamiento.imagenes ? alojamiento.imagenes.map(i => i.url) : [];
     this.imagenesArchivos = [];
@@ -695,7 +701,8 @@ export class Anfitrion implements OnInit {
       descripcion: '',
       direccion: '',
       precio: 0,
-      capacidadMaxima: 1
+      capacidadMaxima: 1,
+      serviciosIds: []
     };
   }
 

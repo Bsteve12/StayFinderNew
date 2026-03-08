@@ -129,20 +129,27 @@
                 <span><i class="pi pi-users"></i> {{ alojamiento.capacidadMaxima }} Huéspedes</span>
                 <span>💰 ${{ alojamiento.precio | number }} / Noche</span>
               </div>
+              <div *ngIf="alojamiento.servicios && alojamiento.servicios.length > 0" class="alojamiento-servicios"
+                style="margin-top: 10px; margin-bottom: 10px; display: flex; flex-wrap: wrap; gap: 5px;">
+                <span *ngFor="let s of alojamiento.servicios"
+                  style="background: #e0e7ff; color: #3730a3; padding: 3px 8px; border-radius: 12px; font-size: 0.8rem;">
+                  <i class="pi pi-check" style="font-size: 0.7rem;"></i> {{ s.nombre }}
+                </span>
+              </div>
               <div class="alojamiento-actions">
                 <button pButton label="Editar" icon="pi pi-pencil" class="p-button-text"
                   (click)="openEditDialog(alojamiento)"></button>
                 <button pButton label="Eliminar" icon="pi pi-trash" class="p-button-text p-button-danger"
                   (click)="eliminarAlojamiento(alojamiento.id)"></button>
                 <button pButton
-                  [label]="alojamiento.estado === 'PENDIENTE' ? 'Solicitud Pendiente' : 'Solicitar Publicación'"
-                  [icon]="alojamiento.estado === 'PENDIENTE' ? 'pi pi-clock' : 'pi pi-send'" class="p-button-success"
-                  [disabled]="alojamiento.estado === 'PENDIENTE'" *ngIf="alojamiento.estado === 'BORRADOR' || alojamiento.estado === 'PENDIENTE' || !alojamiento.estado"
+                  [label]="alojamiento.estado === 'PENDIENTE_REVISION' ? 'Solicitud Pendiente' : 'Solicitar Publicación'"
+                  [icon]="alojamiento.estado === 'PENDIENTE_REVISION' ? 'pi pi-clock' : 'pi pi-send'"
+                  class="p-button-success" [disabled]="alojamiento.estado === 'PENDIENTE_REVISION'"
+                  *ngIf="alojamiento.estado === 'BORRADOR' || alojamiento.estado === 'PENDIENTE_REVISION' || !alojamiento.estado"
                   (click)="openSolicitudDialog(alojamiento)"></button>
-                  
-                <button pButton 
-                  [label]="alojamiento.estado === 'ACTIVO' ? 'Desactivar' : 'Activar'" 
-                  [icon]="alojamiento.estado === 'ACTIVO' ? 'pi pi-eye-slash' : 'pi pi-eye'" 
+
+                <button pButton [label]="alojamiento.estado === 'ACTIVO' ? 'Desactivar' : 'Activar'"
+                  [icon]="alojamiento.estado === 'ACTIVO' ? 'pi pi-eye-slash' : 'pi pi-eye'"
                   [class]="alojamiento.estado === 'ACTIVO' ? 'p-button-secondary' : 'p-button-success'"
                   style="margin-left: 8px;"
                   *ngIf="alojamiento.estado === 'ACTIVO' || alojamiento.estado === 'SUSPENDIDO' || alojamiento.estado === 'PUBLICADO'"
@@ -265,6 +272,13 @@
     </div>
 
     <div class="form-field">
+      <label>Servicios Incluídos</label>
+      <p-multiSelect [options]="servicios" [(ngModel)]="alojamientoForm.serviciosIds"
+        defaultLabel="Selecciona los servicios..." optionLabel="nombre" optionValue="id" display="chip"
+        [style]="{'width': '100%'}"></p-multiSelect>
+    </div>
+
+    <div class="form-field">
       <label>Imágenes (Mínimo 3)</label>
       <div class="image-input-group">
         <input type="file" multiple accept="image/*" (change)="onFilesSelected($event)" class="file-input" #fileInput
@@ -326,6 +340,13 @@
         <label>Capacidad Máxima</label>
         <input type="number" pInputText [(ngModel)]="alojamientoForm.capacidadMaxima" />
       </div>
+    </div>
+
+    <div class="form-field">
+      <label>Servicios Incluídos</label>
+      <p-multiSelect [options]="servicios" [(ngModel)]="alojamientoForm.serviciosIds"
+        defaultLabel="Selecciona los servicios..." optionLabel="nombre" optionValue="id" display="chip"
+        [style]="{'width': '100%'}"></p-multiSelect>
     </div>
 
     <div class="form-field">

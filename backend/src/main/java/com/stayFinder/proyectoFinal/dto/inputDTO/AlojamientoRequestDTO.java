@@ -22,5 +22,8 @@ public record AlojamientoRequestDTO(
 
         @NotNull
         @Schema(description = "Capacidad máxima de huéspedes", example = "6")
-        Integer capacidadMaxima
+        Integer capacidadMaxima,
+
+        @Schema(description = "Lista de IDs de servicios vinculados al alojamiento", example = "[1, 2, 3]")
+        java.util.List<Long> serviciosIds
 ) {}

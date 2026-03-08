@@ -13,14 +13,21 @@ import com.stayFinder.proyectoFinal.entity.enums.EstadoReserva;
 import com.stayFinder.proyectoFinal.entity.enums.EstadoSolicitudPublicacion;
 import com.stayFinder.proyectoFinal.entity.enums.Role;
 import com.stayFinder.proyectoFinal.repository.AlojamientoRepository;
+import com.stayFinder.proyectoFinal.repository.AlojamientoServicioRepository;
 import com.stayFinder.proyectoFinal.repository.BloqueoDisponibilidadRepository;
 import com.stayFinder.proyectoFinal.repository.ReservaRepository;
+import com.stayFinder.proyectoFinal.repository.ServicioRepository;
 import com.stayFinder.proyectoFinal.repository.SolicitudPublicacionRepository;
 import com.stayFinder.proyectoFinal.repository.UsuarioRepository;
 import com.stayFinder.proyectoFinal.services.alojamientoService.interfaces.AlojamientoServiceInterface;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.stayFinder.proyectoFinal.entity.AlojamientoServicio;
+import com.stayFinder.proyectoFinal.entity.AlojamientoServicioId;
+import com.stayFinder.proyectoFinal.entity.Servicio;
+import com.stayFinder.proyectoFinal.entity.Reserva;
+import com.stayFinder.proyectoFinal.dto.outputDTO.ServicioResponseDTO;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -37,6 +44,8 @@ public class AlojamientoServiceImpl implements AlojamientoServiceInterface {
     private final ReservaRepository reservaRepo;
     private final SolicitudPublicacionRepository solicitudRepo;
     private final BloqueoDisponibilidadRepository bloqueoRepo;
+    private final ServicioRepository servicioRepo;
+    private final AlojamientoServicioRepository alojamientoServicioRepo;
 
     @Override
     public AlojamientoResponseDTO crear(AlojamientoRequestDTO req, Long ownerId) {
@@ -61,6 +70,22 @@ public class AlojamientoServiceImpl implements AlojamientoServiceInterface {
 
         alojamientoRepo.save(alojamiento);
 
+        // Guardar Servicios Vinculados
+        if (req.serviciosIds() != null && !req.serviciosIds().isEmpty()) {
+            for (Long sId : req.serviciosIds()) {
+                Servicio serv = servicioRepo.findById(sId).orElse(null);
+                if (serv != null) {
+                    AlojamientoServicioId asId = new AlojamientoServicioId(alojamiento.getId(), serv.getId());
+                    AlojamientoServicio as = AlojamientoServicio.builder()
+                            .id(asId)
+                            .alojamiento(alojamiento)
+                            .servicio(serv)
+                            .build();
+                    alojamientoServicioRepo.save(as);
+                }
+            }
+        }
+
         AlojamientoResponseDTO dto = new AlojamientoResponseDTO();
         dto.setId(alojamiento.getId());
         dto.setNombre(alojamiento.getNombre());
@@ -70,6 +95,10 @@ public class AlojamientoServiceImpl implements AlojamientoServiceInterface {
         dto.setCapacidadMaxima(alojamiento.getCapacidadMaxima());
         dto.setOwnerId(alojamiento.getOwner().getUsuarioId());
         dto.setEstado(determinarEstado(alojamiento));
+        
+        // Cargar y mapear los servicios para la respuesta
+        dto.setServicios(mapearServicios(alojamiento.getId()));
+
         return dto;
     }
 
@@ -94,6 +123,23 @@ public class AlojamientoServiceImpl implements AlojamientoServiceInterface {
 
         alojamientoRepo.save(alojamiento);
 
+        // Actualizar Servicios Vinculados
+        alojamientoServicioRepo.deleteByAlojamientoId(alojamiento.getId());
+        if (req.serviciosIds() != null && !req.serviciosIds().isEmpty()) {
+            for (Long sId : req.serviciosIds()) {
+                Servicio serv = servicioRepo.findById(sId).orElse(null);
+                if (serv != null) {
+                    AlojamientoServicioId asId = new AlojamientoServicioId(alojamiento.getId(), serv.getId());
+                    AlojamientoServicio as = AlojamientoServicio.builder()
+                            .id(asId)
+                            .alojamiento(alojamiento)
+                            .servicio(serv)
+                            .build();
+                    alojamientoServicioRepo.save(as);
+                }
+            }
+        }
+
         AlojamientoResponseDTO dto = new AlojamientoResponseDTO();
         dto.setId(alojamiento.getId());
         dto.setNombre(alojamiento.getNombre());
@@ -103,6 +149,9 @@ public class AlojamientoServiceImpl implements AlojamientoServiceInterface {
         dto.setCapacidadMaxima(alojamiento.getCapacidadMaxima());
         dto.setOwnerId(alojamiento.getOwner().getUsuarioId());
         dto.setEstado(determinarEstado(alojamiento));
+        
+        dto.setServicios(mapearServicios(alojamiento.getId()));
+
         return dto;
     }
 
@@ -169,6 +218,8 @@ public class AlojamientoServiceImpl implements AlojamientoServiceInterface {
                                 .toList();
                         dto.setImagenes(imagenes);
                     }
+                    
+                    dto.setServicios(mapearServicios(a.getId()));
 
                     return dto;
                 })
@@ -193,9 +244,26 @@ public class AlojamientoServiceImpl implements AlojamientoServiceInterface {
             throw new RuntimeException("No puedes eliminar un alojamiento con reservas confirmadas futuras");
         }
 
-        // Soft delete
-        alojamiento.setEliminado(true);
-        alojamientoRepo.save(alojamiento);
+        // 1. Unlink Reservations
+        List<Reserva> historicoReservas = reservaRepo.findByAlojamientoId(alojamiento.getId());
+        for (Reserva r : historicoReservas) {
+            r.setAlojamiento(null);
+            reservaRepo.save(r);
+        }
+
+        // 2. Delete Bloqueos
+        List<BloqueoDisponibilidad> bloqueos = bloqueoRepo.findAll();
+        for (BloqueoDisponibilidad bd : bloqueos) {
+            if (bd.getAlojamiento().getId().equals(alojamiento.getId())) {
+                bloqueoRepo.delete(bd);
+            }
+        }
+
+        // 3. Borrar servicios asociados
+        alojamientoServicioRepo.deleteByAlojamientoId(alojamiento.getId());
+
+        // 4. Hard delete
+        alojamientoRepo.delete(alojamiento);
     }
 
     @Override
@@ -231,6 +299,8 @@ public class AlojamientoServiceImpl implements AlojamientoServiceInterface {
                     .toList();
             dto.setImagenes(imagenes);
         }
+
+        dto.setServicios(mapearServicios(alojamiento.getId()));
 
         return dto;
     }
@@ -311,5 +381,15 @@ public class AlojamientoServiceImpl implements AlojamientoServiceInterface {
 
     private String determinarEstado(Alojamiento alojamiento) {
         return alojamiento.getEstado() != null ? alojamiento.getEstado().name() : EstadoAlojamiento.BORRADOR.name();
+    }
+
+    private List<ServicioResponseDTO> mapearServicios(Long alojamientoId) {
+        List<AlojamientoServicio> alojVincs = alojamientoServicioRepo.findByAlojamientoId(alojamientoId);
+        return alojVincs.stream()
+                .map(as -> {
+                    Servicio s = as.getServicio();
+                    return new ServicioResponseDTO(s.getId(), s.getNombre(), s.getDescripcion(), s.getPrecio());
+                })
+                .toList();
     }
 }

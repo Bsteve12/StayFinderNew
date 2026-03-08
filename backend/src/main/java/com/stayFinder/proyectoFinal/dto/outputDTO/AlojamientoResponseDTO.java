@@ -32,6 +32,9 @@ public class AlojamientoResponseDTO {
     @Schema(description = "Lista de imágenes asociadas al alojamiento")
     private List<ImagenAlojamientoResponseDTO> imagenes;
 
+    @Schema(description = "Lista de servicios asociados al alojamiento")
+    private List<ServicioResponseDTO> servicios;
+
     @Schema(description = "Estado actual de publicación")
     private String estado;
 }
