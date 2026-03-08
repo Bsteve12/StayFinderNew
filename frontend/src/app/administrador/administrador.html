@@ -149,6 +149,9 @@
                   (click)="responderSolicitudPublicacion(solicitud, true)"></button>
                 <button pButton label="Rechazar" icon="pi pi-times" class="p-button-danger p-button-sm"
                   style="margin-left: 8px;" (click)="responderSolicitudPublicacion(solicitud, false)"></button>
+                <button pButton label="Ver Alojamiento" icon="pi pi-eye" class="p-button-info p-button-sm"
+                  style="margin-left: 8px;" [routerLink]="['/detalle', solicitud.alojamientoId]"
+                  target="_blank"></button>
               </td>
             </tr>
           </ng-template>

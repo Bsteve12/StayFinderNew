@@ -9,6 +9,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { RouterModule } from '@angular/router';
 
 import { Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
@@ -48,6 +49,7 @@ interface SolicitudOwnerResponseDTO {
 
 interface SolicitudPublicacionResponseDTO {
   id: number;
+  alojamientoId?: number;
   nombreUsuario: string;
   titulo: string;
   estado: string;
@@ -95,7 +97,8 @@ interface CreateUserDTO {
     InputTextModule,
     MatSelectModule,
     MatFormFieldModule,
-    MatInputModule
+    MatInputModule,
+    RouterModule
   ],
   templateUrl: './administrador.html',
   styleUrl: './administrador.scss',
@@ -522,6 +525,6 @@ export class Administrador implements OnInit {
 
   formatDate(dateString: string): string {
     const date = new Date(dateString);
-    return date.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
+    return date.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
   }
 }

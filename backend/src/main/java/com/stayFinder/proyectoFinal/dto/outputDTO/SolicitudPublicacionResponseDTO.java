@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 @Schema(description = "Datos de respuesta de la solicitud de la publicacion ")
 public record SolicitudPublicacionResponseDTO(
         Long id,
+        Long alojamientoId,
         String nombreUsuario,
         String titulo,
         EstadoSolicitudPublicacion estado,

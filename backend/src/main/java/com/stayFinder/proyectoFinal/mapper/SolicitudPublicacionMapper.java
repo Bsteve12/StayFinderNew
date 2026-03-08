@@ -11,6 +11,6 @@ public interface SolicitudPublicacionMapper {
 
 
         @Mapping(source = "usuario.nombre", target = "nombreUsuario")
-
+        @Mapping(source = "alojamiento.id", target = "alojamientoId")
         SolicitudPublicacionResponseDTO toDto(SolicitudPublicacion solicitud);
     }
