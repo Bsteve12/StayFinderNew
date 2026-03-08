@@ -143,7 +143,8 @@ public class AlojamientoServiceImpl implements AlojamientoServiceInterface {
     @Override
     @Transactional(readOnly = true)
     public List<AlojamientoResponseDTO> listarAlojamientosActivos() {
-        return alojamientoRepo.findByEliminadoFalse().stream()
+        // Usa el filtro real de EstadoAlojamiento.ACTIVO
+        return alojamientoRepo.findByEstadoAndEliminadoFalse(EstadoAlojamiento.ACTIVO).stream()
                 .map(a -> {
                     AlojamientoResponseDTO dto = new AlojamientoResponseDTO();
                     dto.setId(a.getId());
@@ -243,6 +244,10 @@ public class AlojamientoServiceImpl implements AlojamientoServiceInterface {
             throw new RuntimeException("No tienes permisos para cambiar el estado de este alojamiento");
         }
         
+        // Regla: No se puede Activar si no está aprobado/publicado 
+        // (ya tiene una validación de estado: tiene que estar ACTIVO para mostrarse, 
+        // o si es ADMIN puede forzarlo). Si quieren desactivarlo/activarlo (boton) debe usar esto.
+        
         alojamiento.setEstado(nuevoEstado);
         alojamientoRepo.save(alojamiento);
         
@@ -296,6 +301,11 @@ public class AlojamientoServiceImpl implements AlojamientoServiceInterface {
         stats.put("totalActivos", alojamientoRepo.countByEstadoAndEliminadoFalse(EstadoAlojamiento.ACTIVO));
         stats.put("creadosUltimos30Dias", alojamientoRepo.countByCreatedAtAfter(LocalDateTime.now().minusDays(30)));
         stats.put("cantidadPorEstado", alojamientoRepo.findCountByEstado());
+        
+        // Nuevas métricas
+        stats.put("eliminadosTotales", alojamientoRepo.countByEliminadoTrue());
+        stats.put("editadosTotales", alojamientoRepo.countEditedAlojamientos());
+        
         return stats;
     }
 

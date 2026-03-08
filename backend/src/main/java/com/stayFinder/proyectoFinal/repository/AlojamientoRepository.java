@@ -17,8 +17,8 @@ public interface AlojamientoRepository extends JpaRepository<Alojamiento, Long>,
     // Lista solo alojamientos activos (no eliminados) por propietario
     List<Alojamiento> findByOwnerIdAndEliminadoFalse(Long ownerId);
 
-    // Lista todos los alojamientos activos
-    List<Alojamiento> findByEliminadoFalse();
+    // Lista todos los alojamientos activos de verdad (usando el estado)
+    List<Alojamiento> findByEstadoAndEliminadoFalse(EstadoAlojamiento estado);
 
     // Método para obtener alojamientos por ownerId
     List<Alojamiento> findByOwnerId(Long ownerId);
@@ -32,5 +32,12 @@ public interface AlojamientoRepository extends JpaRepository<Alojamiento, Long>,
     // KPI: Obtiene la cantidad de alojamientos agrupados por estado
     @Query("SELECT a.estado AS estado, COUNT(a) AS total FROM Alojamiento a WHERE a.eliminado = false GROUP BY a.estado")
     List<Map<String, Object>> findCountByEstado();
+
+    // KPI: Métricas de Eliminación
+    long countByEliminadoTrue();
+
+    // KPI: Métricas de Edición
+    @Query("SELECT COUNT(a) FROM Alojamiento a WHERE a.updatedAt > a.createdAt")
+    long countEditedAlojamientos();
 
 }

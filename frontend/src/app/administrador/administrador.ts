@@ -104,7 +104,7 @@ export class Administrador implements OnInit {
   public readonly API_URL = `${environment.apiUrl}/api`;
 
   // Vista actual
-  currentView: 'perfil' | 'solicitud-publicaciones' | 'solicitud-anfitriones' | 'asignar-rol' | 'listar-usuarios' | 'listar-por-rol' | 'crear-usuario' = 'perfil';
+  currentView: 'perfil' | 'solicitud-publicaciones' | 'solicitud-anfitriones' | 'asignar-rol' | 'listar-usuarios' | 'listar-por-rol' | 'crear-usuario' | 'metricas-alojamiento' = 'perfil';
 
   // Admin actual
   adminId: number = 1;
@@ -127,6 +127,10 @@ export class Administrador implements OnInit {
 
   // Loading states
   loading: boolean = false;
+  loadingMetricas: boolean = false;
+
+  // KPIs
+  dashboardStats: any = null;
 
   // Dialog states
   showRespuestaDialog: boolean = false;
@@ -244,6 +248,9 @@ export class Administrador implements OnInit {
         break;
       case 'listar-usuarios':
         this.loadUsuarios();
+        break;
+      case 'metricas-alojamiento':
+        this.loadMetricas();
         break;
     }
   }
@@ -472,6 +479,24 @@ export class Administrador implements OnInit {
         alert('Ocurrió un error al crear el usuario. Por favor verifica tus permisos y la consola.');
       }
     });
+  }
+
+  // ============================================
+  // 🔹 Cargar Métricas (KPIs Dashboard)
+  // ============================================
+  loadMetricas() {
+    this.loadingMetricas = true;
+    this.http.get<any>(`${this.API_URL}/alojamientos/dashboard-stats`)
+      .subscribe({
+        next: (data) => {
+          this.dashboardStats = data;
+          this.loadingMetricas = false;
+        },
+        error: (error) => {
+          console.error('Error cargando métricas:', error);
+          this.loadingMetricas = false;
+        }
+      });
   }
 
   // ============================================

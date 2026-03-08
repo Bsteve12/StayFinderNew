@@ -137,8 +137,16 @@
                 <button pButton
                   [label]="alojamiento.estado === 'PENDIENTE' ? 'Solicitud Pendiente' : 'Solicitar Publicación'"
                   [icon]="alojamiento.estado === 'PENDIENTE' ? 'pi pi-clock' : 'pi pi-send'" class="p-button-success"
-                  [disabled]="alojamiento.estado === 'PENDIENTE'" *ngIf="alojamiento.estado !== 'PUBLICADO'"
+                  [disabled]="alojamiento.estado === 'PENDIENTE'" *ngIf="alojamiento.estado === 'BORRADOR' || alojamiento.estado === 'PENDIENTE' || !alojamiento.estado"
                   (click)="openSolicitudDialog(alojamiento)"></button>
+                  
+                <button pButton 
+                  [label]="alojamiento.estado === 'ACTIVO' ? 'Desactivar' : 'Activar'" 
+                  [icon]="alojamiento.estado === 'ACTIVO' ? 'pi pi-eye-slash' : 'pi pi-eye'" 
+                  [class]="alojamiento.estado === 'ACTIVO' ? 'p-button-secondary' : 'p-button-success'"
+                  style="margin-left: 8px;"
+                  *ngIf="alojamiento.estado === 'ACTIVO' || alojamiento.estado === 'SUSPENDIDO' || alojamiento.estado === 'PUBLICADO'"
+                  (click)="cambiarEstado(alojamiento, alojamiento.estado === 'ACTIVO' ? 'SUSPENDIDO' : 'ACTIVO')"></button>
               </div>
             </div>
           </div>

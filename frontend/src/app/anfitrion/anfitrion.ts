@@ -620,6 +620,27 @@ export class Anfitrion implements OnInit {
   }
 
   // ============================================
+  // 🔹 Cambiar Estado Visibilidad (Activar/Desactivar)
+  // ============================================
+  cambiarEstado(alojamiento: AlojamientoResponseDTO, nuevoEstado: string) {
+    if (!confirm(`¿Estás seguro de poner el alojamiento en estado ${nuevoEstado}?`)) return;
+
+    this.http.put<AlojamientoResponseDTO>(
+      `${this.API_URL}/alojamientos/${alojamiento.id}/estado?estado=${nuevoEstado}&ownerId=${this.ownerId}`,
+      null
+    ).subscribe({
+      next: (response) => {
+        alert('Estado modificado exitosamente');
+        alojamiento.estado = response.estado;
+      },
+      error: (error) => {
+        console.error('Error cambiando estado:', error);
+        alert('Error al cambiar el estado: ' + (error.error?.message || error.message));
+      }
+    });
+  }
+
+  // ============================================
   // 🔹 Historial de Reservas
   // ============================================
   loadHistorialReservas(filtros?: any) {
