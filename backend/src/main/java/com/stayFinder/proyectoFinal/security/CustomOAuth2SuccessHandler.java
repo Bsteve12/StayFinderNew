@@ -28,7 +28,8 @@ public class CustomOAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHa
     private final PasswordEncoder passwordEncoder;
 
     @Override
-    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
+    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
+            Authentication authentication) throws IOException, ServletException {
         OAuth2AuthenticationToken token = (OAuth2AuthenticationToken) authentication;
         OAuth2User oAuth2User = token.getPrincipal();
 
@@ -41,9 +42,8 @@ public class CustomOAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHa
         if (userOptional.isPresent()) {
             usuario = userOptional.get();
         } else {
-            // Usuario nuevo
             Long newUsuarioId = Math.abs(UUID.randomUUID().getMostSignificantBits());
-            while(usuarioRepository.existsByUsuarioId(newUsuarioId)) {
+            while (usuarioRepository.existsByUsuarioId(newUsuarioId)) {
                 newUsuarioId = Math.abs(UUID.randomUUID().getMostSignificantBits());
             }
 
@@ -52,16 +52,19 @@ public class CustomOAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHa
                     .nombre(name)
                     .usuarioId(newUsuarioId)
                     .role(Role.CLIENT)
-                    .contrasena(passwordEncoder.encode(UUID.randomUUID().toString())) // Contraseña inusable aleatoria
+                    .contrasena(passwordEncoder.encode(UUID.randomUUID().toString()))
                     .build();
 
             usuario = usuarioRepository.save(usuario);
         }
 
-        String jwt = jwtUtil.GenerateToken(usuario.getUsuarioId(), usuario.getEmail(), usuario.getRole(), usuario.getNombre());
+        String jwt = jwtUtil.GenerateToken(usuario.getUsuarioId(), usuario.getEmail(), usuario.getRole(),
+                usuario.getNombre());
 
-        // Redirigir al frontend con el token en la URL
-        String targetUrl = UriComponentsBuilder.fromUriString("http://localhost:4200/oauth2/redirect")
+        // 🟢 REDIRECCIÓN CORREGIDA PARA PRODUCCIÓN
+        String frontendUrl = "https://stayfinder-frontend-86433570710.us-central1.run.app";
+
+        String targetUrl = UriComponentsBuilder.fromUriString(frontendUrl + "/oauth2/redirect")
                 .queryParam("token", jwt)
                 .build().toUriString();
 

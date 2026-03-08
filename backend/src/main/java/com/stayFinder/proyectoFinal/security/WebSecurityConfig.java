@@ -30,8 +30,6 @@ public class WebSecurityConfig {
     private final AuthTokenFilter authTokenFilter;
     private final CustomOAuth2SuccessHandler customOAuth2SuccessHandler;
 
-    // El PasswordEncoder ha sido movido a SecurityBeansConfig para evitar dependencias circulares.
-
     @Bean
     public AuthenticationProvider authenticationProvider(PasswordEncoder passwordEncoder) {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
@@ -45,15 +43,14 @@ public class WebSecurityConfig {
         return config.getAuthenticationManager();
     }
 
-    //  SOLUCIÓN CORS REAL
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
+        // 🟢 CONFIGURACIÓN DE ORIGENES PERMITIDOS
         configuration.setAllowedOrigins(List.of(
-                "http://localhost:4200",          // Angular local
-                "https://TU-FRONTEND-PROD.com"    // 👉 CAMBIA ESTO por tu dominio real en producción
-        ));
+                "http://localhost:4200",
+                "https://stayfinder-frontend-86433570710.us-central1.run.app"));
 
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
@@ -66,18 +63,17 @@ public class WebSecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, PasswordEncoder passwordEncoder) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, PasswordEncoder passwordEncoder)
+            throws Exception {
         http
                 .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
                 .authenticationProvider(authenticationProvider(passwordEncoder))
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .anyRequest().permitAll()
-                )
+                        .anyRequest().permitAll())
                 .oauth2Login(oauth2 -> oauth2
-                        .successHandler(customOAuth2SuccessHandler)
-                )
+                        .successHandler(customOAuth2SuccessHandler))
                 .addFilterBefore(authTokenFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
