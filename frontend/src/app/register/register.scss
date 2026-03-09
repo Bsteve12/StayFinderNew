@@ -297,7 +297,12 @@
 
 @media (max-width: 480px) {
     .register-container {
-        padding: 12px;
+        padding: 0; // Use full width on mobile
+    }
+
+    .register-card {
+        border-radius: 0; // Remove radius to maximize space
+        min-height: 100vh;
     }
 
     .welcome-section {

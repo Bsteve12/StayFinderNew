@@ -1,6 +1,6 @@
 <div class="dashboard-container">
   <!-- Sidebar -->
-  <aside class="sidebar">
+  <aside class="sidebar" [class.mobile-visible]="sidebarVisible">
     <div class="sidebar-content">
       <!-- Logo -->
       <div class="logo-section">
@@ -49,12 +49,13 @@
     <!-- Header -->
     <header class="content-header">
       <h1 class="page-title">
-        {{ currentView === 'profile' ? 'Perfil de Usuario' :
+        {{ currentView === 'profile' ? 'Mi Perfil' :
         currentView === 'reservas' ? 'Mis Reservas' :
-        currentView === 'favoritos' ? 'Favoritos Guardados' :
-        'Historial de Viajes' }}
+        currentView === 'favoritos' ? 'Mis Favoritos' :
+        currentView === 'historial' ? 'Historial de Interacciones' :
+        'Historial' }}
       </h1>
-      <button pButton icon="pi pi-bars" class="p-button-rounded menu-toggle"></button>
+      <button pButton icon="pi pi-bars" class="p-button-rounded menu-toggle" (click)="toggleSidebar()"></button>
     </header>
 
     <!-- Content Area -->

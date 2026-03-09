@@ -82,7 +82,7 @@
             box-shadow: 0 4px 15px rgba(91, 44, 131, 0.4);
 
             &:hover {
-                background: lighten(#5B2C83, 10%);
+                background: #7A3BAF;
                 transform: translateY(-2px);
             }
         }
@@ -568,31 +568,33 @@
 
 @media (max-width: 768px) {
     .main-content {
-        padding: 24px 16px;
+        padding: 16px; // Tighter padding for mobile
     }
 
     .detail-header {
-        padding: 20px;
-        border-radius: 16px;
+        padding: 16px;
+        border-radius: 12px;
 
         .accommodation-title {
-            font-size: 28px;
+            font-size: 24px; // Smaller title
         }
 
         .accommodation-meta {
-            flex-wrap: wrap;
+            flex-direction: column; // Stack details
+            align-items: flex-start;
+            gap: 8px;
         }
     }
 
     .hotel-hero {
-        height: 350px;
+        height: 250px; // Thinner hero
 
         .hero-text {
-            margin-left: 20px;
-            max-width: 90%;
+            margin-left: 16px;
+            max-width: 100%;
 
             h1 {
-                font-size: 32px;
+                font-size: 28px;
             }
         }
     }

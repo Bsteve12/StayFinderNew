@@ -74,3 +74,41 @@ body {
     }
   }
 }
+
+// ============================================
+// 🔹 Global Responsive Resets
+// ============================================
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  overflow-x: hidden; // Prevent all horizontal scrolling natively at the root
+  width: 100%;
+}
+
+img,
+video {
+  max-width: 100%;
+  height: auto;
+}
+
+// Prevent PrimeNG dialogs from being cut off on mobile
+@media (max-width: 768px) {
+  .p-dialog {
+    width: 95vw !important;
+    max-width: 95vw !important;
+    margin: 0 auto;
+  }
+
+  .p-datepicker {
+    width: 100% !important;
+    min-width: 100% !important;
+
+    table {
+      font-size: 13px !important; // Shrink calendar slightly on mobile
+    }
+  }
+}

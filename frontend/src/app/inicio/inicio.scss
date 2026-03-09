@@ -28,6 +28,7 @@
   box-shadow: 0 3px 12px rgba(0, 0, 0, 0.1);
   border: 1px solid #ddd;
   padding: 8px 8px 8px 24px;
+  width: 100%;
   max-width: 800px;
   margin: 30px auto;
   transition: box-shadow 0.2s;
@@ -58,6 +59,7 @@
       /* Azul oscuro */
       background: transparent;
       padding: 0;
+      width: 100%;
 
       &::placeholder {
         color: rgba(31, 42, 68, 0.5);
@@ -150,8 +152,8 @@
 
   .card-container {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 42px;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); // Reduced from 300px to avoid 320px screen overflow
+    gap: 24px;
   }
 
   .airbnb-card {
@@ -435,12 +437,12 @@
 
     .search-item {
       width: 100%;
-      padding: 12px 0;
+      padding: 12px 16px;
     }
 
     .border-right {
       border-right: none;
-      border-bottom: 1px solid #ddd;
+      border-bottom: 1px solid #eee;
     }
 
     .search-btn {
@@ -461,14 +463,43 @@
 
 @media (max-width: 768px) {
 
+  .airbnb-search-bar {
+    padding: 12px;
+    margin: 15px auto;
+
+    .search-item {
+      padding: 12px;
+
+      label {
+        font-size: 12px;
+      }
+
+      input {
+        font-size: 15px;
+        width: 100%;
+      }
+
+      .date-text {
+        font-size: 15px;
+      }
+    }
+
+    .search-btn {
+      height: 44px;
+    }
+  }
+
   .main-content {
-    padding: 40px 16px;
+    padding: 24px 16px; // Responsive padding
+    width: 100%;
+    margin: 0;
   }
 
   .section-title,
   .section-header h2 {
     font-size: 22px;
     color: #222222;
+    margin-bottom: 24px;
   }
 
   .testimonials-section {

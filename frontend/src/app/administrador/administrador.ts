@@ -279,8 +279,8 @@ export class Administrador implements OnInit {
   // 🔹 Cambiar Vista
   // ============================================
   changeView(view: any) {
-    this.currentView = view;
     this.sidebarVisible = false;
+    this.currentView = view;
 
     switch (view) {
       case 'solicitud-publicaciones':

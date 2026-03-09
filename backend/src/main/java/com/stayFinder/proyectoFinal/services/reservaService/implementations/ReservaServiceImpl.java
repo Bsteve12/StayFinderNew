@@ -213,12 +213,15 @@ public class ReservaServiceImpl implements ReservaServiceInterface {
                         r.getId(),
                         r.getAlojamiento().getId(),
                         r.getAlojamiento().getNombre(),
+                        (!r.getAlojamiento().getImagenes().isEmpty() ? r.getAlojamiento().getImagenes().get(0).getUrl()
+                                : null),
                         r.getUsuario().getId(),
                         r.getUsuario().getNombre(),
                         r.getFechaInicio(),
                         r.getFechaFin(),
                         r.getNumeroHuespedes(),
-                        r.getPrecioTotal(),
+                        (r.getPrecioTotal() != null ? r.getPrecioTotal() : 0.0),
+                        (r.getCreatedAt() != null ? r.getCreatedAt().toLocalDate() : LocalDate.now()),
                         r.getEstado(),
                         r.getTipoReserva()))
                 .toList();
@@ -241,12 +244,15 @@ public class ReservaServiceImpl implements ReservaServiceInterface {
                         r.getId(),
                         r.getAlojamiento().getId(),
                         r.getAlojamiento().getNombre(),
+                        (!r.getAlojamiento().getImagenes().isEmpty() ? r.getAlojamiento().getImagenes().get(0).getUrl()
+                                : null),
                         r.getUsuario().getId(),
                         r.getUsuario().getNombre(),
                         r.getFechaInicio(),
                         r.getFechaFin(),
                         r.getNumeroHuespedes(),
-                        r.getPrecioTotal(),
+                        (r.getPrecioTotal() != null ? r.getPrecioTotal() : 0.0),
+                        (r.getCreatedAt() != null ? r.getCreatedAt().toLocalDate() : LocalDate.now()),
                         r.getEstado(),
                         r.getTipoReserva()))
                 .toList();

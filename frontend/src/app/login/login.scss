@@ -315,7 +315,12 @@
 // ─── Responsive: Mobile ───────────────────────────────────────────────────────
 @media (max-width: 480px) {
     .login-container {
-        padding: 12px;
+        padding: 0; // Use full width on mobile
+    }
+
+    .login-card {
+        border-radius: 0; // Remove radius to maximize space
+        min-height: 100vh;
     }
 
     .welcome-section {

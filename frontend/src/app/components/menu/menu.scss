@@ -209,11 +209,27 @@
 @media (max-width: 768px) {
   .user-menu-container {
     .user-info {
-      padding: 6px 12px;
+      padding: 4px; // Reduce padding for just the avatar
+      border-radius: 50%; // Make it a perfect circle
+      background: transparent;
 
+      &:hover {
+        background: transparent;
+        transform: none;
+      }
+
+      .user-avatar {
+        width: 44px;
+        height: 44px;
+        box-shadow: 0 4px 12px rgba(91, 44, 131, 0.15);
+      }
 
       .user-name {
-        display: none; // Ocultar nombre en móvil
+        display: none !important; // Hide name
+      }
+
+      i.pi-chevron-down {
+        display: none !important; // Hide chevron on mobile
       }
     }
   }

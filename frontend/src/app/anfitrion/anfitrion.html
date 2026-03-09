@@ -1,5 +1,5 @@
 <div class="dashboard-container">
-  <aside class="sidebar">
+  <aside class="sidebar" [class.mobile-active]="sidebarVisible">
     <div class="sidebar-content">
       <div class="logo-section">
         <img src="StayFinder.png" alt="StayFinder" class="logo" />
@@ -13,6 +13,10 @@
 
         <button class="menu-item" [class.active]="currentView === 'historial'" (click)="changeView('historial')">
           Historial reservas
+        </button>
+
+        <button class="menu-item" [class.active]="currentView === 'metricas'" (click)="changeView('metricas')">
+          <i class="pi pi-chart-bar" style="margin-right: 8px;"></i> Métricas
         </button>
 
         <button class="menu-item" [class.active]="currentView === 'servicios'" (click)="changeView('servicios')">
@@ -42,12 +46,13 @@
       <h1 class="page-title">
         {{ currentView === 'perfil' ? 'Perfil del Anfitrión' :
         currentView === 'historial' ? 'Historial de Reservas' :
+        currentView === 'metricas' ? 'Métricas y Rendimiento' :
         currentView === 'servicios' ? 'Servicios' :
         currentView === 'gestion' ? 'Gestión de Alojamientos' :
         currentView === 'calendario' ? 'Calendario de Disponibilidad' :
         'Solicitar Publicación' }}
       </h1>
-      <button pButton icon="pi pi-bars" class="p-button-rounded menu-toggle"></button>
+      <button pButton icon="pi pi-bars" class="p-button-rounded menu-toggle" (click)="toggleSidebar()"></button>
     </header>
 
     <div class="content-area">
@@ -195,6 +200,92 @@
               <p class="precio">Total: ${{ reserva.precioTotal | number }}</p>
             </div>
           </div>
+        </div>
+      </div>
+
+      <!-- NUEVA VISTA DE MÉTRICAS -->
+      <div *ngIf="currentView === 'metricas'" class="metricas-view">
+        <div *ngIf="loadingMetrics" class="loading">
+          <i class="pi pi-spin pi-spinner"></i>
+          <p>Cargando métricas...</p>
+        </div>
+
+        <div *ngIf="!loadingMetrics" class="metricas-dashboard">
+          <!-- Tarjetas Resumen -->
+          <div class="metricas-summary-cards">
+            <p-card styleClass="metric-card">
+              <div class="metric-content">
+                <i class="pi pi-home metric-icon p-text-purple"></i>
+                <div class="metric-text">
+                  <h4>Total Publicados</h4>
+                  <p class="metric-value">{{ totalAlojamientosMetric }}</p>
+                </div>
+              </div>
+            </p-card>
+            <p-card styleClass="metric-card">
+              <div class="metric-content">
+                <i class="pi pi-check-circle metric-icon p-text-green"></i>
+                <div class="metric-text">
+                  <h4>Reservas Históricas</h4>
+                  <p class="metric-value">{{ totalReservasMetric }}</p>
+                </div>
+              </div>
+            </p-card>
+          </div>
+
+          <!-- Contenedores de Gráficos -->
+          <div class="charts-container">
+            <p-card header="Rendimiento de Ocupación" styleClass="chart-card">
+              <div class="chart-wrapper">
+                <p-chart type="pie" [data]="pieChartData" [options]="chartOptions"></p-chart>
+              </div>
+            </p-card>
+
+            <p-card header="Ingresos Mensuales" styleClass="chart-card">
+              <div class="chart-wrapper">
+                <p-chart type="bar" [data]="barChartData" [options]="chartOptions"></p-chart>
+              </div>
+            </p-card>
+          </div>
+        </div>
+      </div>
+
+      <!-- NUEVA VISTA DE CALENDARIO -->
+      <div *ngIf="currentView === 'calendario'" class="calendario-view">
+        <div class="calendario-dashboard">
+          <p-card styleClass="calendario-card">
+            <h3>Bloquear Fechas de Disponibilidad</h3>
+            <p class="alerta-info">
+              Selecciona uno de tus alojamientos publicados y elige un rango de fechas en el calendario
+              para deshabilitarlo (por ejemplo, si planeas ir tú mismo, o necesitas hacer mantenimiento).
+            </p>
+
+            <div class="calendario-controls">
+              <div class="control-group">
+                <label>Alojamiento</label>
+                <p-select [options]="alojamientos" [(ngModel)]="selectedCalendarioAlojamiento" optionLabel="nombre"
+                  placeholder="Selecciona un alojamiento" (onChange)="onCalendarioAlojamientoChange()"
+                  styleClass="w-full">
+                </p-select>
+              </div>
+
+              <div class="control-group" *ngIf="selectedCalendarioAlojamiento">
+                <label>Fechas a Bloquear</label>
+                <div class="calendar-wrapper">
+                  <p-datepicker [(ngModel)]="bloqueoFechas" selectionMode="multiple" [readonlyInput]="true"
+                    [disabledDates]="disabledDates" placeholder="Selecciona uno o varios días" [inline]="true"
+                    styleClass="prime-calendar-custom">
+                  </p-datepicker>
+                </div>
+              </div>
+
+              <div class="control-group action-group" *ngIf="selectedCalendarioAlojamiento">
+                <button pButton label="Bloquear Fechas Seleccionadas" icon="pi pi-lock" class="btn-bloquear"
+                  (click)="bloquearFechasSeleccionadas()">
+                </button>
+              </div>
+            </div>
+          </p-card>
         </div>
       </div>
 

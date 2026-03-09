@@ -74,6 +74,9 @@ export class MiCuenta implements OnInit {
   loadingFavoritos: boolean = false;
   loadingHistorial: boolean = false;
 
+  // Mobile Sidebar
+  sidebarVisible: boolean = false;
+
   // Obtenemos la URL base del backend desde environment si queremos servir las imágenes,
   // O podemos usar un Pipe de Angular. Lo importaremos de environment:
   private readonly baseUrl = 'http://localhost:8080';
@@ -142,11 +145,14 @@ export class MiCuenta implements OnInit {
   // ============================================
   // 🔹 Cambiar Vista
   // ============================================
-  changeView(view: 'profile' | 'reservas' | 'favoritos' | 'historial' | 'solicitudes') {
+  changeView(view: 'profile' | 'reservas' | 'favoritos' | 'solicitudes' | 'historial') {
     this.currentView = view;
+    this.sidebarVisible = false;
 
-    // Cargar datos según la vista
     switch (view) {
+      case 'profile':
+        // Ya está cargado
+        break;
       case 'reservas':
         this.loadReservas();
         break;
@@ -157,6 +163,13 @@ export class MiCuenta implements OnInit {
         this.loadHistorial();
         break;
     }
+  }
+
+  // ============================================
+  // 🔹 SIDEBAR TOGGLE
+  // ============================================
+  toggleSidebar() {
+    this.sidebarVisible = !this.sidebarVisible;
   }
 
   irInicio() {

@@ -9,6 +9,10 @@ import { InputTextModule } from 'primeng/inputtext';
 import { TextareaModule } from 'primeng/textarea';
 import { CarouselModule } from 'primeng/carousel';
 import { MultiSelectModule } from 'primeng/multiselect';
+import { ChartModule } from 'primeng/chart';
+import { DatePickerModule } from 'primeng/datepicker';
+import { SelectModule } from 'primeng/select';
+import { MessageService } from 'primeng/api';
 import { Observable, forkJoin } from 'rxjs';
 import { Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
@@ -53,7 +57,7 @@ interface SolicitudPublicacionResponseDTO {
 }
 
 interface ReservaHistorialResponseDTO {
-  id: number;
+  reservaId: number;
   alojamientoNombre: string;
   alojamientoImagen: string;
   usuarioNombre: string;
@@ -98,7 +102,10 @@ interface UpdateUserDTO {
     InputTextModule,
     TextareaModule,
     CarouselModule,
-    MultiSelectModule
+    MultiSelectModule,
+    ChartModule,
+    DatePickerModule,
+    SelectModule
   ],
   templateUrl: './anfitrion.html',
   styleUrls: ['./anfitrion.scss'],
@@ -107,7 +114,7 @@ export class Anfitrion implements OnInit {
   private readonly API_URL = 'http://localhost:8080/api';
 
   // Estado de la vista actual
-  currentView: 'perfil' | 'historial' | 'servicios' | 'gestion' | 'calendario' | 'solicitar' = 'perfil';
+  currentView: 'perfil' | 'historial' | 'servicios' | 'gestion' | 'calendario' | 'solicitar' | 'metricas' = 'perfil';
 
   // Owner actual (simulado - debería venir del servicio de autenticación)
   ownerId: number = 1;
@@ -124,6 +131,21 @@ export class Anfitrion implements OnInit {
   loadingAlojamientos: boolean = false;
   loadingHistorial: boolean = false;
   loadingServicios: boolean = false;
+  loadingMetrics: boolean = false;
+
+  // Datos para Métricas (Chart.js)
+  totalAlojamientosMetric: number = 0;
+  totalReservasMetric: number = 0;
+
+  barChartData: any;
+  pieChartData: any;
+  chartOptions: any;
+
+  // CALENDARIO DISPONIBILIDAD
+  selectedCalendarioAlojamiento: AlojamientoResponseDTO | null = null;
+  bloqueoFechas: Date[] | null = null; // Changed to allow multiple distinct dates
+  disabledDates: Date[] = [];
+  sidebarVisible: boolean = false;
 
   // Dialog states
   showCreateDialog: boolean = false;
@@ -160,7 +182,7 @@ export class Anfitrion implements OnInit {
 
   private readonly baseUrl = 'http://localhost:8080';
 
-  constructor(private http: HttpClient, private auth: AuthService, private router: Router) { }
+  constructor(private http: HttpClient, private auth: AuthService, private router: Router, private messageService: MessageService) { }
 
   ngOnInit() {
     this.auth.currentUser$.subscribe(user => {
@@ -184,6 +206,9 @@ export class Anfitrion implements OnInit {
 
         this.loadAlojamientos();
         this.loadServicios(); // Cargar los servicios por defecto
+
+        // Configuraciones globales para Chart.js
+        this.initChartOptions();
       }
     });
   }
@@ -261,22 +286,16 @@ export class Anfitrion implements OnInit {
   }
 
   // ============================================
-  // 🔹 Cambiar Vista
+  // 🔹 Navegación y UI
   // ============================================
-  changeView(view: 'perfil' | 'historial' | 'servicios' | 'gestion' | 'calendario' | 'solicitar') {
-    this.currentView = view;
-
-    switch (view) {
-      case 'gestion':
-        this.loadAlojamientos();
-        break;
-      case 'historial':
-        this.loadHistorialReservas();
-        break;
-      case 'servicios':
-        this.loadServicios();
-        break;
-    }
+  changeView(view: string) {
+    this.currentView = view as 'perfil' | 'historial' | 'servicios' | 'gestion' | 'calendario' | 'solicitar' | 'metricas';
+    this.sidebarVisible = false; // Close sidebar on mobile when navigating
+    if (view === 'gestion') this.loadAlojamientos();
+    if (view === 'historial') this.loadHistorialReservas();
+    if (view === 'servicios') this.loadServicios();
+    if (view === 'metricas') this.loadMetrics();
+    if (view === 'calendario') this.loadAlojamientos(); // Para el dropdown
   }
 
   irInicio() {
@@ -720,7 +739,7 @@ export class Anfitrion implements OnInit {
           // Datos de ejemplo
           this.historialReservas = [
             {
-              id: 1,
+              reservaId: 1,
               alojamientoNombre: 'Casa en la Playa',
               alojamientoImagen: 'https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?w=400',
               usuarioNombre: 'Juan Pérez',
@@ -738,6 +757,12 @@ export class Anfitrion implements OnInit {
   // ============================================
   // 🔹 Helpers
   // ============================================
+  formatDate(dateToken: string): string {
+    if (!dateToken) return '';
+    const date = new Date(dateToken);
+    return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+
   getEmptyForm(): AlojamientoRequestDTO {
     return {
       nombre: '',
@@ -759,8 +784,220 @@ export class Anfitrion implements OnInit {
     }
   }
 
-  formatDate(dateString: string): string {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
+  // ============================================
+  // 🔹 SIDEBAR TOGGLE
+  // ============================================
+  toggleSidebar() {
+    this.sidebarVisible = !this.sidebarVisible;
   }
+
+  // ============================================
+  // 🔹 Calendario de Disponibilidad
+  // ============================================
+  onCalendarioAlojamientoChange() {
+    this.disabledDates = [];
+    this.bloqueoFechas = null;
+    if (!this.selectedCalendarioAlojamiento) return;
+
+    const alojamientoId = this.selectedCalendarioAlojamiento.id;
+
+    forkJoin({
+      reservas: this.http.get<ReservaHistorialResponseDTO[]>(`${this.API_URL}/historial/anfitrion/${this.ownerId}`),
+      bloqueos: this.http.get<any[]>(`${this.API_URL}/alojamientos/${alojamientoId}/bloqueos`)
+    }).subscribe({
+      next: ({ reservas, bloqueos }) => {
+        let dates: Date[] = [];
+
+        // Filtrar reservas que pertenezcan a este alojamiento y estén CONFIRMADA
+        reservas.filter(r => r.alojamientoNombre === this.selectedCalendarioAlojamiento!.nombre && r.estado === 'CONFIRMADA').forEach(r => {
+          let current = new Date(r.fechaInicio);
+          const end = new Date(r.fechaFin);
+          current.setHours(0, 0, 0, 0);
+          end.setHours(0, 0, 0, 0);
+          while (current <= end) {
+            dates.push(new Date(current));
+            current.setDate(current.getDate() + 1);
+          }
+        });
+
+        // Extraer fechas de bloqueos
+        bloqueos.forEach(b => {
+          let current = new Date(b.fechaInicio);
+          const end = new Date(b.fechaFin);
+          current.setHours(0, 0, 0, 0);
+          end.setHours(0, 0, 0, 0);
+          while (current <= end) {
+            dates.push(new Date(current));
+            current.setDate(current.getDate() + 1);
+          }
+        });
+
+        this.disabledDates = dates;
+      },
+      error: (err) => console.error('Error cargando disponibilidad:', err)
+    });
+  }
+
+  bloquearFechasSeleccionadas(): void {
+    if (!this.selectedCalendarioAlojamiento || !this.selectedCalendarioAlojamiento.id) {
+      this.messageService.add({ severity: 'warn', summary: 'Atención', detail: 'Selecciona un alojamiento primero.' });
+      return;
+    }
+
+    if (!this.bloqueoFechas || this.bloqueoFechas.length === 0) {
+      this.messageService.add({ severity: 'warn', summary: 'Atención', detail: 'Selecciona al menos una fecha en el calendario.' });
+      return;
+    }
+
+    // Since selectionMode is multiple, bloqueoFechas is an array of distinct dates.
+    // We will find min and max to create a conceptual range, or if the backend supports individual blocks,
+    // we would send them. Currently, the DTO expects a single startDate and endDate.
+    // To support completely sparse selections while the backend accepts one block at a time,
+    // we should ideally loop through selected dates treating each as a 1-day block, or restructure.
+    // For now, if they select sparse days, we will loop and send a POST for each distinct cluster,
+    // or just assume a single range if they select 2 dates. 
+
+    // As requested: "la cantidad de dias que quiera". We will sort them and group them into contiguous ranges,
+    // or just send each day as a 1-day block. Doing 1-day blocks is safest for sparse selections:
+
+    const sortedDates = [...this.bloqueoFechas].sort((a, b) => a.getTime() - b.getTime());
+
+    // Group contiguous dates into ranges to minimize HTTP requests
+    const ranges: { startDate: Date, endDate: Date }[] = [];
+    let currentRange: { startDate: Date, endDate: Date } | null = null;
+
+    for (const date of sortedDates) {
+      if (!currentRange) {
+        currentRange = { startDate: date, endDate: date };
+      } else {
+        const nextDay = new Date(currentRange.endDate);
+        nextDay.setDate(nextDay.getDate() + 1);
+
+        if (date.getTime() === nextDay.getTime()) {
+          // Contiguous, extend range
+          currentRange.endDate = date;
+        } else {
+          // Gap found, push current and start new
+          ranges.push(currentRange);
+          currentRange = { startDate: date, endDate: date };
+        }
+      }
+    }
+    if (currentRange) {
+      ranges.push(currentRange);
+    }
+
+    const requests = ranges.map(range => {
+      const payload = {
+        fechaInicio: range.startDate.toISOString().split('T')[0],
+        fechaFin: range.endDate.toISOString().split('T')[0],
+        justificacion: 'Bloqueo manual por el Anfitrión' // Changed from 'motivo' to 'justificacion'
+      };
+      return this.http.post(`${this.API_URL}/alojamientos/${this.selectedCalendarioAlojamiento!.id}/bloqueos?ownerId=${this.ownerId}`, payload);
+    });
+
+    forkJoin(requests).subscribe({
+      next: () => {
+        this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Fechas bloqueadas correctamente.' });
+        this.bloqueoFechas = null;
+        this.onCalendarioAlojamientoChange(); // Refresh visual disabled dates
+      },
+      error: (err) => {
+        console.error('Error al bloquear fechas', err);
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudieron bloquear las fechas. Verifica que no estén ya ocupadas.' });
+      }
+    });
+  }
+
+  // ============================================
+  // 🔹 Métricas y KPIs (Chart.js)
+  // ============================================
+  initChartOptions() {
+    const documentStyle = getComputedStyle(document.documentElement);
+    const textColor = documentStyle.getPropertyValue('--text-color');
+    const textColorSecondary = documentStyle.getPropertyValue('--text-color-secondary');
+    const surfaceBorder = documentStyle.getPropertyValue('--surface-border');
+
+    this.chartOptions = {
+      maintainAspectRatio: false,
+      aspectRatio: 0.8,
+      plugins: {
+        legend: {
+          labels: {
+            color: '#1F2A44'
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: {
+            color: '#1F2A44',
+            font: {
+              weight: 500
+            }
+          },
+          grid: {
+            color: 'rgba(31, 42, 68, 0.1)',
+            drawBorder: false
+          }
+        },
+        y: {
+          ticks: {
+            color: '#1F2A44'
+          },
+          grid: {
+            color: 'rgba(31, 42, 68, 0.1)',
+            drawBorder: false
+          }
+        }
+      }
+    };
+  }
+
+  loadMetrics() {
+    if (this.loadingMetrics) return;
+    this.loadingMetrics = true;
+
+    this.http.get<any>(`${this.API_URL}/metrics/owner/${this.ownerId}/dashboard`).subscribe({
+      next: (data) => {
+        this.totalAlojamientosMetric = data.totalAlojamientos;
+        this.totalReservasMetric = data.totalReservas;
+
+        // Configurar gráfico de Dona (Proporción)
+        this.pieChartData = {
+          labels: ['Alojamientos Publicados', 'Reservas Históricas'],
+          datasets: [
+            {
+              data: [data.totalAlojamientos, data.totalReservas],
+              backgroundColor: ['#1F2A44', '#5B2C83'],
+              hoverBackgroundColor: ['#151d30', '#4A236B']
+            }
+          ]
+        };
+
+        // Configurar gráfico de barras (Ingresos por mes)
+        const labelsMeses = Object.keys(data.ingresosPorMes);
+        const dataIngresos = Object.values(data.ingresosPorMes);
+
+        this.barChartData = {
+          labels: labelsMeses.length > 0 ? labelsMeses : ['Sin datos'],
+          datasets: [
+            {
+              label: 'Ingresos ($)',
+              backgroundColor: '#5B2C83',
+              borderColor: '#4A236B',
+              data: dataIngresos.length > 0 ? dataIngresos : [0]
+            }
+          ]
+        };
+
+        this.loadingMetrics = false;
+      },
+      error: (err) => {
+        console.error('Error cargando métricas', err);
+        this.loadingMetrics = false;
+      }
+    });
+  }
+
 }

@@ -23,6 +23,9 @@ public class ReservaHistorialResponseDTO {
     @Schema(description = "Nombre del alojamiento reservado", example = "Hotel Sol y Mar")
     private String alojamientoNombre;
 
+    @Schema(description = "URL de la imagen representativa del alojamiento", example = "https://...")
+    private String alojamientoImagen;
+
     @Schema(description = "ID del usuario que realizó la reserva", example = "3")
     private Long usuarioId;
 
@@ -40,6 +43,9 @@ public class ReservaHistorialResponseDTO {
 
     @Schema(description = "Precio total de la reserva", example = "550000.0")
     private double precioTotal;
+
+    @Schema(description = "Fecha de creación de la reserva", example = "2025-05-15")
+    private LocalDate fechaReserva;
 
     @Schema(description = "Estado actual de la reserva", example = "CONFIRMADA")
     private EstadoReserva estado;

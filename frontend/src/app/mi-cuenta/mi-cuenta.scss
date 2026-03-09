@@ -582,7 +582,19 @@
     }
 
     .sidebar {
-        display: none;
+        position: fixed;
+        left: -320px;
+        top: 0;
+        bottom: 0;
+        width: 320px;
+        z-index: 1000;
+        transition: left 0.3s ease;
+        border-radius: 0;
+        box-shadow: 4px 0 24px rgba(0, 0, 0, 0.2);
+
+        &.mobile-visible {
+            left: 0;
+        }
     }
 
     .content-header {
