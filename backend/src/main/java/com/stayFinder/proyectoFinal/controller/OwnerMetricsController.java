@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/metrics/owner")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:4200")
+@CrossOrigin(origins = "${frontend.url}")
 @Tag(name = "Métricas Owner", description = "Endpoints para KPIs y estadísticas de Anfitriones")
 public class OwnerMetricsController {
 

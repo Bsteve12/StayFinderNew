@@ -16,7 +16,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/solicitudes-owner")
-@CrossOrigin(origins = "http://localhost:4200")
+@CrossOrigin(origins = "${frontend.url}")
 @Tag(name = "Solicitudes Owner", description = "Gestión de solicitudes de anfitrión")
 public class SolicitudOwnerController {
 

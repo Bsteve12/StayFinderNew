@@ -19,7 +19,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/imagenes-alojamiento")
-@CrossOrigin(origins = "http://localhost:4200")
+@CrossOrigin(origins = "${frontend.url}")
 @Tag(name = "Imágenes Alojamiento", description = "Gestión de imágenes asociadas a un alojamiento")
 public class ImagenAlojamientoController {
 

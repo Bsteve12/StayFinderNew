@@ -13,7 +13,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/favoritos")
-@CrossOrigin(origins = "http://localhost:4200")
+@CrossOrigin(origins = "${frontend.url}")
 @Tag(name = "Favoritos", description = "Gestión de alojamientos favoritos por usuario")
 @RequiredArgsConstructor
 public class FavoriteController {
@@ -41,7 +41,8 @@ public class FavoriteController {
 
     @GetMapping("/usuario/{usuarioId}/alojamiento/{alojamientoId}")
     @Operation(summary = "Verificar si es favorito", description = "Permite verificar si un alojamiento está en favoritos de un usuario.")
-    public ResponseEntity<Boolean> isFavorito(@PathVariable Long usuarioId, @PathVariable Long alojamientoId) throws Exception {
+    public ResponseEntity<Boolean> isFavorito(@PathVariable Long usuarioId, @PathVariable Long alojamientoId)
+            throws Exception {
         return ResponseEntity.ok(favoriteService.isFavorito(usuarioId, alojamientoId));
     }
 }

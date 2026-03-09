@@ -24,7 +24,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/usuario")
-@CrossOrigin(origins = "http://localhost:4200")
+@CrossOrigin(origins = "${frontend.url}")
 @Tag(name = "Usuarios", description = "Operaciones de usuario (registro, login, actualización, roles)")
 public class UsuarioController {
 

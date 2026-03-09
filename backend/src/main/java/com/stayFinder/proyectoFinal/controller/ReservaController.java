@@ -25,7 +25,7 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/reservas")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:4200")
+@CrossOrigin(origins = "${frontend.url}")
 @Tag(name = "Reservas", description = "Operaciones de creación, consulta, edición y eliminación de reservas")
 public class ReservaController {
 
@@ -53,8 +53,7 @@ public class ReservaController {
     @GetMapping("/{id}")
     @Operation(summary = "Obtener reserva por ID", description = "Devuelve los datos de una reserva por su ID.")
     public ResponseEntity<ReservaResponseDTO> getById(
-            @Parameter(description = "ID de la reserva", required = true, example = "1")
-            @PathVariable Long id) {
+            @Parameter(description = "ID de la reserva", required = true, example = "1") @PathVariable Long id) {
         Optional<ReservaResponseDTO> reserva = reservaService.findById(id);
         return reserva.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
@@ -80,7 +79,8 @@ public class ReservaController {
     @Operation(summary = "Crear una reserva básica", description = "Crea una reserva con solo el ID del alojamiento y la fecha para el usuario autenticado.")
     public ResponseEntity<ReservaResponseDTO> crearReservaBasica(
             @RequestBody CreateReservaRequestDTO dto,
-            @Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl user // 👈 Corregido para obtener el ID del token
+            @Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl user // 👈 Corregido para obtener el ID
+                                                                                    // del token
     ) throws Exception {
         // user.getId() es el ID de Negocio (usuarioId)
         return ResponseEntity.ok(reservaService.createReservaBasica(dto, user.getId()));
@@ -92,12 +92,12 @@ public class ReservaController {
     @PutMapping("/{id}")
     @Operation(summary = "Actualizar reserva", description = "Actualiza una reserva (ej. cambios de fechas).")
     public ResponseEntity<Object> update(
-            @Parameter(description = "ID de la reserva", required = true, example = "1")
-            @PathVariable Long id,
-            @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Objeto con los cambios de reserva")
-            @RequestBody ReservaRequestDTO reserva) throws Exception {
+            @Parameter(description = "ID de la reserva", required = true, example = "1") @PathVariable Long id,
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Objeto con los cambios de reserva") @RequestBody ReservaRequestDTO reserva)
+            throws Exception {
 
-        // El método save(ReservaRequestDTO) usa el usuarioId del DTO. Se mantiene, pero la lógica ideal sería usar el ID del token.
+        // El método save(ReservaRequestDTO) usa el usuarioId del DTO. Se mantiene, pero
+        // la lógica ideal sería usar el ID del token.
         ReservaResponseDTO updated = reservaService.save(reserva);
         return ResponseEntity.ok(updated);
     }
@@ -108,8 +108,7 @@ public class ReservaController {
     @DeleteMapping("/{id}")
     @Operation(summary = "Eliminar reserva", description = "Elimina una reserva por id. Requiere ser el dueño.")
     public ResponseEntity<Void> delete(
-            @Parameter(description = "ID de la reserva", required = true, example = "1")
-            @PathVariable Long id,
+            @Parameter(description = "ID de la reserva", required = true, example = "1") @PathVariable Long id,
             @Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl user) throws Exception {
         // user.getId() es el ID de Negocio (usuarioId)
         reservaService.deleteById(id, user.getId());

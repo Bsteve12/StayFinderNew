@@ -2,6 +2,7 @@ package com.stayFinder.proyectoFinal.security;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -26,6 +27,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class WebSecurityConfig {
 
+    @Value("${frontend.url}")
+    private String frontendUrl;
+
     private final CustomUserDetailsService customUserDetailsService;
     private final AuthTokenFilter authTokenFilter;
     private final CustomOAuth2SuccessHandler customOAuth2SuccessHandler;
@@ -49,8 +53,8 @@ public class WebSecurityConfig {
 
         // 🟢 CONFIGURACIÓN DE ORIGENES PERMITIDOS
         configuration.setAllowedOrigins(List.of(
-                "http://localhost:4200",
-                "https://stayfinder-frontend-86433570710.us-central1.run.app"));
+                frontendUrl,
+                "https://stayfinder-backend-86433570710.us-central1.run.app"));
 
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));

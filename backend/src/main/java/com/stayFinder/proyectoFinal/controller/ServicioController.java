@@ -15,7 +15,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/servicios")
-@CrossOrigin(origins = "http://localhost:4200")
+@CrossOrigin(origins = "${frontend.url}")
 @RequiredArgsConstructor
 @Tag(name = "Servicios", description = "Gestión de servicios adicionales (aseo, chef, VIP)")
 public class ServicioController {

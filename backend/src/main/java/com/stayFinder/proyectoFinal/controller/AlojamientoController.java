@@ -22,7 +22,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/alojamientos")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:4200")
+@CrossOrigin(origins = "${frontend.url}")
 public class AlojamientoController {
 
     private final AlojamientoServiceInterface alojamientoService;

@@ -13,7 +13,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/solicitudes-publicacion")
-@CrossOrigin(origins = "http://localhost:4200")
+@CrossOrigin(origins = "${frontend.url}")
 @Tag(name = "Solicitudes Publicación", description = "Solicitudes para publicar un alojamiento y su revisión por parte del admin")
 public class SolicitudPublicacionController {
 
@@ -25,13 +25,15 @@ public class SolicitudPublicacionController {
 
     @PostMapping
     @Operation(summary = "Crear solicitud de publicación", description = "OWNER crea solicitud para publicar un alojamiento")
-    public ResponseEntity<SolicitudPublicacionResponseDTO> crearSolicitud(@RequestBody SolicitudPublicacionRequestDTO dto) {
+    public ResponseEntity<SolicitudPublicacionResponseDTO> crearSolicitud(
+            @RequestBody SolicitudPublicacionRequestDTO dto) {
         return ResponseEntity.ok(solicitudService.crearSolicitud(dto));
     }
 
     @PostMapping("/responder")
     @Operation(summary = "Responder solicitud (admin)", description = "ADMIN aprueba o rechaza la solicitud de publicación")
-    public ResponseEntity<SolicitudPublicacionResponseDTO> responderSolicitud(@RequestBody SolicitudPublicacionRespuestaRequestDTO dto) {
+    public ResponseEntity<SolicitudPublicacionResponseDTO> responderSolicitud(
+            @RequestBody SolicitudPublicacionRespuestaRequestDTO dto) {
         return ResponseEntity.ok(solicitudService.responderSolicitud(dto));
     }
 

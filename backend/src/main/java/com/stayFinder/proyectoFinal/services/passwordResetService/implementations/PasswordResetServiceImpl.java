@@ -9,6 +9,7 @@ import com.stayFinder.proyectoFinal.repository.UsuarioRepository;
 import com.stayFinder.proyectoFinal.services.emailService.interfaces.EmailServiceInterface;
 import com.stayFinder.proyectoFinal.services.passwordResetService.interfaces.PasswordResetServiceInterface;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -23,6 +24,9 @@ public class PasswordResetServiceImpl implements PasswordResetServiceInterface {
     private final PasswordResetTokenRepository tokenRepo;
     private final EmailServiceInterface emailService;
     private final PasswordEncoder passwordEncoder;
+
+    @Value("${frontend.url}")
+    private String frontendUrl;
 
     @Override
     public PasswordResetTokenResponseDTO generarToken(PasswordResetTokenRequestDTO dto) throws Exception {
@@ -42,7 +46,7 @@ public class PasswordResetServiceImpl implements PasswordResetServiceInterface {
         tokenRepo.save(resetToken);
 
         // --- CAMBIO AQUÍ: Generar el enlace real para el Frontend ---
-        String urlFrontend = "http://localhost:4200/reset-password?token=" + token;
+        String urlFrontend = frontendUrl + "/reset-password?token=" + token;
 
         String body = "Hola " + usuario.getNombre() + ",\n\n"
                 + "Hemos recibido una solicitud para restablecer tu contraseña en StayFinder.\n"
