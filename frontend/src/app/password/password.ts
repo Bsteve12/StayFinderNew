@@ -4,7 +4,8 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } 
 import { Router } from '@angular/router';
 import { InputTextModule } from 'primeng/inputtext';
 import { ButtonModule } from 'primeng/button';
-import { AuthService } from '../services/auth.service'; // Asegúrate de que la ruta sea correcta
+import { AuthService } from '../services/auth.service';
+import { MessageService } from 'primeng/api';
 
 @Component({
   selector: 'app-password',
@@ -21,7 +22,8 @@ export class Password {
   constructor(
     private fb: FormBuilder,
     private router: Router,
-    private authService: AuthService // INYECTADO
+    private authService: AuthService,
+    private messageService: MessageService
   ) {
     this.forgotPasswordForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]]
@@ -43,7 +45,7 @@ export class Password {
         },
         error: (err) => {
           this.loading = false;
-          alert('Hubo un error: ' + (err.error?.message || 'El correo no está registrado'));
+          this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Hubo un error: ' + (err.error?.message || 'El correo no está registrado') });
         }
       });
     } else {

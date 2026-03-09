@@ -14,6 +14,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatButtonModule } from '@angular/material/button';
 import { provideNativeDateAdapter, MAT_DATE_FORMATS, MAT_NATIVE_DATE_FORMATS } from '@angular/material/core';
 import { AuthService } from '../services/auth.service';
+import { MessageService } from 'primeng/api';
 
 interface AccommodationImage {
   url: string;
@@ -152,7 +153,8 @@ export class Detalle implements OnInit {
     private router: Router,
     private alojamientosService: AlojamientosService,
     private http: HttpClient,
-    private auth: AuthService
+    private auth: AuthService,
+    private messageService: MessageService
   ) { }
 
   ngOnInit() {
@@ -198,7 +200,7 @@ export class Detalle implements OnInit {
       },
       error: (error) => {
         console.error('Error al obtener alojamiento:', error);
-        alert('Error al cargar el alojamiento. Usando datos de ejemplo.');
+        this.messageService.add({ severity: 'warn', summary: 'Aviso', detail: 'Error al cargar el alojamiento. Usando datos de ejemplo.' });
       }
     });
   }
@@ -227,11 +229,11 @@ export class Detalle implements OnInit {
 
   enviarComentario() {
     if (!this.isAuthenticated || !this.usuarioId) {
-      alert('Debes iniciar sesión para dejar un comentario.');
+      this.messageService.add({ severity: 'warn', summary: 'Atención', detail: 'Debes iniciar sesión para dejar un comentario.' });
       return;
     }
     if (!this.nuevoComentarioTexto.trim()) {
-      alert('El comentario no puede estar vacío.');
+      this.messageService.add({ severity: 'warn', summary: 'Atención', detail: 'El comentario no puede estar vacío.' });
       return;
     }
 
@@ -244,7 +246,7 @@ export class Detalle implements OnInit {
 
     this.http.post(`${this.API_URL}/comentarios`, payload).subscribe({
       next: () => {
-        alert('Comentario publicado exitosamente.');
+        this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Comentario publicado exitosamente.' });
         this.nuevoComentarioTexto = '';
         this.nuevaCalificacion = 5;
         this.loadComentarios(this.alojamientoId());
@@ -252,9 +254,9 @@ export class Detalle implements OnInit {
       error: (error) => {
         console.error('Error enviando comentario', error);
         if (error.status === 400 || error.error) {
-          alert(error.error || 'No tienes una reserva confirmada y pasada para este alojamiento.');
+          this.messageService.add({ severity: 'error', summary: 'Error', detail: error.error || 'No tienes una reserva confirmada y pasada para este alojamiento.' });
         } else {
-          alert('Ocurrió un error al enviar el comentario.');
+          this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Ocurrió un error al enviar el comentario.' });
         }
       }
     });
@@ -276,7 +278,7 @@ export class Detalle implements OnInit {
 
   responderComentario(comentarioId: number) {
     if (!this.textoRespuesta.trim()) {
-      alert('La respuesta no puede estar vacía.');
+      this.messageService.add({ severity: 'warn', summary: 'Atención', detail: 'La respuesta no puede estar vacía.' });
       return;
     }
 
@@ -288,20 +290,20 @@ export class Detalle implements OnInit {
 
     this.http.post(`${this.API_URL}/comentarios/responder`, payload).subscribe({
       next: () => {
-        alert('Respuesta publicada exitosamente.');
+        this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Respuesta publicada exitosamente.' });
         this.cancelarRespuesta();
         this.loadComentarios(this.alojamientoId());
       },
       error: (error) => {
         console.error('Error respondiendo comentario', error);
-        alert('Error al publicar la respuesta.');
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error al publicar la respuesta.' });
       }
     });
   }
 
   onReserve() {
     if (!this.isAuthenticated || !this.usuarioId) {
-      alert('Debes iniciar sesión para realizar una reserva.');
+      this.messageService.add({ severity: 'warn', summary: 'Atención', detail: 'Debes iniciar sesión para realizar una reserva.' });
       return;
     }
 
@@ -339,13 +341,13 @@ export class Detalle implements OnInit {
     ).subscribe({
       next: (reserva) => {
         console.log('Reserva creada:', reserva);
-        alert(`¡Reserva creada exitosamente!\n\nTotal: $${reserva.precioTotal.toLocaleString()}\nEstado: ${reserva.estado}`);
+        this.messageService.add({ severity: 'success', summary: 'Éxito', detail: `¡Reserva creada exitosamente!\n\nTotal: $${reserva.precioTotal.toLocaleString()}\nEstado: ${reserva.estado}` });
 
         this.procesarPago(reserva);
       },
       error: (error) => {
         console.error('Error creando reserva:', error);
-        alert('Error al crear la reserva. Por favor intenta nuevamente.');
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error al crear la reserva. Por favor intenta nuevamente.' });
       }
     });
   }
@@ -360,7 +362,7 @@ export class Detalle implements OnInit {
     this.http.post(`${this.API_URL}/pagos`, pagoDTO).subscribe({
       next: (pago) => {
         console.log('Pago registrado:', pago);
-        alert('¡Pago procesado exitosamente! Redirigiendo a tus reservas...');
+        this.messageService.add({ severity: 'success', summary: 'Éxito', detail: '¡Pago procesado exitosamente! Redirigiendo a tus reservas...' });
 
         setTimeout(() => {
           this.router.navigate(['/dashboard/reservas']);
@@ -368,7 +370,7 @@ export class Detalle implements OnInit {
       },
       error: (error) => {
         console.error('Error procesando pago:', error);
-        alert('Reserva creada pero hubo un error en el pago.\nPor favor contacta soporte con el ID de reserva: ' + reserva.id);
+        this.messageService.add({ severity: 'error', summary: 'Error de Pago', detail: 'Reserva creada pero hubo un error en el pago.\nPor favor contacta soporte con el ID de reserva: ' + reserva.id });
       }
     });
   }

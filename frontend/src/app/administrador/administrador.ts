@@ -14,6 +14,7 @@ import { RouterModule } from '@angular/router';
 import { Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { environment } from '../../environments/environment';
+import { MessageService } from 'primeng/api';
 
 // Enums
 enum Role {
@@ -170,7 +171,7 @@ export class Administrador implements OnInit {
   // Mobile sidebar state
   sidebarVisible: boolean = false;
 
-  constructor(private http: HttpClient, private auth: AuthService, private router: Router) { }
+  constructor(private http: HttpClient, private auth: AuthService, private router: Router, private messageService: MessageService) { }
 
   ngOnInit() {
     this.auth.currentUser$.subscribe(user => {
@@ -220,7 +221,7 @@ export class Administrador implements OnInit {
         },
         error: (err) => {
           console.error('Error al subir la imagen', err);
-          alert('Error al subir la foto de perfil');
+          this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error al subir la foto de perfil' });
         }
       });
     }
@@ -263,14 +264,14 @@ export class Administrador implements OnInit {
       this.profileForm
     ).subscribe({
       next: (data) => {
-        alert('Perfil actualizado con éxito');
+        this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Perfil actualizado con éxito' });
         this.adminNombre = data.nombre;
         this.showEditProfileDialog = false;
         // Refrescar auth token o requerir login nuevamente para JWT update? Temporalmente actualizar visual.
       },
       error: (err) => {
         console.error('Error al editar perfil', err);
-        alert('Error editando perfil');
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error editando perfil' });
       }
     });
   }
@@ -347,7 +348,7 @@ export class Administrador implements OnInit {
       .subscribe({
         next: (response) => {
           console.log('Respuesta enviada:', response);
-          alert(`Solicitud de publicación ${aprobada ? 'aprobada' : 'rechazada'} exitosamente`);
+          this.messageService.add({ severity: 'success', summary: 'Éxito', detail: `Solicitud de publicación ${aprobada ? 'aprobada' : 'rechazada'} exitosamente` });
           this.loadSolicitudesPublicacion();
           this.showRespuestaDialog = false;
           this.respuestaComentario = '';
@@ -355,7 +356,7 @@ export class Administrador implements OnInit {
         error: (error) => {
           console.error('Error:', error);
           const backendMessage = error.error?.message || error.message || 'Error desconocido';
-          alert('Hubo un error al responder la solicitud: ' + backendMessage);
+          this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Hubo un error al responder la solicitud: ' + backendMessage });
           this.showRespuestaDialog = false;
         }
       });
@@ -407,7 +408,7 @@ export class Administrador implements OnInit {
       .subscribe({
         next: (response) => {
           console.log('Solicitud procesada:', response);
-          alert(`Solicitud para Anfitrión ${aprobada ? 'aprobada' : 'rechazada'} exitosamente`);
+          this.messageService.add({ severity: 'success', summary: 'Éxito', detail: `Solicitud para Anfitrión ${aprobada ? 'aprobada' : 'rechazada'} exitosamente` });
           this.loadSolicitudesOwner();
           this.showRespuestaDialog = false;
           this.respuestaComentario = '';
@@ -415,7 +416,7 @@ export class Administrador implements OnInit {
         error: (error) => {
           console.error('Error:', error);
           const backendMessage = error.error?.message || error.message || 'Error desconocido';
-          alert('Error del servidor: ' + backendMessage);
+          this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error del servidor: ' + backendMessage });
           this.showRespuestaDialog = false;
         }
       });
@@ -493,14 +494,14 @@ export class Administrador implements OnInit {
     ).subscribe({
       next: (response) => {
         console.log('Rol asignado:', response);
-        alert('Rol asignado correctamente');
+        this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Rol asignado correctamente' });
         // Recargar la lista para que refleje el cambio
         this.loadUsuarios();
         this.showAsignarRolDialog = false;
       },
       error: (error) => {
         console.error('Error:', error);
-        alert('Error asignando rol.');
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error asignando rol.' });
         this.showAsignarRolDialog = false;
       }
     });
@@ -513,13 +514,13 @@ export class Administrador implements OnInit {
     ).subscribe({
       next: (response) => {
         console.log('Usuario creado:', response);
-        alert('Usuario creado exitosamente');
+        this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Usuario creado exitosamente' });
         this.nuevoUsuario = { nombre: '', correo: '', contrasena: '', telefono: '', fechaNacimiento: '', usuarioId: null as any };
         this.selectedRole = Role.CLIENT;
       },
       error: (error) => {
         console.error('Error creando usuario en la BD:', error);
-        alert('Ocurrió un error al crear el usuario. Por favor verifica tus permisos y la consola.');
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Ocurrió un error al crear el usuario. Por favor verifica tus permisos y la consola.' });
       }
     });
   }

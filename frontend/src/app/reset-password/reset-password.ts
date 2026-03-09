@@ -38,7 +38,7 @@ export class ResetPassword implements OnInit {
     // Capturamos el token de la URL: /reset-password?token=xxxx
     this.token = this.route.snapshot.queryParamMap.get('token') || '';
     if (!this.token) {
-      alert('Token no encontrado. Por favor, solicita un nuevo correo de recuperación.');
+      this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Token no encontrado. Por favor, solicita un nuevo correo de recuperación.' });
       this.router.navigate(['/forgot-password']);
     }
   }

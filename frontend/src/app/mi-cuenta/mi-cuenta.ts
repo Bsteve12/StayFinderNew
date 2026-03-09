@@ -5,7 +5,8 @@ import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { Observable } from 'rxjs';
 import { Router } from '@angular/router';
-import { AuthService } from '../services/auth.service'; // <--- AGREGADO
+import { AuthService } from '../services/auth.service';
+import { MessageService } from 'primeng/api';
 
 // Interfaces
 interface ReservaResponseDTO {
@@ -85,7 +86,8 @@ export class MiCuenta implements OnInit {
   constructor(
     private http: HttpClient,
     private router: Router,
-    private authService: AuthService // <--- AGREGADO
+    private authService: AuthService,
+    private messageService: MessageService
   ) { }
 
   ngOnInit() {
@@ -136,7 +138,7 @@ export class MiCuenta implements OnInit {
         },
         error: (err) => {
           console.error('Error al subir la imagen', err);
-          alert('Error al subir la foto de perfil');
+          this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error al subir la foto de perfil' });
         }
       });
     }

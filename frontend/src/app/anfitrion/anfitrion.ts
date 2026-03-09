@@ -233,7 +233,7 @@ export class Anfitrion implements OnInit {
         },
         error: (err) => {
           console.error('Error al subir la imagen', err);
-          alert('Error al subir la foto de perfil');
+          this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error al subir la foto de perfil' });
         }
       });
     }
@@ -274,13 +274,13 @@ export class Anfitrion implements OnInit {
       this.profileForm
     ).subscribe({
       next: (data) => {
-        alert('Perfil actualizado con éxito');
+        this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Perfil actualizado con éxito' });
         this.ownerNombre = data.nombre;
         this.showEditProfileDialog = false;
       },
       error: (err) => {
         console.error('Error al editar perfil', err);
-        alert('Error editando perfil');
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error editando perfil' });
       }
     });
   }
@@ -359,7 +359,7 @@ export class Anfitrion implements OnInit {
         },
         error: (err) => {
           console.error('Error editando servicio:', err);
-          alert('Error al editar servicio');
+          this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error al editar servicio' });
         }
       });
     } else {
@@ -374,7 +374,7 @@ export class Anfitrion implements OnInit {
         },
         error: (err) => {
           console.error('Error creando servicio:', err);
-          alert('Error al crear servicio');
+          this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error al crear servicio' });
         }
       });
     }
@@ -388,7 +388,7 @@ export class Anfitrion implements OnInit {
         },
         error: (err) => {
           console.error('Error eliminando servicio:', err);
-          alert('Error al eliminar servicio');
+          this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error al eliminar servicio' });
         }
       });
     }
@@ -426,7 +426,7 @@ export class Anfitrion implements OnInit {
   addImageUrl() {
     if (this.imageUrlInput && this.imageUrlInput.trim() !== '') {
       if (!this.imageUrlInput.startsWith('http://') && !this.imageUrlInput.startsWith('https://')) {
-        alert('Por favor, ingresa una URL válida que empiece con http:// o https://');
+        this.messageService.add({ severity: 'warn', summary: 'Atención', detail: 'Por favor, ingresa una URL válida que empiece con http:// o https://' });
         return;
       }
       this.imagenesUrls.push(this.imageUrlInput.trim());
@@ -491,7 +491,7 @@ export class Anfitrion implements OnInit {
 
   crearAlojamiento() {
     if (!this.validarMinimoImagenes()) {
-      alert('Debes agregar al menos 3 imágenes para publicar el alojamiento.');
+      this.messageService.add({ severity: 'warn', summary: 'Imágenes Incompletas', detail: 'Debes agregar al menos 3 imágenes para publicar el alojamiento.' });
       return;
     }
 
@@ -531,7 +531,7 @@ export class Anfitrion implements OnInit {
       },
       error: (error) => {
         console.error('Error creando alojamiento:', error);
-        alert('Error al crear el alojamiento: ' + (error.error?.message || error.message));
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error al crear el alojamiento: ' + (error.error?.message || error.message) });
         this.showCreateDialog = false;
       }
     });
@@ -562,7 +562,7 @@ export class Anfitrion implements OnInit {
     if (!this.selectedAlojamiento) return;
 
     if (!this.validarMinimoImagenes()) {
-      alert('Debes agregar al menos 3 imágenes para publicar el alojamiento.');
+      this.messageService.add({ severity: 'warn', summary: 'Imágenes Incompletas', detail: 'Debes agregar al menos 3 imágenes para publicar el alojamiento.' });
       return;
     }
 
@@ -593,7 +593,7 @@ export class Anfitrion implements OnInit {
       },
       error: (error) => {
         console.error('Error editando alojamiento:', error);
-        alert('Error editando alojamiento: ' + (error.error?.message || error.message));
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error editando alojamiento: ' + (error.error?.message || error.message) });
         this.showEditDialog = false;
       }
     });
@@ -647,7 +647,7 @@ export class Anfitrion implements OnInit {
       },
       error: (error) => {
         console.error('Error eliminando alojamiento:', error);
-        alert('Error eliminando alojamiento: ' + (error.error?.message || error.message));
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error eliminando alojamiento: ' + (error.error?.message || error.message) });
       }
     });
   }
@@ -675,14 +675,14 @@ export class Anfitrion implements OnInit {
     ).subscribe({
       next: (response) => {
         console.log('Solicitud creada:', response);
-        alert('Solicitud de publicación enviada correctamente');
+        this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Solicitud de publicación enviada correctamente' });
         this.selectedAlojamiento!.estado = 'PENDIENTE_REVISION';
         this.showSolicitudDialog = false;
         this.selectedAlojamiento = null;
       },
       error: (error) => {
         console.error('Error creando solicitud:', error);
-        alert('Hubo un error al crear la solicitud: ' + (error.error?.message || error.message));
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Hubo un error al crear la solicitud: ' + (error.error?.message || error.message) });
         this.showSolicitudDialog = false;
       }
     });
@@ -699,12 +699,12 @@ export class Anfitrion implements OnInit {
       null
     ).subscribe({
       next: (response) => {
-        alert('Estado modificado exitosamente');
+        this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Estado modificado exitosamente' });
         alojamiento.estado = response.estado;
       },
       error: (error) => {
         console.error('Error cambiando estado:', error);
-        alert('Error al cambiar el estado: ' + (error.error?.message || error.message));
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error al cambiar el estado: ' + (error.error?.message || error.message) });
       }
     });
   }

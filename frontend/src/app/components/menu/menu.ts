@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { MenuModule } from 'primeng/menu';
 import { ButtonModule } from 'primeng/button';
 import { MenuItem } from 'primeng/api';
+import { MessageService } from 'primeng/api';
 
 
 @Component({
@@ -26,7 +27,7 @@ export class Menu implements OnInit, OnChanges { // 👈 Implementación de OnCh
   menuItems: MenuItem[] = [];
 
 
-  constructor(private router: Router) {}
+  constructor(private router: Router, private messageService: MessageService) { }
 
 
   ngOnInit() {
@@ -206,7 +207,7 @@ export class Menu implements OnInit, OnChanges { // 👈 Implementación de OnCh
 
 
     // Opcional: Mostrar mensaje
-    alert('Sesión cerrada exitosamente');
+    this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Sesión cerrada exitosamente' });
   }
 
 

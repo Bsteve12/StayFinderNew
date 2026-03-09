@@ -12,6 +12,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { DatePickerDialog } from '../date-picker-dialog/date-picker-dialog';
 import { Menu } from "../menu/menu";
 import { AuthService, User } from '../../services/auth.service';
+import { MessageService } from 'primeng/api';
 
 @Component({
   selector: 'app-header',
@@ -43,8 +44,9 @@ export class Header implements OnInit {
   constructor(
     private router: Router,
     private dialog: MatDialog,
-    private auth: AuthService
-  ) {}
+    private auth: AuthService,
+    private messageService: MessageService
+  ) { }
 
   ngOnInit() {
     this.auth.isAuthenticated$.subscribe(isAuth => {
@@ -59,7 +61,7 @@ export class Header implements OnInit {
 
   onBecomeHost() {
     if (!this.isAuthenticated) {
-      alert('Debes iniciar sesión para convertirte en anfitrión.');
+      this.messageService.add({ severity: 'warn', summary: 'Atención', detail: 'Debes iniciar sesión para convertirte en anfitrión.' });
       this.router.navigate(['/login'], { queryParams: { returnUrl: '/convertirse-anfitrion' } });
     } else {
       this.router.navigate(['/convertirse-anfitrion']);
