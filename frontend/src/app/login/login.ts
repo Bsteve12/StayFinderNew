@@ -8,6 +8,7 @@ import { ButtonModule } from 'primeng/button';
 import { ToastModule } from 'primeng/toast'; // ✅ Solo necesitas este
 import { AuthService, LoginResponse } from '../services/auth.service';
 import { MessageService } from 'primeng/api';
+import { environment } from '../../environments/environment';
 
 
 @Component({
@@ -112,6 +113,6 @@ export class Login {
 
   loginWithGoogle() {
     // Redirige directamente al endpoint que ofrece Spring Security
-    window.location.href = 'http://localhost:8080/oauth2/authorization/google';
+    window.location.href = `${environment.apiUrl}/oauth2/authorization/google`;
   }
 }

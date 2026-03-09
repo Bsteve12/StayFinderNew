@@ -12,6 +12,7 @@ import { RouterLink, Router } from "@angular/router";
 import { Header } from "../components/header/header";
 import { AlojamientosService } from '../services/alojamientos';
 import { DatePickerDialog } from '../components/date-picker-dialog/date-picker-dialog';
+import { environment } from '../../environments/environment';
 
 
 interface Destination {
@@ -81,7 +82,7 @@ export class Inicio {
         this.destinations = data.map((item: any) => {
           const imgs = item.imagenes?.map((img: any) => ({
             ...img,
-            url: img.url.startsWith('/api') ? `http://localhost:8080${img.url}` : img.url
+            url: img.url.startsWith('/api') ? `${environment.apiUrl}${img.url}` : img.url
           })) || [];
 
           return {

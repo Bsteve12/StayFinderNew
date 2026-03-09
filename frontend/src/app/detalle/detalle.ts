@@ -15,6 +15,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { provideNativeDateAdapter, MAT_DATE_FORMATS, MAT_NATIVE_DATE_FORMATS } from '@angular/material/core';
 import { AuthService } from '../services/auth.service';
 import { MessageService } from 'primeng/api';
+import { environment } from '../../environments/environment';
 
 interface AccommodationImage {
   url: string;
@@ -84,7 +85,7 @@ interface ComentarioRespuestaRequestDTO {
   styleUrl: './detalle.scss',
 })
 export class Detalle implements OnInit {
-  private readonly API_URL = 'http://localhost:8080/api';
+  private readonly API_URL = `${environment.apiUrl}/api`;
 
   alojamientoId = signal<string>('');
   alojamiento: any;
@@ -192,7 +193,7 @@ export class Detalle implements OnInit {
           images: d.imagenes?.map((img: any, index: number) => {
             const rawUrl = img.url || img;
             return {
-              url: rawUrl.startsWith('/api') ? `http://localhost:8080${rawUrl}` : rawUrl,
+              url: rawUrl.startsWith('/api') ? `${environment.apiUrl}${rawUrl}` : rawUrl,
               alt: `${d.nombre} - Imagen ${index + 1}`
             };
           }) || this.accommodation.images

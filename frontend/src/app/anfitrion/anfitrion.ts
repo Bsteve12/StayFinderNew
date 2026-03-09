@@ -16,6 +16,7 @@ import { MessageService } from 'primeng/api';
 import { Observable, forkJoin } from 'rxjs';
 import { Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
+import { environment } from '../../environments/environment';
 
 // Interfaces
 interface AlojamientoRequestDTO {
@@ -111,7 +112,7 @@ interface UpdateUserDTO {
   styleUrls: ['./anfitrion.scss'],
 })
 export class Anfitrion implements OnInit {
-  private readonly API_URL = 'http://localhost:8080/api';
+  private readonly API_URL = `${environment.apiUrl}/api`;
 
   // Estado de la vista actual
   currentView: 'perfil' | 'historial' | 'servicios' | 'gestion' | 'calendario' | 'solicitar' | 'metricas' = 'perfil';
@@ -180,7 +181,7 @@ export class Anfitrion implements OnInit {
     usuarioId: 0
   };
 
-  private readonly baseUrl = 'http://localhost:8080';
+  public readonly baseUrl = environment.apiUrl;
 
   constructor(private http: HttpClient, private auth: AuthService, private router: Router, private messageService: MessageService) { }
 
@@ -458,7 +459,7 @@ export class Anfitrion implements OnInit {
             const imgs = a.imagenes?.map(img => {
               return {
                 ...img,
-                url: img.url.startsWith('/api') ? `http://localhost:8080${img.url}` : img.url
+                url: img.url.startsWith('/api') ? `${environment.apiUrl}${img.url}` : img.url
               };
             }) || [];
             return {

@@ -9,7 +9,7 @@ import { ButtonModule } from 'primeng/button';
 import { FileUploadModule } from 'primeng/fileupload';
 import { ToastModule } from 'primeng/toast';
 import { DividerModule } from 'primeng/divider';
-
+import { environment } from '../../environments/environment';
 
 // Interfaces
 interface SolicitudOwnerRequestDTO {
@@ -54,7 +54,7 @@ interface Usuario {
 })
 
 export class ConvertirseAnfitrion implements OnInit {
-  private readonly API_URL = 'http://localhost:8080/api';
+  private readonly API_URL = `${environment.apiUrl}/api`;
 
   // Estado del componente
   solicitudForm: FormGroup;

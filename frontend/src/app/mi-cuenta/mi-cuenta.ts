@@ -7,6 +7,7 @@ import { Observable } from 'rxjs';
 import { Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { MessageService } from 'primeng/api';
+import { environment } from '../../environments/environment';
 
 // Interfaces
 interface ReservaResponseDTO {
@@ -54,7 +55,7 @@ interface ReservaHistorialResponseDTO {
   styleUrl: './mi-cuenta.scss',
 })
 export class MiCuenta implements OnInit {
-  private readonly API_URL = 'http://localhost:8080/api';
+  private readonly API_URL = `${environment.apiUrl}/api`;
 
   // Estado de la vista actual
   currentView: 'profile' | 'reservas' | 'favoritos' | 'historial' | 'solicitudes' = 'profile';
@@ -80,7 +81,7 @@ export class MiCuenta implements OnInit {
 
   // Obtenemos la URL base del backend desde environment si queremos servir las imágenes,
   // O podemos usar un Pipe de Angular. Lo importaremos de environment:
-  private readonly baseUrl = 'http://localhost:8080';
+  private readonly baseUrl = environment.apiUrl;
 
   // Inyectamos AuthService para obtener el usuario real
   constructor(

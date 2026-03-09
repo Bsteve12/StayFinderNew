@@ -468,8 +468,7 @@
         Imágenes previas (Guardadas):</p>
       <div class="images-preview">
         <div class="image-preview-item" *ngFor="let url of imagenesAntiguasUrls; let i = index">
-          <img [src]="url.startsWith('/api') ? 'http://localhost:8080' + url : url" alt="Previa antigua"
-            class="thumbnail-preview" />
+          <img [src]="url.startsWith('/api') ? baseUrl + url : url" alt="Previa antigua" class="thumbnail-preview" />
           <button pButton icon="pi pi-times" class="p-button-rounded p-button-danger p-button-sm btn-remove-img"
             (click)="removeImage(i, false)"></button>
         </div>
