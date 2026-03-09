@@ -4,72 +4,66 @@
 
   <!-- Main Content -->
   <main class="main-content">
-    <!-- Destinos Populares -->
-    <section class="destinations-section">
-      <h2 class="section-title">Destinos populares</h2>
-
-
-      <div class="carousel-wrapper">
-        <p-carousel
-          [value]="destinations"
-          [numVisible]="4"
-          [numScroll]="1"
-          [circular]="true"
-          [responsiveOptions]="responsiveOptions"
-          [showNavigators]="true"
-          [showIndicators]="false"
-        >
-          <ng-template let-destination pTemplate="item">
-            <div class="destination-card">
-
-
-              <!-- Imagen principal -->
-              <div class="card-image-wrapper">
-                <a routerLink="/detalle/{{ destination.id }}">
-                  <img
-                    [src]="destination.imagenes && destination.imagenes.length > 0
-                     ? destination.imagenes[0].url
-                     : 'https://via.placeholder.com/400x250?text=Sin+Imagen'"
-                    [alt]="destination.nombre"
-                    class="card-image"
-                  />
-                </a>
-
-
-                <button
-                  class="favorite-button"
-                  [class.active]="destination.favorite"
-                  (click)="toggleFavorite(destination)"
-                >
-                  <i class="pi pi-heart-fill"></i>
-                </button>
-              </div>
-
-
-              <!-- Contenido -->
-              <div class="card-content">
-                <div class="card-header">
-                  <h3 class="card-title">{{ destination.nombre }}</h3>
-                  <div class="card-rating">
-                    <i class="pi pi-star-fill"></i>
-                    <span>{{ destination.rating || 4.5 }}</span>
-                  </div>
-                </div>
-                <p class="card-location">
-                  <i class="pi pi-map-marker"></i>
-                  {{ destination.direccion }}
-                </p>
-                <p class="card-price">
-                  <strong>${{ destination.precio | number }}</strong> / noche
-                </p>
-              </div>
-
-
-            </div>
-          </ng-template>
-        </p-carousel>
+    <!-- BUSCADOR MOCKUP AIRBNB FUNCIONAL -->
+    <section class="airbnb-search-bar">
+      <div class="search-item border-right">
+        <label>Dónde</label>
+        <input type="text" [(ngModel)]="searchLocation" placeholder="Explora destinos">
       </div>
+      <div class="search-item border-right" (click)="openCheckInDialog()" style="cursor: pointer;">
+        <label>Llegada</label>
+        <div class="date-text" [ngClass]="{'placeholder': !checkInDate}">
+          {{ formatDate(checkInDate, 'Agrega fecha') }}
+        </div>
+      </div>
+      <div class="search-item border-right" (click)="openCheckOutDialog()" style="cursor: pointer;">
+        <label>Salida</label>
+        <div class="date-text" [ngClass]="{'placeholder': !checkOutDate}">
+          {{ formatDate(checkOutDate, 'Agrega fecha') }}
+        </div>
+      </div>
+      <div class="search-item">
+        <label>Quién</label>
+        <input type="number" [(ngModel)]="guests" placeholder="¿Cuántos?" min="1">
+      </div>
+      <button class="search-btn" (click)="onSearch()"><i class="pi pi-search"></i></button>
     </section>
+
+    <!-- SECCIONES ALOJAMIENTOS DINAMICAS -->
+    <ng-container *ngFor="let group of groupKeys">
+      <section class="airbnb-section">
+        <div class="section-header">
+          <h2>{{ group }}</h2>
+        </div>
+
+        <div class="card-container">
+          <!-- CARD -->
+          <div class="airbnb-card" *ngFor="let dest of groupedDestinations[group]">
+
+            <div class="image-box">
+              <a [routerLink]="['/detalle', dest.id]">
+                <img [src]="dest.imagenes && dest.imagenes.length > 0 
+                            ? dest.imagenes[0].url 
+                            : 'assets/placeholder.jpg'" [alt]="dest.nombre">
+              </a>
+              <button class="favorite-button" [class.active]="dest.favorite" (click)="toggleFavorite(dest)">
+                <i class="pi pi-heart-fill"></i>
+              </button>
+            </div>
+
+            <div class="card-info" [routerLink]="['/detalle', dest.id]">
+              <div class="card-header-row">
+                <h3 class="location-title">{{ dest.direccion }}</h3>
+                <span class="rating">⭐ {{ dest.rating | number:'1.1-2' }}</span>
+              </div>
+              <p class="description-text">{{ dest.nombre }}</p>
+              <p class="price-text"><strong>\${{ dest.precio | number }} COP</strong> por noche</p>
+            </div>
+
+          </div>
+        </div>
+      </section>
+    </ng-container>
 
 
     <!-- Testimonios -->
@@ -78,33 +72,19 @@
 
 
       <div class="carousel-wrapper">
-        <p-carousel
-          [value]="testimonials"
-          [numVisible]="4"
-          [numScroll]="1"
-          [circular]="true"
-          [responsiveOptions]="responsiveOptions"
-          [showNavigators]="true"
-          [showIndicators]="false"
-        >
+        <p-carousel [value]="testimonials" [numVisible]="4" [numScroll]="1" [circular]="true"
+          [responsiveOptions]="responsiveOptions" [showNavigators]="true" [showIndicators]="false">
           <ng-template let-testimonial pTemplate="item">
             <div class="testimonial-card">
               <div class="testimonial-header">
-                <img
-                  [src]="testimonial.avatar"
-                  [alt]="testimonial.name"
-                  class="testimonial-avatar"
-                />
+                <img [src]="testimonial.avatar" [alt]="testimonial.name" class="testimonial-avatar" />
                 <div class="testimonial-info">
                   <h4 class="testimonial-name">{{ testimonial.name }}</h4>
                   <p class="testimonial-date">{{ testimonial.date }}</p>
                 </div>
               </div>
               <div class="testimonial-rating">
-                <i
-                  class="pi pi-star-fill"
-                  *ngFor="let star of [1, 2, 3, 4, 5].slice(0, testimonial.rating)"
-                ></i>
+                <i class="pi pi-star-fill" *ngFor="let star of [1, 2, 3, 4, 5].slice(0, testimonial.rating)"></i>
               </div>
               <p class="testimonial-comment">{{ testimonial.comment }}</p>
             </div>

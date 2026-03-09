@@ -4,7 +4,8 @@
 
 .home-container {
   min-height: 100vh;
-  background: linear-gradient(180deg, #1e1b4b 0%, #3b2f87 50%, #f5f5f5 100%);
+  background: #F5EFE6;
+  /* Crema (fondo) */
   display: flex;
   flex-direction: column;
 }
@@ -15,65 +16,95 @@
 /* BARRA DE BÚSQUEDA (RESTABLECIDA)              */
 /* --------------------------------------------- */
 
-.search-section {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  padding: 40px 20px 0 20px;
-}
+/* --------------------------------------------- */
+/* BUSCADOR MOCKUP AIRBNB                        */
+/* --------------------------------------------- */
 
-.search-box {
-  width: 100%;
-  max-width: 1100px;
-  background: white;
-  padding: 24px;
-  border-radius: 20px;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-  display: grid;
-  grid-template-columns: repeat(4, 1fr) auto;
-  gap: 18px;
+.airbnb-search-bar {
+  display: flex;
   align-items: center;
+  background: white;
+  border-radius: 40px;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.1);
+  border: 1px solid #ddd;
+  padding: 8px 8px 8px 24px;
+  max-width: 800px;
+  margin: 30px auto;
+  transition: box-shadow 0.2s;
+
+  &:hover {
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.15);
+  }
+
+  .search-item {
+    display: flex;
+    flex-direction: column;
+    padding: 0 20px;
+    flex: 1;
+
+    label {
+      font-size: 13px;
+      font-weight: 700;
+      color: #1F2A44;
+      /* Azul oscuro */
+      margin-bottom: 2px;
+    }
+
+    input {
+      border: none;
+      outline: none;
+      font-size: 15px;
+      color: #1F2A44;
+      /* Azul oscuro */
+      background: transparent;
+      padding: 0;
+
+      &::placeholder {
+        color: rgba(31, 42, 68, 0.5);
+        /* Azul oscuro transparente */
+      }
+    }
+
+    .date-text {
+      font-size: 15px;
+      color: #1F2A44;
+      margin-top: 2px;
+
+      &.placeholder {
+        color: rgba(31, 42, 68, 0.5);
+      }
+    }
+  }
+
+  .border-right {
+    border-right: 1px solid #ddd;
+  }
+
+  .search-btn {
+    background: #5B2C83;
+    /* Morado del logo */
+    color: white;
+    border: none;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: background 0.3s;
+
+    i {
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    &:hover {
+      background: #4A236B;
+    }
+  }
 }
 
-.search-item {
-  display: flex;
-  flex-direction: column;
-}
-
-.search-item label {
-  font-size: 14px;
-  color: #4b5563;
-  font-weight: 600;
-  margin-bottom: 6px;
-}
-
-.search-item input {
-  padding: 12px 16px;
-  border-radius: 14px;
-  border: 2px solid #ddd;
-  outline: none;
-  transition: all 0.3s ease;
-}
-
-.search-item input:focus {
-  border-color: #5b21b6;
-}
-
-.search-button {
-  height: 48px;
-  padding: 0 26px;
-  border: none;
-  border-radius: 14px;
-  background: #5b21b6;
-  color: white;
-  font-weight: 700;
-  cursor: pointer;
-  transition: 0.3s ease;
-}
-
-.search-button:hover {
-  background: #7c3aed;
-}
 
 
 
@@ -88,45 +119,69 @@
 }
 
 .section-title {
-  font-size: 28px;
+  font-size: 26px;
+  /* Aprox 16 * 1.618 */
   font-weight: 700;
-  color: white;
-  margin-bottom: 32px;
+  color: #1F2A44;
+  /* Azul oscuro (antes era blanco, invisible) */
+  margin-bottom: 42px;
+  /* Aprox 26 * 1.618 */
 }
 
 
 /* --------------------------------------------- */
-/* DESTINOS POPULARES                            */
+/* SECCIONES AIRBNB Y CARDS GRID                 */
 /* --------------------------------------------- */
 
-.destinations-section {
-  margin-bottom: 80px;
+.airbnb-section {
+  margin-bottom: 60px;
 
-  .carousel-wrapper {
-    background: #1e1b4b;
-    border-radius: 24px;
-    padding: 32px 16px;
+  .section-header {
+    margin-bottom: 24px;
+
+    h2 {
+      font-size: 26px;
+      font-weight: 700;
+      color: #1F2A44;
+      /* Azul oscuro */
+      margin: 0;
+    }
   }
 
-  .destination-card {
-    background: #f3e8ff;
-    border-radius: 20px;
+  .card-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 42px;
+  }
+
+  .airbnb-card {
+    display: flex;
+    flex-direction: column;
+    cursor: pointer;
+    border-radius: 24px;
     overflow: hidden;
-    margin: 0 12px;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    background: #E6DDF5;
+    /* Lavanda suave */
+    border: none;
+    box-shadow: 0 4px 12px rgba(31, 42, 68, 0.05);
+    /* Sombra base sutil */
+    transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 
     &:hover {
-      transform: translateY(-8px);
-      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+      transform: translateY(-6px);
+      box-shadow: 0 16px 32px rgba(31, 42, 68, 0.15);
+      /* Sombra elevada */
     }
 
-    .card-image-wrapper {
+    .image-box {
       position: relative;
       width: 100%;
-      height: 200px;
+      aspect-ratio: 1.618 / 1;
+      /* Proporción Áurea exacta (Golden Ratio) */
       overflow: hidden;
+      border-radius: 24px 24px 0 0;
 
-      .card-image {
+      img {
         width: 100%;
         height: 100%;
         object-fit: cover;
@@ -136,84 +191,84 @@
         position: absolute;
         top: 12px;
         right: 12px;
-        width: 40px;
-        height: 40px;
+        background: rgba(255, 255, 255, 0.8);
         border-radius: 50%;
-        background: white;
+        width: 36px;
+        height: 36px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
         border: none;
         cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.3s ease;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        padding: 5px;
+        transition: all 0.2s ease;
 
         i {
-          font-size: 20px;
-          color: #d1d5db;
-          transition: color 0.3s ease;
+          font-size: 18px;
+          color: rgba(31, 42, 68, 0.4);
+          transition: all 0.2s ease;
         }
 
         &:hover {
+          background: #FFFFFF;
+        }
+
+        &:hover i {
           transform: scale(1.1);
         }
 
         &.active i {
           color: #ef4444;
+          /* Red fill when liked */
+          -webkit-text-stroke: 0;
         }
       }
     }
 
-    .card-content {
-      padding: 16px;
+    .card-info {
+      padding: 12px 4px;
 
-      .card-header {
+      .card-header-row {
         display: flex;
         justify-content: space-between;
-        align-items: start;
-        margin-bottom: 8px;
-
-        .card-title {
-          font-size: 18px;
-          font-weight: 700;
-          color: #1e1b4b;
-          margin: 0;
-          flex: 1;
-        }
-
-        .card-rating {
-          display: flex;
-          align-items: center;
-          gap: 4px;
-          color: #1e1b4b;
-          font-weight: 600;
-
-          i {
-            color: #fbbf24;
-          }
-        }
-      }
-
-      .card-location {
-        display: flex;
         align-items: center;
-        gap: 6px;
-        color: #6b7280;
-        font-size: 14px;
-        margin: 8px 0;
 
-        i {
-          color: #ef4444;
+        .location-title {
+          font-size: 16px;
+          font-weight: 700;
+          color: #1F2A44;
+          margin: 0;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          max-width: 80%;
+        }
+
+        .rating {
+          font-size: 15px;
+          font-weight: 600;
+          color: #1F2A44;
         }
       }
 
-      .card-price {
-        color: #1e1b4b;
-        font-size: 16px;
-        margin: 8px 0 0;
+      .description-text {
+        font-size: 15px;
+        color: rgba(31, 42, 68, 0.7);
+        /* Azul oscuro suave */
+        margin: 4px 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .price-text {
+        font-size: 15px;
+        color: #1F2A44;
+        margin: 6px 0 0;
 
         strong {
-          font-size: 18px;
+          font-weight: 700;
+          font-size: 16px;
         }
       }
     }
@@ -233,18 +288,21 @@
   }
 
   .testimonial-card {
-    background: #f3e8ff;
-    border-radius: 20px;
-    padding: 24px;
-    margin: 0 12px;
+    background: #E6DDF5;
+    border: none;
+    box-shadow: 0 4px 12px rgba(31, 42, 68, 0.05);
+    border-radius: 24px;
+    padding: 32px;
+    /* Proporción áurea de espacio */
+    margin: 0 16px;
     min-height: 280px;
     display: flex;
     flex-direction: column;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 
     &:hover {
-      transform: translateY(-8px);
-      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+      transform: translateY(-6px);
+      box-shadow: 0 16px 32px rgba(31, 42, 68, 0.15);
     }
 
     .testimonial-header {
@@ -258,7 +316,7 @@
         height: 50px;
         border-radius: 50%;
         object-fit: cover;
-        border: 3px solid #5b21b6;
+        border: 3px solid #5B2C83;
       }
 
       .testimonial-info {
@@ -267,13 +325,13 @@
         .testimonial-name {
           font-size: 16px;
           font-weight: 700;
-          color: #1e1b4b;
+          color: #1F2A44;
           margin: 0 0 4px;
         }
 
         .testimonial-date {
           font-size: 12px;
-          color: #6b7280;
+          color: rgba(31, 42, 68, 0.6);
           margin: 0;
         }
       }
@@ -291,7 +349,7 @@
     }
 
     .testimonial-comment {
-      color: #374151;
+      color: #1F2A44;
       font-size: 14px;
       line-height: 1.6;
       margin: 0;
@@ -308,16 +366,17 @@
 ::ng-deep {
   .p-carousel {
     .p-carousel-content {
+
       .p-carousel-prev,
       .p-carousel-next {
-        background: #5b21b6 !important;
+        background: #5B2C83 !important;
         color: white !important;
         width: 40px !important;
         height: 40px !important;
         border-radius: 50% !important;
 
         &:hover {
-          background: #7c3aed !important;
+          background: #4A236B !important;
         }
 
         &:disabled {
@@ -349,15 +408,15 @@
   }
 
   .mat-mdc-dialog-title {
-    color: #1e1b4b;
+    color: #1F2A44;
     font-weight: 700;
   }
 
   .mat-mdc-raised-button.mat-primary {
-    background-color: #5b21b6 !important;
+    background-color: #5B2C83 !important;
 
     &:hover {
-      background-color: #7c3aed !important;
+      background-color: #4A236B !important;
     }
   }
 }
@@ -369,13 +428,34 @@
 /* --------------------------------------------- */
 
 @media (max-width: 1200px) {
-  .search-box {
-    grid-template-columns: repeat(2, 1fr) auto;
-  }
+  .airbnb-search-bar {
+    flex-direction: column;
+    border-radius: 20px;
+    padding: 16px;
 
-  .search-button {
-    grid-column: 1 / -1;
-    width: 100%;
+    .search-item {
+      width: 100%;
+      padding: 12px 0;
+    }
+
+    .border-right {
+      border-right: none;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .search-btn {
+      width: 100%;
+      border-radius: 12px;
+      margin-top: 12px;
+
+      i {
+        margin-right: 8px;
+      }
+
+      &::after {
+        content: "Buscar";
+      }
+    }
   }
 }
 
@@ -385,18 +465,16 @@
     padding: 40px 16px;
   }
 
-  .section-title {
+  .section-title,
+  .section-header h2 {
     font-size: 22px;
+    color: #222222;
   }
 
-  .search-box {
-    grid-template-columns: 1fr;
-  }
-
-  .destinations-section,
   .testimonials-section {
     .carousel-wrapper {
-      padding: 24px 8px;
+      padding: 0;
+      background: transparent;
     }
   }
 }

@@ -8,9 +8,10 @@ import { FormsModule, FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { provideNativeDateAdapter, MAT_DATE_FORMATS, MAT_NATIVE_DATE_FORMATS } from '@angular/material/core';
-import { RouterLink } from "@angular/router";
+import { RouterLink, Router } from "@angular/router";
 import { Header } from "../components/header/header";
 import { AlojamientosService } from '../services/alojamientos';
+import { DatePickerDialog } from '../components/date-picker-dialog/date-picker-dialog';
 
 
 interface Destination {
@@ -56,9 +57,19 @@ export class Inicio {
 
 
   destinations: Destination[] = [];
+  groupedDestinations: { [key: string]: Destination[] } = {};
 
+  // Buscador
+  searchLocation: string = '';
+  checkInDate: Date | null = null;
+  checkOutDate: Date | null = null;
+  guests: number = 1;
 
-  constructor(private alojamientosService: AlojamientosService) {
+  constructor(
+    private alojamientosService: AlojamientosService,
+    private router: Router,
+    private dialog: MatDialog
+  ) {
     this.getAlojamientosActivos();
   }
 
@@ -84,9 +95,75 @@ export class Inicio {
             favorite: false
           };
         });
+
+        // Group properties by Country or prominent City
+        this.groupDestinations(this.destinations);
       },
       error: (error) => {
         console.error('Error al obtener alojamientos activos:', error);
+      }
+    });
+  }
+
+  groupDestinations(destinationsToGroup: Destination[]) {
+    this.groupedDestinations = {};
+
+    if (!destinationsToGroup || destinationsToGroup.length === 0) return;
+
+    destinationsToGroup.forEach(dest => {
+      // Intentar extraer el país (ej: "Medellín, Colombia" -> "Colombia")
+      const parts = dest.direccion.split(',');
+      let groupName = 'Otros Destinos';
+
+      if (parts.length > 1) {
+        groupName = `Alojamientos en ${parts[parts.length - 1].trim()}`;
+      } else if (parts.length === 1 && parts[0].trim() !== '') {
+        groupName = `Alojamientos en ${parts[0].trim()}`;
+      }
+
+      if (!this.groupedDestinations[groupName]) {
+        this.groupedDestinations[groupName] = [];
+      }
+      this.groupedDestinations[groupName].push(dest);
+    });
+  }
+
+  openCheckInDialog() {
+    const dialogRef = this.dialog.open(DatePickerDialog, {
+      data: { selectedDate: this.checkInDate, title: 'Selecciona fecha de llegada' }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.checkInDate = result;
+      }
+    });
+  }
+
+  openCheckOutDialog() {
+    const dialogRef = this.dialog.open(DatePickerDialog, {
+      data: { selectedDate: this.checkOutDate, title: 'Selecciona fecha de salida' }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.checkOutDate = result;
+      }
+    });
+  }
+
+  formatDate(date: Date | null, placeholder: string = 'Agrega fecha'): string {
+    if (!date) return placeholder;
+    return date.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  }
+
+  onSearch() {
+    this.router.navigate(['/buscar'], {
+      queryParams: {
+        ubicacion: this.searchLocation,
+        checkIn: this.checkInDate?.toISOString(),
+        checkOut: this.checkOutDate?.toISOString(),
+        guests: this.guests
       }
     });
   }
@@ -172,5 +249,10 @@ export class Inicio {
 
 
 
+
+  // Extraer las llaves para iterar en el HTML más fácil
+  get groupKeys(): string[] {
+    return Object.keys(this.groupedDestinations);
+  }
 
 }
