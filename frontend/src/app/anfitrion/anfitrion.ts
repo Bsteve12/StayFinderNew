@@ -676,6 +676,7 @@ export class Anfitrion implements OnInit {
       next: (response) => {
         console.log('Solicitud creada:', response);
         alert('Solicitud de publicación enviada correctamente');
+        this.selectedAlojamiento!.estado = 'PENDIENTE_REVISION';
         this.showSolicitudDialog = false;
         this.selectedAlojamiento = null;
       },

@@ -159,7 +159,8 @@
                 <button pButton
                   [label]="alojamiento.estado === 'PENDIENTE_REVISION' ? 'Solicitud Pendiente' : 'Solicitar Publicación'"
                   [icon]="alojamiento.estado === 'PENDIENTE_REVISION' ? 'pi pi-clock' : 'pi pi-send'"
-                  class="p-button-success" [disabled]="alojamiento.estado === 'PENDIENTE_REVISION'"
+                  [ngClass]="alojamiento.estado === 'PENDIENTE_REVISION' ? 'p-button-warning' : 'p-button-success'"
+                  [disabled]="alojamiento.estado === 'PENDIENTE_REVISION'"
                   *ngIf="alojamiento.estado === 'BORRADOR' || alojamiento.estado === 'PENDIENTE_REVISION' || !alojamiento.estado"
                   (click)="openSolicitudDialog(alojamiento)"></button>
 
