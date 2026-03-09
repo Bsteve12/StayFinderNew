@@ -45,6 +45,7 @@ export class Register {
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]],
       phone: ['', [Validators.required, Validators.pattern(/^[0-9]{10}$/)]],
+      documentId: ['', [Validators.required, Validators.pattern(/^[0-9]+$/)]],
       birthdate: [null, [Validators.required]],
     });
   }
@@ -53,12 +54,15 @@ export class Register {
     if (this.registerForm.valid) {
       // Adaptar el formato al DTO del backend
       const formValue = this.registerForm.value;
-      const newUser: CreateUserDTO = {
+
+      // Construimos el objeto newUser. 
+      // Nota: No enviamos usuarioId para que el Backend (DB) lo asigne automáticamente.
+      const newUser: any = {
         nombre: formValue.username,
         correo: formValue.email,
         telefono: formValue.phone,
+        usuarioId: formValue.documentId,
         fechaNacimiento: this.formatDateForBackend(formValue.birthdate),
-        usuarioId: Math.floor(Math.random() * 9000000000), // Generar ID temporal
         contrasena: formValue.password,
       };
 
@@ -120,18 +124,21 @@ export class Register {
   get email() { return this.registerForm.get('email'); }
   get password() { return this.registerForm.get('password'); }
   get phone() { return this.registerForm.get('phone'); }
+  get documentId() { return this.registerForm.get('documentId'); }
   get birthdate() { return this.registerForm.get('birthdate'); }
 
   get isUsernameInvalid() { return this.username?.invalid && this.username?.touched; }
   get isEmailInvalid() { return this.email?.invalid && this.email?.touched; }
   get isPasswordInvalid() { return this.password?.invalid && this.password?.touched; }
   get isPhoneInvalid() { return this.phone?.invalid && this.phone?.touched; }
+  get isDocumentIdInvalid() { return this.documentId?.invalid && this.documentId?.touched; }
   get isBirthdateInvalid() { return this.birthdate?.invalid && this.birthdate?.touched; }
 
   getUsernameError() { if (this.username?.hasError('required')) return 'El usuario es requerido'; if (this.username?.hasError('minlength')) return 'Mínimo 3 caracteres'; return ''; }
   getEmailError() { if (this.email?.hasError('required')) return 'El email es requerido'; if (this.email?.hasError('email')) return 'Email inválido'; return ''; }
   getPasswordError() { if (this.password?.hasError('required')) return 'La contraseña es requerida'; if (this.password?.hasError('minlength')) return 'Mínimo 8 caracteres'; return ''; }
   getPhoneError() { if (this.phone?.hasError('required')) return 'El teléfono es requerido'; if (this.phone?.hasError('pattern')) return 'Debe tener 10 dígitos'; return ''; }
+  getDocumentIdError() { if (this.documentId?.hasError('required')) return 'El documento es requerido'; if (this.documentId?.hasError('pattern')) return 'Solo debe contener números'; return ''; }
   getBirthdateError() { if (this.birthdate?.hasError('required')) return 'La fecha es requerida'; return ''; }
   getMaxDate(): Date { const today = new Date(); today.setFullYear(today.getFullYear() - 18); return today; }
 }

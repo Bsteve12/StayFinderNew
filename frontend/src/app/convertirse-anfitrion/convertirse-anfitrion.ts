@@ -93,9 +93,8 @@ export class ConvertirseAnfitrion implements OnInit {
   // 🔹 Verificaciones
   // ============================================
   verificarUsuarioLogueado(): void {
-    // Implementar con tu servicio de autenticación
-    const token = localStorage.getItem('auth_token');
-    const userStr = localStorage.getItem('currentUser');
+    const token = localStorage.getItem('token');
+    const userStr = localStorage.getItem('user');
 
     if (!token || !userStr) {
       this.messageService.add({

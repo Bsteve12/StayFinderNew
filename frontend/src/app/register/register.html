@@ -17,14 +17,8 @@
           <!-- Campo Usuario -->
           <div class="form-field">
             <div class="input-wrapper">
-              <input
-                type="text"
-                pInputText
-                formControlName="username"
-                placeholder="Usuario"
-                class="form-input"
-                [class.invalid]="isUsernameInvalid"
-              />
+              <input type="text" pInputText formControlName="username" placeholder="Usuario" class="form-input"
+                [class.invalid]="isUsernameInvalid" />
               <i class="pi pi-user input-icon"></i>
             </div>
             <small class="error-message" *ngIf="isUsernameInvalid">
@@ -35,14 +29,8 @@
           <!-- Campo Email -->
           <div class="form-field">
             <div class="input-wrapper">
-              <input
-                type="email"
-                pInputText
-                formControlName="email"
-                placeholder="Email"
-                class="form-input"
-                [class.invalid]="isEmailInvalid"
-              />
+              <input type="email" pInputText formControlName="email" placeholder="Email" class="form-input"
+                [class.invalid]="isEmailInvalid" />
               <i class="pi pi-envelope input-icon"></i>
             </div>
             <small class="error-message" *ngIf="isEmailInvalid">
@@ -53,14 +41,8 @@
           <!-- Campo Contraseña -->
           <div class="form-field">
             <div class="input-wrapper">
-              <input
-                type="password"
-                pInputText
-                formControlName="password"
-                placeholder="Contraseña"
-                class="form-input"
-                [class.invalid]="isPasswordInvalid"
-              />
+              <input type="password" pInputText formControlName="password" placeholder="Contraseña" class="form-input"
+                [class.invalid]="isPasswordInvalid" />
               <i class="pi pi-lock input-icon"></i>
             </div>
             <small class="error-message" *ngIf="isPasswordInvalid">
@@ -68,18 +50,23 @@
             </small>
           </div>
 
+          <!-- Campo Documento -->
+          <div class="form-field">
+            <div class="input-wrapper">
+              <input type="text" pInputText formControlName="documentId" placeholder="Cédula / Documento de Identidad"
+                class="form-input" [class.invalid]="isDocumentIdInvalid" />
+              <i class="pi pi-id-card input-icon"></i>
+            </div>
+            <small class="error-message" *ngIf="isDocumentIdInvalid">
+              {{ getDocumentIdError() }}
+            </small>
+          </div>
+
           <!-- Campo Teléfono -->
           <div class="form-field">
             <div class="input-wrapper">
-              <input
-                type="tel"
-                pInputText
-                formControlName="phone"
-                placeholder="Teléfono"
-                class="form-input"
-                [class.invalid]="isPhoneInvalid"
-                maxlength="10"
-              />
+              <input type="tel" pInputText formControlName="phone" placeholder="Teléfono" class="form-input"
+                [class.invalid]="isPhoneInvalid" maxlength="10" />
               <i class="pi pi-phone input-icon"></i>
             </div>
             <small class="error-message" *ngIf="isPhoneInvalid">
@@ -90,11 +77,7 @@
           <!-- Campo Fecha de Nacimiento -->
           <div class="form-field">
             <div class="input-wrapper">
-              <div
-                class="date-input"
-                [class.invalid]="isBirthdateInvalid"
-                (click)="openBirthdateDialog()"
-              >
+              <div class="date-input" [class.invalid]="isBirthdateInvalid" (click)="openBirthdateDialog()">
                 <span [class.placeholder]="!birthdate?.value">{{ formatDate(birthdate?.value) }}</span>
               </div>
               <i class="pi pi-calendar input-icon-calendar"></i>
@@ -105,13 +88,8 @@
           </div>
 
           <!-- Botón Regístrate -->
-          <button
-            pButton
-            type="submit"
-            label="Regístrate"
-            class="register-button"
-            [disabled]="registerForm.invalid"
-          ></button>
+          <button pButton type="submit" label="Regístrate" class="register-button"
+            [disabled]="registerForm.invalid"></button>
         </form>
       </div>
     </div>
@@ -121,12 +99,7 @@
       <div class="welcome-content">
         <h1 class="welcome-title">¡Bienvenido de nuevo!</h1>
         <p class="welcome-subtitle">¿Ya tienes una cuenta?</p>
-        <button
-          pButton
-          label="Login"
-          class="login-button"
-          (click)="goToLogin()"
-        ></button>
+        <button pButton label="Login" class="login-button" (click)="goToLogin()"></button>
       </div>
       <div class="decoration-circle"></div>
     </div>

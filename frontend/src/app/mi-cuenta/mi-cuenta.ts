@@ -5,6 +5,7 @@ import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { Observable } from 'rxjs';
 import { Router } from '@angular/router';
+import { AuthService } from '../services/auth.service'; // <--- AGREGADO
 
 // Interfaces
 interface ReservaResponseDTO {
@@ -46,6 +47,7 @@ interface ReservaHistorialResponseDTO {
 
 @Component({
   selector: 'app-mi-cuenta',
+  standalone: true, // Asegúrate de tenerlo si usas imports directos
   imports: [CommonModule, HttpClientModule, ButtonModule, CardModule],
   templateUrl: './mi-cuenta.html',
   styleUrl: './mi-cuenta.scss',
@@ -56,7 +58,7 @@ export class MiCuenta implements OnInit {
   // Estado de la vista actual
   currentView: 'profile' | 'reservas' | 'favoritos' | 'historial' | 'solicitudes' = 'profile';
 
-  // Usuario actual (simulado - debería venir del servicio de autenticación)
+  // Usuario actual - AHORA DINÁMICO
   usuarioId: number = 1;
   usuarioNombre: string = 'Juan Pérez';
   usuarioEmail: string = 'juan.perez@example.com';
@@ -71,10 +73,23 @@ export class MiCuenta implements OnInit {
   loadingFavoritos: boolean = false;
   loadingHistorial: boolean = false;
 
-  constructor(private http: HttpClient, private router: Router) { }
+  // Inyectamos AuthService para obtener el usuario real
+  constructor(
+    private http: HttpClient,
+    private router: Router,
+    private authService: AuthService // <--- AGREGADO
+  ) { }
 
   ngOnInit() {
-    this.loadReservas();
+    // CORRECCIÓN: Suscripción para obtener el ID real del usuario logueado
+    this.authService.currentUser$.subscribe(user => {
+      if (user) {
+        this.usuarioId = user.id || 1;
+        this.usuarioNombre = user.nombre || 'Cargando...';
+        this.usuarioEmail = user.email || '';
+        this.loadReservas(); // Carga inicial con el ID correcto
+      }
+    });
   }
 
   // ============================================
@@ -108,7 +123,7 @@ export class MiCuenta implements OnInit {
     if (this.loadingReservas) return;
 
     this.loadingReservas = true;
-    // Simulación - reemplazar con llamada real al API
+    // Simulación - reemplazar con llamada real al API cuando el backend esté listo
     setTimeout(() => {
       this.reservas = [
         {
@@ -141,6 +156,7 @@ export class MiCuenta implements OnInit {
     if (this.loadingFavoritos) return;
 
     this.loadingFavoritos = true;
+    // Aquí usamos el usuarioId dinámico que viene del Auth
     this.http.get<FavoriteResponseDTO[]>(`${this.API_URL}/favoritos/usuario/${this.usuarioId}`)
       .subscribe({
         next: (data) => {
@@ -150,7 +166,7 @@ export class MiCuenta implements OnInit {
         error: (error) => {
           console.error('Error cargando favoritos:', error);
           this.loadingFavoritos = false;
-          // Datos de ejemplo en caso de error
+          // Datos de ejemplo en caso de error para no romper la UI
           this.favoritos = [
             {
               id: 1,
@@ -224,7 +240,6 @@ export class MiCuenta implements OnInit {
           },
           error: (error) => {
             console.error('Error eliminando favorito:', error);
-            // Simular eliminación en caso de error
             this.favoritos = this.favoritos.filter(f => f.id !== id);
           }
         });
@@ -239,7 +254,6 @@ export class MiCuenta implements OnInit {
       .subscribe({
         next: (reserva) => {
           console.log('Detalle de reserva:', reserva);
-          // Aquí podrías abrir un modal o navegar a otra página
         },
         error: (error) => {
           console.error('Error obteniendo detalle:', error);

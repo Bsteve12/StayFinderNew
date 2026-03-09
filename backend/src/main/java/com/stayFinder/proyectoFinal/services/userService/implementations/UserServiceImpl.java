@@ -28,7 +28,7 @@ public class UserServiceImpl implements UserServiceInterface {
     private final UsuarioRepository usuarioRepository;
     private final AuthenticationManager authenticationManager;
     private final PasswordEncoder passwordEncoder;
-    private final JWTUtil jwtUtil; 
+    private final JWTUtil jwtUtil;
     private final UsuarioMapper usuarioMapper;
 
     @Override
@@ -44,12 +44,15 @@ public class UserServiceImpl implements UserServiceInterface {
 
         if (roleSolicitado != null) {
             // COMENTADO TEMPORALMENTE PARA CREAR EL PRIMER ADMIN DESDE POSTMAN
-            /* if (adminUsuarioId == null) throw new Exception("Solo un ADMIN puede asignar roles");
-            Usuario admin = usuarioRepository.findByUsuarioId(adminUsuarioId)
-                    .orElseThrow(() -> new Exception("Admin no encontrado"));
-            if (admin.getRole() != Role.ADMIN) throw new Exception("No autorizado para asignar roles");
-            */
-            
+            /*
+             * if (adminUsuarioId == null) throw new
+             * Exception("Solo un ADMIN puede asignar roles");
+             * Usuario admin = usuarioRepository.findByUsuarioId(adminUsuarioId)
+             * .orElseThrow(() -> new Exception("Admin no encontrado"));
+             * if (admin.getRole() != Role.ADMIN) throw new
+             * Exception("No autorizado para asignar roles");
+             */
+
             // Asignamos directamente el rol que pidas en la URL (?role=ADMIN)
             rolFinal = roleSolicitado;
         }
@@ -75,13 +78,12 @@ public class UserServiceImpl implements UserServiceInterface {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             loginRequestDTO.email(),
-                            loginRequestDTO.contrasena()
-                    )
-            );
+                            loginRequestDTO.contrasena()));
 
             if (authentication.isAuthenticated()) {
                 Optional<Usuario> user = usuarioRepository.findByEmail(authentication.getName());
-                if (user.isEmpty()) throw new Exception("Usuario no existe");
+                if (user.isEmpty())
+                    throw new Exception("Usuario no existe");
 
                 Usuario usuario = user.get();
 
@@ -89,13 +91,12 @@ public class UserServiceImpl implements UserServiceInterface {
                         usuario.getUsuarioId(),
                         usuario.getEmail(),
                         usuario.getRole(),
-                        usuario.getNombre()
-                );
+                        usuario.getNombre());
 
                 return new LoginResponseDTO(token);
             }
 
-        } catch (Exception e) { 
+        } catch (Exception e) {
             throw new Exception("Credenciales inválidas");
         }
         throw new Exception("Credenciales inválidas");
@@ -141,7 +142,8 @@ public class UserServiceImpl implements UserServiceInterface {
     public UsuarioResponseDTO assignRole(Long usuarioId, Role newRole, Long adminUsuarioId) throws Exception {
         Usuario admin = usuarioRepository.findByUsuarioId(adminUsuarioId)
                 .orElseThrow(() -> new Exception("Admin no encontrado"));
-        if (admin.getRole() != Role.ADMIN) throw new Exception("No autorizado para asignar roles");
+        if (admin.getRole() != Role.ADMIN)
+            throw new Exception("No autorizado para asignar roles");
 
         Usuario usuario = usuarioRepository.findByUsuarioId(usuarioId)
                 .orElseThrow(() -> new Exception("Usuario no encontrado"));

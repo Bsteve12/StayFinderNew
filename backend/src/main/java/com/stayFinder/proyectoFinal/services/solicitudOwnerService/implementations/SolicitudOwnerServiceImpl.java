@@ -38,17 +38,25 @@ public class SolicitudOwnerServiceImpl implements SolicitudOwnerServiceInterface
     private final SolicitudOwnerMapper mapper;
     private final EmailServiceInterface emailService;
 
-    // Ruta relativa al directorio del proyecto para la subida de documentos
-    private static final String UPLOAD_DIR = "uploads/solicitudes/";
+    // Ruta dinámica: Se creará en la raíz donde se ejecute el proyecto
+    private static final String UPLOAD_DIR = "uploads/solicitudes";
 
     @Override
     public SolicitudOwnerResponseDTO crearSolicitud(SolicitudOwnerRequestDTO dto, MultipartFile documento)
             throws Exception {
-        Usuario usuario = usuarioRepo.findById(dto.usuarioId())
+
+        // Forzamos la limpieza de caché buscando el usuario directamente
+        Usuario usuario = usuarioRepo.findByUsuarioId(dto.usuarioId())
                 .orElseThrow(() -> new Exception("Usuario no encontrado"));
 
-        if (usuario.getRole() != Role.CLIENT) {
-            throw new Exception("Solo usuarios con rol CLIENT pueden enviar solicitudes");
+        // Debug log para verificar qué rol está llegando (puedes verlo en consola)
+        System.out.println(
+                "Verificando solicitud para usuario: " + usuario.getEmail() + " con Rol: " + usuario.getRole());
+
+        // Corregimos la validación para asegurar que compare correctamente el Enum
+        if (!usuario.getRole().equals(Role.CLIENT)) {
+            throw new Exception(
+                    "Solo usuarios con rol CLIENT pueden enviar solicitudes. Tu rol actual es: " + usuario.getRole());
         }
 
         // No permitir más de una solicitud pendiente
@@ -162,13 +170,14 @@ public class SolicitudOwnerServiceImpl implements SolicitudOwnerServiceInterface
                 .collect(Collectors.toList());
     }
 
-    // Guarda el PDF en disco y devuelve la ruta
     private String guardarDocumento(MultipartFile file, Long usuarioId) throws Exception {
         if (file == null || file.isEmpty()) {
             throw new Exception("Debe adjuntar un documento PDF");
         }
         try {
-            Path uploadPath = Paths.get(UPLOAD_DIR).toAbsolutePath().normalize();
+            // Obtener la ruta de la raíz del proyecto de forma dinámica
+            Path root = Paths.get("").toAbsolutePath();
+            Path uploadPath = root.resolve(UPLOAD_DIR).normalize();
 
             if (!Files.exists(uploadPath)) {
                 Files.createDirectories(uploadPath);
@@ -177,14 +186,13 @@ public class SolicitudOwnerServiceImpl implements SolicitudOwnerServiceInterface
             String fileName = "solicitud_" + usuarioId + "_" + System.currentTimeMillis() + ".pdf";
             Path destino = uploadPath.resolve(fileName);
 
-            // Escribir los bytes directamente para evitar que Tomcat busque en su carpeta
-            // Temp interna
-            byte[] bytes = file.getBytes();
-            Files.write(destino, bytes);
+            // Copiar el archivo
+            Files.copy(file.getInputStream(), destino);
 
+            // Retornamos la ruta absoluta para que no se pierda al mover carpetas
             return destino.toString();
         } catch (IOException e) {
-            throw new Exception("Error al guardar el documento: " + e.getMessage(), e);
+            throw new Exception("Error crítico al guardar documento: " + e.getMessage());
         }
     }
 
@@ -200,19 +208,18 @@ public class SolicitudOwnerServiceImpl implements SolicitudOwnerServiceInterface
 
         try {
             Path file = Paths.get(ruta).normalize();
-            Resource resource = new org.springframework.core.io.UrlResource(file.toUri());
+            Resource resource = new UrlResource(file.toUri());
 
             if (resource.exists() || resource.isReadable()) {
                 return resource;
             } else {
-                throw new Exception("No se pudo leer el archivo");
+                throw new Exception("El archivo no existe en la ruta: " + ruta);
             }
         } catch (Exception e) {
             throw new Exception("Error al cargar el archivo: " + e.getMessage());
         }
     }
 
-    // suma 'dias' hábiles ignorando sábados y domingos
     private LocalDateTime sumarDiasHabiles(LocalDateTime fecha, int dias) {
         int agregados = 0;
         LocalDateTime actual = fecha;
