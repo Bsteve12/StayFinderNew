@@ -170,30 +170,21 @@ export class MiCuenta implements OnInit {
     if (this.loadingReservas) return;
 
     this.loadingReservas = true;
-    // Simulación - reemplazar con llamada real al API cuando el backend esté listo
-    setTimeout(() => {
-      this.reservas = [
-        {
-          id: 1,
-          alojamientoNombre: 'Casa en la Playa',
-          fechaInicio: '2025-12-01',
-          fechaFin: '2025-12-05',
-          estado: 'CONFIRMADA',
-          precioTotal: 750000,
-          alojamientoImagen: 'https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?w=400'
-        },
-        {
-          id: 2,
-          alojamientoNombre: 'Apartamento Moderno',
-          fechaInicio: '2025-11-20',
-          fechaFin: '2025-11-25',
-          estado: 'PENDIENTE',
-          precioTotal: 600000,
-          alojamientoImagen: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=400'
-        }
-      ];
-      this.loadingReservas = false;
-    }, 500);
+
+    // El token pasará automáticamente por el interceptor, o si no, el controller `/api/reservas` obtiene 
+    // las reservas del usuario autenticado actual.
+    this.http.get<ReservaResponseDTO[]>(`${this.API_URL}/reservas`).subscribe({
+      next: (data) => {
+        this.reservas = data;
+        this.loadingReservas = false;
+      },
+      error: (error) => {
+        console.error('Error cargando reservas:', error);
+        this.loadingReservas = false;
+        // Si quieres, podrías dejar el arreglo vacío o mostrar mensaje
+        this.reservas = [];
+      }
+    });
   }
 
   // ============================================
@@ -237,7 +228,7 @@ export class MiCuenta implements OnInit {
 
     this.loadingHistorial = true;
 
-    let url = `${this.API_URL}/reservas/usuario/${this.usuarioId}`;
+    let url = `${this.API_URL}/historial/usuario/${this.usuarioId}`;
     const params: string[] = [];
 
     if (filtros?.fechaInicio) params.push(`fechaInicio=${filtros.fechaInicio}`);

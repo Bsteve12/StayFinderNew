@@ -4,28 +4,21 @@
   <main class="main-content">
     <div class="detail-wrapper">
 
-      <!-- HEADER: Title -->
-      <div class="detail-header">
-        <h1 class="accommodation-title">{{ accommodation.title }}</h1>
-        <div class="accommodation-meta">
-          <span class="meta-item"><i class="pi pi-star-fill"></i> {{ accommodation.rating | number:'1.1-1' }} ({{
-            accommodation.reviews }} reseñas)</span>
-          <span class="meta-separator">·</span>
-          <span class="meta-item location"><i class="pi pi-map-marker"></i> {{ accommodation.location }}</span>
+      <!-- CLASSIC HOTEL HERO -->
+      <section class="hotel-hero"
+        [style.backgroundImage]="'url(' + (accommodation.images[0]?.url || 'assets/placeholder.jpg') + ')'">
+        <div class="hero-overlay"></div>
+        <div class="hero-text">
+          <h1>{{ accommodation.title }}</h1>
+          <p><i class="pi pi-map-marker"></i> {{ accommodation.location }}</p>
+          <div class="meta">
+            <span class="rating-badge"><i class="pi pi-star-fill"></i> {{ accommodation.rating | number:'1.1-1'
+              }}</span>
+            <span class="reviews-count">({{ accommodation.reviews }} reseñas)</span>
+          </div>
+          <button class="hero-btn" (click)="onReserve()">Reservar Ahora</button>
         </div>
-      </div>
-
-      <!-- HERO GALLERY: Images spanning full width -->
-      <div class="hero-gallery-section">
-        <p-carousel [value]="accommodation.images" [numVisible]="1" [numScroll]="1" [circular]="true"
-          [showNavigators]="true" [showIndicators]="true" [autoplayInterval]="5000">
-          <ng-template let-image pTemplate="item">
-            <div class="hero-image-wrapper">
-              <img [src]="image.url" [alt]="image.alt" />
-            </div>
-          </ng-template>
-        </p-carousel>
-      </div>
+      </section>
 
       <!-- GRID LAYOUT -->
       <div class="detail-grid">
@@ -33,18 +26,33 @@
         <div class="left-column">
           <div class="info-card">
 
+            <!-- INNER GALLERY (Moved from Header) -->
+            <div class="inner-gallery">
+              <p-carousel [value]="accommodation.images" [numVisible]="2" [numScroll]="1" [circular]="true"
+                [showNavigators]="true" [showIndicators]="false" [autoplayInterval]="6000"
+                [responsiveOptions]="responsiveOptions">
+                <ng-template let-image pTemplate="item">
+                  <div class="gallery-image-card">
+                    <img [src]="image.url" [alt]="image.alt" />
+                  </div>
+                </ng-template>
+              </p-carousel>
+            </div>
+
+            <div class="divider"></div>
+
             <div class="host-info-bar">
               <div>
-                <h3 class="host-title">Alojamiento anfitrión por {{ accommodation.ownerName || 'StayFinder' }}</h3>
+                <h3 class="host-title">Alojamiento de {{ accommodation.ownerName || 'StayFinder' }}</h3>
                 <p class="host-subtitle">{{ accommodation.guests }} huéspedes · {{ accommodation.bedrooms }}
-                  habitaciones · {{ accommodation.bathrooms }} baños</p>
+                  habitaciones · {{ accommodation.bathrooms }}</p>
               </div>
             </div>
 
             <div class="divider"></div>
 
             <div class="description-section">
-              <h4>Acerca de este espacio</h4>
+              <h4 class="classic-title">Sobre Nosotros</h4>
               <p>{{ accommodation.description }}</p>
             </div>
 
@@ -141,7 +149,7 @@
           </div>
         </div>
 
-        <!-- RIGHT COLUMN: Sticky Reserve Card -->
+        <!-- RIGHT COLUMN: Sticky Reserve Card (Remains Airbnb style but customized colors) -->
         <div class="right-column">
           <div class="sticky-reserve-card">
             <div class="price-header">

@@ -142,9 +142,9 @@ export class Detalle implements OnInit {
   };
 
   responsiveOptions = [
-    { breakpoint: '1024px', numVisible: 5 },
-    { breakpoint: '768px', numVisible: 3 },
-    { breakpoint: '560px', numVisible: 1 }
+    { breakpoint: '1024px', numVisible: 5, numScroll: 1 },
+    { breakpoint: '768px', numVisible: 3, numScroll: 1 },
+    { breakpoint: '560px', numVisible: 1, numScroll: 1 }
   ];
 
   constructor(
