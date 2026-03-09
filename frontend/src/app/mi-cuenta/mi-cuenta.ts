@@ -62,6 +62,7 @@ export class MiCuenta implements OnInit {
   usuarioId: number = 1;
   usuarioNombre: string = 'Juan Pérez';
   usuarioEmail: string = 'juan.perez@example.com';
+  imagenPerfil: string | null = null; // 👈 NUEVO CAMPO PARA LA IMAGEN
 
   // Datos
   reservas: ReservaResponseDTO[] = [];
@@ -73,6 +74,10 @@ export class MiCuenta implements OnInit {
   loadingFavoritos: boolean = false;
   loadingHistorial: boolean = false;
 
+  // Obtenemos la URL base del backend desde environment si queremos servir las imágenes,
+  // O podemos usar un Pipe de Angular. Lo importaremos de environment:
+  private readonly baseUrl = 'http://localhost:8080';
+
   // Inyectamos AuthService para obtener el usuario real
   constructor(
     private http: HttpClient,
@@ -81,15 +86,57 @@ export class MiCuenta implements OnInit {
   ) { }
 
   ngOnInit() {
-    // CORRECCIÓN: Suscripción para obtener el ID real del usuario logueado
     this.authService.currentUser$.subscribe(user => {
       if (user) {
         this.usuarioId = user.id || 1;
         this.usuarioNombre = user.nombre || 'Cargando...';
         this.usuarioEmail = user.email || '';
+
+        // La imagen que viene en el token puede ser nula o la ruta parcial
+        if (user.imagenPerfil) {
+          this.imagenPerfil = this.baseUrl + user.imagenPerfil;
+        } else {
+          this.imagenPerfil = null;
+        }
+
+        // 🔹 Llamada al backend para cercioranos de la foto más reciente
+        this.authService.fetchUsuarioDetalle(this.usuarioId).subscribe({
+          next: (detalle) => {
+            if (detalle.imagenPerfil) {
+              this.imagenPerfil = this.baseUrl + detalle.imagenPerfil;
+            }
+          }
+        });
+
         this.loadReservas(); // Carga inicial con el ID correcto
       }
     });
+  }
+
+  // ============================================
+  // 🔹 Subida de Foto de Perfil
+  // ============================================
+  triggerFileInput() {
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+    if (fileInput) {
+      fileInput.click();
+    }
+  }
+
+  onFileSelected(event: any) {
+    const file: File = event.target.files[0];
+    if (file) {
+      this.authService.uploadProfileImage(this.usuarioId, file).subscribe({
+        next: (response) => {
+          console.log('Imagen subida', response);
+          this.imagenPerfil = this.baseUrl + response.imagenPerfil;
+        },
+        error: (err) => {
+          console.error('Error al subir la imagen', err);
+          alert('Error al subir la foto de perfil');
+        }
+      });
+    }
   }
 
   // ============================================

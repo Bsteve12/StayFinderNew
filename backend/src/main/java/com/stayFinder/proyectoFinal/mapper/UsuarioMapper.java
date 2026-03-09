@@ -17,5 +17,6 @@ public interface UsuarioMapper {
     // 🔹 De Usuario -> UsuarioResponseDTO
     @Mapping(source = "email", target = "correo")
     @Mapping(source = "usuarioId", target = "usuarioId")
+    @Mapping(source = "imagenPerfil", target = "imagenPerfil")
     UsuarioResponseDTO toDto(Usuario usuario);
 }

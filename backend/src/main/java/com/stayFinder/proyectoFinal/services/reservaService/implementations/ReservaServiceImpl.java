@@ -33,10 +33,10 @@ public class ReservaServiceImpl implements ReservaServiceInterface {
     private final EmailServiceInterface emailService; // Inyeccion del objeto
 
     public ReservaServiceImpl(ReservaRepository reservaRepository,
-                              UsuarioRepository usuarioRepository,
-                              AlojamientoRepository alojamientoRepository,
-                              ReservaMapper reservaMapper,
-                              EmailServiceInterface emailService) {
+            UsuarioRepository usuarioRepository,
+            AlojamientoRepository alojamientoRepository,
+            ReservaMapper reservaMapper,
+            EmailServiceInterface emailService) {
         this.reservaRepository = reservaRepository;
         this.usuarioRepository = usuarioRepository;
         this.alojamientoRepository = alojamientoRepository;
@@ -48,8 +48,9 @@ public class ReservaServiceImpl implements ReservaServiceInterface {
 
     @Override
     public ReservaResponseDTO createReserva(ReservaRequestDTO dto, Long userId) throws Exception {
-        // Se asume que el userId del token es el ID de Negocio (usuarioId)
-        Usuario usuario = usuarioRepository.findByUsuarioId(userId)
+        // Usamos findById porque el Auth Token devuelve el ID autoincremental de base
+        // de datos
+        Usuario usuario = usuarioRepository.findById(userId)
                 .orElseThrow(() -> new Exception("Usuario no existe"));
 
         Alojamiento alojamiento = alojamientoRepository.findById(dto.alojamientoId())
@@ -67,14 +68,13 @@ public class ReservaServiceImpl implements ReservaServiceInterface {
 
         Reserva saved = reservaRepository.save(reserva);
 
-        //  Notificación de confirmación inicial (pendiente de confirmar)
+        // Notificación de confirmación inicial (pendiente de confirmar)
         emailService.sendReservationConfirmation(
                 usuario.getEmail(),
                 "Reserva creada",
                 "Hola " + usuario.getNombre() +
                         ", tu reserva #" + saved.getId() +
-                        " fue creada y está en estado PENDIENTE."
-        );
+                        " fue creada y está en estado PENDIENTE.");
 
         return reservaMapper.toDto(saved);
     }
@@ -99,8 +99,7 @@ public class ReservaServiceImpl implements ReservaServiceInterface {
                 reserva.getUsuario().getEmail(),
                 "Reserva cancelada",
                 "Hola " + reserva.getUsuario().getNombre() +
-                        ", tu reserva #" + reserva.getId() + " ha sido cancelada."
-        );
+                        ", tu reserva #" + reserva.getId() + " ha sido cancelada.");
     }
 
     @Override
@@ -124,14 +123,14 @@ public class ReservaServiceImpl implements ReservaServiceInterface {
         reserva.setTipoReserva(dto.tipoReserva());
 
         ReservaRequestDTO tempDto = new ReservaRequestDTO(
-                // Aquí se usa getUsuario().getId() que es la PK del usuario, lo cual está bien para este DTO temporal.
+                // Aquí se usa getUsuario().getId() que es la PK del usuario, lo cual está bien
+                // para este DTO temporal.
                 reserva.getUsuario().getId(),
                 reserva.getAlojamiento().getId(),
                 reserva.getFechaInicio(),
                 reserva.getFechaFin(),
                 reserva.getNumeroHuespedes(),
-                reserva.getTipoReserva()
-        );
+                reserva.getTipoReserva());
         reserva.setPrecioTotal(calcularPrecioTotal(tempDto, reserva.getAlojamiento()));
 
         Reserva saved = reservaRepository.save(reserva);
@@ -149,17 +148,17 @@ public class ReservaServiceImpl implements ReservaServiceInterface {
                 reserva.getUsuario().getEmail(),
                 "Reserva confirmada",
                 "Hola " + reserva.getUsuario().getNombre() +
-                        ", tu reserva #" + reserva.getId() + " fue CONFIRMADA con éxito."
-        );
+                        ", tu reserva #" + reserva.getId() + " fue CONFIRMADA con éxito.");
     }
 
     @Override
     public List<ReservaResponseDTO> obtenerReservasUsuario(Long usuarioId) throws Exception {
-        // Usar findByUsuarioId() para verificar la existencia del usuario de negocio.
-        usuarioRepository.findByUsuarioId(usuarioId)
+        // Verificar la existencia del usuario usando su PK de Base de datos
+        usuarioRepository.findById(usuarioId)
                 .orElseThrow(() -> new Exception("Usuario no existe"));
 
-        // Se mantiene findByUsuarioId aquí, asumiendo que el método en ReservaRepository busca por la FK (usuario_id)
+        // Se mantiene findByUsuarioId aquí, asumiendo que el método en
+        // ReservaRepository busca por la FK (usuario_id)
         return reservaRepository.findByUsuarioId(usuarioId)
                 .stream()
                 .map(reservaMapper::toDto)
@@ -176,8 +175,8 @@ public class ReservaServiceImpl implements ReservaServiceInterface {
         Alojamiento alojamiento = alojamientoRepository.findById(dto.alojamientoId())
                 .orElseThrow(() -> new Exception("Alojamiento no existe"));
 
-        // Buscar por el ID de Negocio (usuarioId) del DTO
-        Usuario usuario = usuarioRepository.findByUsuarioId(dto.usuarioId())
+        // Buscar por el PK de Base de datos (usuarioId) del DTO
+        Usuario usuario = usuarioRepository.findById(dto.usuarioId())
                 .orElseThrow(() -> new Exception("Usuario no existe"));
 
         Reserva reserva = reservaMapper.toEntity(dto);
@@ -199,8 +198,9 @@ public class ReservaServiceImpl implements ReservaServiceInterface {
     // ------------------------- NUEVOS MÉTODOS: HISTORIAL -------------------------
 
     @Override
-    public List<ReservaHistorialResponseDTO> historialReservasUsuario(Long usuarioId, HistorialReservasRequestDTO filtros) throws Exception {
-        usuarioRepository.findByUsuarioId(usuarioId)
+    public List<ReservaHistorialResponseDTO> historialReservasUsuario(Long usuarioId,
+            HistorialReservasRequestDTO filtros) throws Exception {
+        usuarioRepository.findById(usuarioId)
                 .orElseThrow(() -> new Exception("Usuario no existe"));
 
         List<Reserva> reservas = reservaRepository.findByUsuarioId(usuarioId);
@@ -220,14 +220,14 @@ public class ReservaServiceImpl implements ReservaServiceInterface {
                         r.getNumeroHuespedes(),
                         r.getPrecioTotal(),
                         r.getEstado(),
-                        r.getTipoReserva()
-                ))
+                        r.getTipoReserva()))
                 .toList();
     }
 
     @Override
-    public List<ReservaHistorialResponseDTO> historialReservasAnfitrion(Long ownerId, HistorialReservasRequestDTO filtros) throws Exception {
-        usuarioRepository.findByUsuarioId(ownerId)
+    public List<ReservaHistorialResponseDTO> historialReservasAnfitrion(Long ownerId,
+            HistorialReservasRequestDTO filtros) throws Exception {
+        usuarioRepository.findById(ownerId)
                 .orElseThrow(() -> new Exception("Usuario no existe"));
 
         List<Alojamiento> alojamientos = alojamientoRepository.findByOwnerId(ownerId);
@@ -248,8 +248,7 @@ public class ReservaServiceImpl implements ReservaServiceInterface {
                         r.getNumeroHuespedes(),
                         r.getPrecioTotal(),
                         r.getEstado(),
-                        r.getTipoReserva()
-                ))
+                        r.getTipoReserva()))
                 .toList();
     }
 
@@ -271,7 +270,8 @@ public class ReservaServiceImpl implements ReservaServiceInterface {
     }
 
     private void validarDisponibilidad(LocalDate inicio, LocalDate fin, Long alojamientoId) throws Exception {
-        List<Reserva> reservas = reservaRepository.findByAlojamientoIdAndEstado(alojamientoId, EstadoReserva.CONFIRMADA);
+        List<Reserva> reservas = reservaRepository.findByAlojamientoIdAndEstado(alojamientoId,
+                EstadoReserva.CONFIRMADA);
         for (Reserva r : reservas) {
             if (!(fin.isBefore(r.getFechaInicio()) || inicio.isAfter(r.getFechaFin()))) {
                 throw new Exception("El alojamiento no está disponible en las fechas seleccionadas");
@@ -299,9 +299,11 @@ public class ReservaServiceImpl implements ReservaServiceInterface {
         // 3. Comprobación de propietario (para roles CLIENT/OWNER)
         Long reservaOwnerId = reserva.getUsuario().getUsuarioId();
 
-        // Verificación de integridad: el dueño de la reserva debe tener un ID de Negocio válido
+        // Verificación de integridad: el dueño de la reserva debe tener un ID de
+        // Negocio válido
         if (reservaOwnerId == null || reservaOwnerId.equals(0L)) {
-            // Si el ID de Negocio del dueño de la reserva es nulo/cero, y no es Admin, denegar.
+            // Si el ID de Negocio del dueño de la reserva es nulo/cero, y no es Admin,
+            // denegar.
             throw new Exception("Error de integridad: El dueño de la reserva no tiene un ID de Negocio válido.");
         }
 
@@ -335,8 +337,8 @@ public class ReservaServiceImpl implements ReservaServiceInterface {
 
     @Override
     public ReservaResponseDTO createReservaBasica(CreateReservaRequestDTO dto, Long usuarioId) throws Exception {
-        // Buscar por el ID de Negocio (usuarioId)
-        Usuario usuario = usuarioRepository.findByUsuarioId(usuarioId)
+        // Buscar usando la PK base de datos
+        Usuario usuario = usuarioRepository.findById(usuarioId)
                 .orElseThrow(() -> new Exception("Usuario no encontrado"));
 
         Alojamiento alojamiento = alojamientoRepository.findById(dto.alojamientoId())
@@ -366,8 +368,7 @@ public class ReservaServiceImpl implements ReservaServiceInterface {
         emailService.sendReservationConfirmation(
                 usuario.getEmail(),
                 "Reserva creada",
-                "Hola " + usuario.getNombre() + ", tu reserva #" + saved.getId() + " fue creada exitosamente."
-        );
+                "Hola " + usuario.getNombre() + ", tu reserva #" + saved.getId() + " fue creada exitosamente.");
 
         return reservaMapper.toDto(saved);
     }

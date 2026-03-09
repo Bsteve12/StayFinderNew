@@ -113,6 +113,7 @@ export class Anfitrion implements OnInit {
   ownerId: number = 1;
   ownerNombre: string = 'María García';
   ownerEmail: string = 'maria.garcia@example.com';
+  imagenPerfil: string | null = null; // 👈 NUEVO CAMPO PARA LA IMAGEN
 
   // Datos
   alojamientos: AlojamientoResponseDTO[] = [];
@@ -157,6 +158,8 @@ export class Anfitrion implements OnInit {
     usuarioId: 0
   };
 
+  private readonly baseUrl = 'http://localhost:8080';
+
   constructor(private http: HttpClient, private auth: AuthService, private router: Router) { }
 
   ngOnInit() {
@@ -165,10 +168,50 @@ export class Anfitrion implements OnInit {
         this.ownerId = user.id || 1;
         this.ownerNombre = user.nombre || 'Nombre del Anfitrión';
         this.ownerEmail = user.email || 'correo@ejemplo.com';
+
+        if (user.imagenPerfil) {
+          this.imagenPerfil = this.baseUrl + user.imagenPerfil;
+        }
+
+        // Obtener detalle real del backend para imagen actualizada
+        this.auth.fetchUsuarioDetalle(this.ownerId).subscribe({
+          next: (detalle) => {
+            if (detalle.imagenPerfil) {
+              this.imagenPerfil = this.baseUrl + detalle.imagenPerfil;
+            }
+          }
+        });
+
         this.loadAlojamientos();
         this.loadServicios(); // Cargar los servicios por defecto
       }
     });
+  }
+
+  // ============================================
+  // 🔹 Subida de Foto de Perfil
+  // ============================================
+  triggerFileInput() {
+    const fileInput = document.querySelector('.profile-avatar input[type="file"]') as HTMLInputElement;
+    if (fileInput) {
+      fileInput.click();
+    }
+  }
+
+  onProfileFileSelected(event: any) {
+    const file: File = event.target.files[0];
+    if (file) {
+      this.auth.uploadProfileImage(this.ownerId, file).subscribe({
+        next: (response) => {
+          console.log('Imagen subida', response);
+          this.imagenPerfil = this.baseUrl + response.imagenPerfil;
+        },
+        error: (err) => {
+          console.error('Error al subir la imagen', err);
+          alert('Error al subir la foto de perfil');
+        }
+      });
+    }
   }
 
   // ============================================
@@ -654,7 +697,7 @@ export class Anfitrion implements OnInit {
 
     this.loadingHistorial = true;
 
-    let url = `${this.API_URL}/reservas/anfitrion/${this.ownerId}`;
+    let url = `${this.API_URL}/historial/anfitrion/${this.ownerId}`;
     const params: string[] = [];
 
     if (filtros?.fechaInicio) params.push(`fechaInicio=${filtros.fechaInicio}`);

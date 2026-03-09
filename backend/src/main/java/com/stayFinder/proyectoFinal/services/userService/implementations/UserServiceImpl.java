@@ -179,4 +179,55 @@ public class UserServiceImpl implements UserServiceInterface {
                 .map(usuarioMapper::toDto)
                 .toList();
     }
+
+    public UsuarioResponseDTO uploadProfileImage(Long usuarioId, org.springframework.web.multipart.MultipartFile imagen,
+            Long actorUsuarioId) throws Exception {
+        // actorUsuarioId viene de user.getId() (Primary Key DB), no del
+        // documento/cedula.
+        Usuario actor = usuarioRepository.findById(actorUsuarioId)
+                .orElseThrow(() -> new Exception("Usuario actor no encontrado"));
+        // usuarioId viene de la URL, el frontend asume que es el documento (cedula)
+        Usuario usuario = usuarioRepository.findByUsuarioId(usuarioId)
+                .orElseThrow(() -> new Exception("Usuario destino no encontrado"));
+
+        if (!actor.getUsuarioId().equals(usuario.getUsuarioId()) && actor.getRole() != Role.ADMIN) {
+            throw new Exception("No tienes permisos para actualizar este usuario");
+        }
+
+        if (imagen.isEmpty()) {
+            throw new Exception("El archivo de imagen está vacío");
+        }
+
+        String uploadsDir = "uploads/usuarios/";
+        java.nio.file.Path uploadPath = java.nio.file.Paths.get(uploadsDir);
+        if (!java.nio.file.Files.exists(uploadPath)) {
+            java.nio.file.Files.createDirectories(uploadPath);
+        }
+
+        String currentImage = usuario.getImagenPerfil();
+        if (currentImage != null && !currentImage.isEmpty()) {
+            // Eliminar imagen anterior local (Opcional)
+            try {
+                String oldFileName = currentImage.substring(currentImage.lastIndexOf("/") + 1);
+                java.nio.file.Path oldFile = uploadPath.resolve(oldFileName).normalize();
+                java.nio.file.Files.deleteIfExists(oldFile);
+            } catch (Exception ignored) {
+            }
+        }
+
+        String originalName = imagen.getOriginalFilename();
+        if (originalName == null || originalName.isEmpty()) {
+            originalName = "perfil.jpg";
+        }
+
+        String fileName = java.util.UUID.randomUUID().toString() + "_"
+                + originalName.replaceAll("[^a-zA-Z0-9.\\-]", "_");
+        java.nio.file.Path filePath = uploadPath.resolve(fileName);
+        java.nio.file.Files.copy(imagen.getInputStream(), filePath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+
+        String imageUrl = "/api/usuario/imagen/" + fileName;
+        usuario.setImagenPerfil(imageUrl);
+
+        return usuarioMapper.toDto(usuarioRepository.save(usuario));
+    }
 }

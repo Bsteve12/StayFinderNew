@@ -113,6 +113,7 @@ export class Administrador implements OnInit {
   adminId: number = 1;
   adminNombre: string = 'Admin Principal';
   adminCorreo: string = 'admin@stayfinder.com';
+  imagenPerfil: string | null = null;
 
   // Datos
   publicacionesPendientes: PublicacionResponseDTO[] = [];
@@ -177,6 +178,19 @@ export class Administrador implements OnInit {
         this.adminId = user.id || 1;
         this.adminNombre = user.nombre || 'Admin Principal';
         this.adminCorreo = user.email || 'admin@stayfinder.com';
+
+        if (user.imagenPerfil) {
+          this.imagenPerfil = this.API_URL.replace('/api', '') + user.imagenPerfil;
+        }
+
+        // Obtener detalle real del backend para imagen actualizada
+        this.auth.fetchUsuarioDetalle(this.adminId).subscribe({
+          next: (detalle) => {
+            if (detalle.imagenPerfil) {
+              this.imagenPerfil = this.API_URL.replace('/api', '') + detalle.imagenPerfil;
+            }
+          }
+        });
       }
     });
 
@@ -184,6 +198,32 @@ export class Administrador implements OnInit {
     this.loadSolicitudesPublicacion();
     this.loadSolicitudesOwner();
     this.loadUsuarios();
+  }
+
+  // ============================================
+  // 🔹 Subida de Foto de Perfil
+  // ============================================
+  triggerFileInput() {
+    const fileInput = document.querySelector('.profile-avatar input[type="file"]') as HTMLInputElement;
+    if (fileInput) {
+      fileInput.click();
+    }
+  }
+
+  onProfileFileSelected(event: any) {
+    const file: File = event.target.files[0];
+    if (file) {
+      this.auth.uploadProfileImage(this.adminId, file).subscribe({
+        next: (response) => {
+          console.log('Imagen subida', response);
+          this.imagenPerfil = this.API_URL.replace('/api', '') + response.imagenPerfil;
+        },
+        error: (err) => {
+          console.error('Error al subir la imagen', err);
+          alert('Error al subir la foto de perfil');
+        }
+      });
+    }
   }
 
   // ============================================

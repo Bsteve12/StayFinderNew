@@ -40,4 +40,6 @@ public class Usuario extends Auditable implements Serializable {
 
     @Enumerated(EnumType.STRING)
     private Role role;
+
+    private String imagenPerfil;
 }

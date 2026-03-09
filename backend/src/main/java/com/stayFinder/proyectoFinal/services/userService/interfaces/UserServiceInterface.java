@@ -13,17 +13,27 @@ import com.stayFinder.proyectoFinal.entity.enums.Role;
 public interface UserServiceInterface {
 
     // Manejo de usuarios
-    UsuarioResponseDTO createUser(CreateUserDTO createUserDTO, Role roleSolicitado, Long adminUsuarioId) throws Exception;
+    UsuarioResponseDTO createUser(CreateUserDTO createUserDTO, Role roleSolicitado, Long adminUsuarioId)
+            throws Exception;
+
     UsuarioResponseDTO updateUser(Long usuarioId, UpdateUserDTO updateUserDTO, Long actorUsuarioId) throws Exception;
+
     void deleteUser(Long usuarioId, Long actorUsuarioId) throws Exception;
+
     UsuarioResponseDTO assignRole(Long usuarioId, Role newRole, Long adminUsuarioId) throws Exception;
+
+    UsuarioResponseDTO uploadProfileImage(Long usuarioId, org.springframework.web.multipart.MultipartFile imagen,
+            Long actorUsuarioId) throws Exception;
 
     // Autenticación
     LoginResponseDTO login(LoginRequestDTO loginRequestDTO) throws Exception;
 
     // CRUD básico de Usuario
     Usuario findByEmail(String email);
+
     Usuario save(Usuario usuario);
+
     List<UsuarioResponseDTO> findAll();
+
     List<UsuarioResponseDTO> getUsuariosPorRol(String rol);
 }

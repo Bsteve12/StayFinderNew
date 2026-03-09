@@ -19,6 +19,7 @@ export interface User {
   email?: string | null;
   role?: 'CLIENT' | 'OWNER' | 'ADMIN' | undefined;
   usuarioId?: number | null;
+  imagenPerfil?: string | null;
 }
 
 @Injectable({
@@ -91,6 +92,28 @@ export class AuthService {
     this.router.navigate(['/login']);
   }
 
+  // 🔹 NUEVO: Obtener detalle actualizado del usuario
+  fetchUsuarioDetalle(usuarioId: number): Observable<any> {
+    return this.http.get(`${this.apiUrl}/${usuarioId}`);
+  }
+
+  // 🔹 NUEVO: Subir imagen de perfil
+  uploadProfileImage(usuarioId: number, file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('imagen', file);
+    return this.http.post(`${this.apiUrl}/${usuarioId}/imagen`, formData).pipe(
+      tap((updatedUser: any) => {
+        // Actualizamos localStorage y BehaviorSubject si este usuario es el actual
+        const currentUser = this.currentUserSubject.value;
+        if (currentUser && currentUser.id === updatedUser.id) {
+          currentUser.imagenPerfil = updatedUser.imagenPerfil;
+          localStorage.setItem('user', JSON.stringify(currentUser));
+          this.currentUserSubject.next(currentUser);
+        }
+      })
+    );
+  }
+
   // En auth.service.ts
   forgotPassword(email: string): Observable<any> {
     // Ajustamos el envío para que coincida con el RequestBody de tu Java
@@ -136,7 +159,8 @@ export class AuthService {
         id: payload.jti ? parseInt(payload.jti, 10) : (payload.usuarioId || null),
         email: payload.sub || null,
         nombre: payload.nombre || null,
-        role: finalRole as 'CLIENT' | 'OWNER' | 'ADMIN' | undefined
+        role: finalRole as 'CLIENT' | 'OWNER' | 'ADMIN' | undefined,
+        imagenPerfil: payload.imagenPerfil || null
       };
     } catch (e) {
       return null;
