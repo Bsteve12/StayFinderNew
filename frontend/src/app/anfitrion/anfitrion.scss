@@ -1395,118 +1395,285 @@
     }
 }
 
-// ============================================
-// 🔹 Calendario View (Owner Availability)
-// ============================================
-.calendario-view {
-    padding: 24px;
-    background: #f5efe6; // Crema background
+/* CALENDARIO DE DISPONIBILIDAD (PROCESO C) */
+.calendar-management-view {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 30px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
 
-    .calendario-dashboard {
-        max-width: 900px;
-        margin: 0 auto;
+  .calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #f3f4f6;
 
-        .calendario-card {
-            border-radius: 16px;
-            box-shadow: 0 4px 12px rgba(91, 44, 131, 0.08); // Morado shadow
-            overflow: hidden;
+    .header-text {
+      h2 {
+        margin: 0;
+        color: #1f2a44;
+        font-size: 24px;
+        font-weight: 700;
+      }
 
-            h3 {
-                color: #1f2a44;
-                margin-top: 0;
-                margin-bottom: 12px;
-                font-weight: 700;
-            }
-
-            .alerta-info {
-                background: #e6ddf5; // Lavanda suave
-                color: #5b2c83;
-                padding: 12px 16px;
-                border-radius: 8px;
-                margin-bottom: 24px;
-                font-size: 0.95rem;
-                line-height: 1.5;
-            }
-
-            .calendario-controls {
-                display: flex;
-                flex-direction: column;
-                gap: 20px;
-
-                .control-group {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 8px;
-
-                    label {
-                        color: #1f2a44;
-                        font-weight: 600;
-                        font-size: 0.9rem;
-                    }
-
-                    .calendar-wrapper {
-                        background: #ffffff;
-                        border-radius: 12px;
-                        padding: 16px;
-                        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-                        display: flex;
-                        justify-content: center;
-
-                        ::ng-deep .prime-calendar-custom {
-                            width: 100%;
-
-                            .p-datepicker {
-                                border: none;
-                                width: 100%;
-
-                                table {
-                                    width: 100%;
-
-                                    td {
-                                        padding: 0.5rem;
-                                    }
-                                }
-
-                                // Customize selected range colors
-                                .p-highlight {
-                                    background: #5b2c83 !important;
-                                    color: #ffffff !important;
-                                }
-
-                                // Customize disabled dates explicitly
-                                .p-disabled {
-                                    background: #f1f5f9 !important;
-                                    color: #94a3b8 !important;
-                                    text-decoration: line-through;
-                                    opacity: 1 !important;
-                                }
-                            }
-                        }
-                    }
-                }
-
-                .action-group {
-                    margin-top: 16px;
-                    display: flex;
-                    justify-content: flex-end;
-
-                    .btn-bloquear {
-                        background: #5b2c83;
-                        border: none;
-                        padding: 12px 24px;
-                        border-radius: 8px;
-                        font-weight: 600;
-                        transition: all 0.3s;
-
-                        &:hover {
-                            background: #4a236a;
-                            transform: translateY(-2px);
-                        }
-                    }
-                }
-            }
-        }
+      p {
+        margin: 5px 0 0;
+        color: #6b7280;
+        font-size: 14px;
+      }
     }
+  }
+
+  .calendar-grid {
+    display: grid;
+    grid-template-columns: 1fr 350px;
+    gap: 30px;
+
+    @media (max-width: 1024px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .calendar-main {
+    ::ng-deep {
+      .custom-calendar-host {
+        width: 100%;
+        border: none;
+        
+        .p-datepicker {
+          width: 100%;
+          border: none;
+          padding: 0;
+          background: transparent;
+        }
+
+        .p-datepicker-header {
+          background: transparent;
+          padding: 0 0 20px 0;
+          border-bottom: 1px solid #f3f4f6;
+          margin-bottom: 10px;
+        }
+
+        .p-datepicker-calendar {
+          width: 100%;
+          table-layout: fixed;
+          
+          th {
+            padding: 12px 5px;
+            color: #9ca3af;
+            font-weight: 600;
+            font-size: 13px;
+          }
+
+          td {
+            padding: 4px;
+
+            span {
+              width: 100%;
+              aspect-ratio: 1;
+              max-width: 45px;
+              margin: 0 auto;
+              border-radius: 12px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+              font-weight: 500;
+              position: relative;
+
+              &:hover:not(.p-disabled) {
+                background: #f3e8ff;
+                color: #7c3aed;
+                transform: scale(1.05);
+              }
+
+              // ESTADOS PERSONALIZADOS (PROCESO C - REFINAMIENTO)
+              &.day-reserved-active {
+                background: #ef4444 !important; // Rojo fuerte
+                color: white !important;
+                border-radius: 12px;
+                box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3);
+                opacity: 1 !important;
+                cursor: default;
+              }
+
+              &.day-reserved-pending {
+                background: #fee2e2 !important; // Rojo pálido
+                color: #b91c1c !important;
+                border: 2px dashed #f87171 !important;
+                border-radius: 12px;
+                opacity: 1 !important;
+                cursor: default;
+              }
+
+              &.day-manual-block {
+                background: #4b5563 !important; // Gris oscuro
+                color: #e5e7eb !important;
+                border-radius: 12px;
+                text-decoration: line-through;
+                opacity: 1 !important;
+              }
+
+              &.day-available {
+                &::after {
+                  content: "";
+                  position: absolute;
+                  bottom: 4px;
+                  width: 4px;
+                  height: 4px;
+                  background: #10b981; // Verde esmeralda
+                  border-radius: 50%;
+                  box-shadow: 0 0 4px rgba(16, 185, 129, 0.5);
+                }
+              }
+            }
+
+            // Today marker
+            &.p-datepicker-today span {
+              border: 2px solid #7c3aed;
+              color: #7c3aed;
+              background: transparent;
+            }
+
+            // Selected dates (multiple)
+            .p-highlight {
+              background: #7c3aed !important;
+              color: #ffffff !important;
+              box-shadow: 0 8px 16px rgba(124, 58, 237, 0.25);
+              font-weight: 700;
+            }
+
+            // Custom styling for disabled (occupied) dates
+            &.p-disabled {
+              opacity: 1 !important;
+              span {
+                background: #f3f4f6;
+                color: #9ca3af;
+                cursor: not-allowed;
+                text-decoration: none;
+                
+                &::after {
+                  content: '';
+                  position: absolute;
+                  width: 6px;
+                  height: 6px;
+                  background: #ef4444; // Small indicator of occupation
+                  border-radius: 50%;
+                  bottom: 6px;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    .actions {
+      margin-top: 25px;
+      
+      button {
+        border-radius: 12px;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        
+        &:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 10px 20px rgba(239, 68, 68, 0.2);
+        }
+      }
+    }
+  }
+
+  .calendar-info {
+    p-card {
+      ::ng-deep .p-card {
+        background: #f9fafb;
+        border: 1px solid #f3f4f6;
+        box-shadow: none;
+        border-radius: 20px;
+      }
+    }
+
+    .legend {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      margin-top: 10px;
+
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding: 10px;
+        border-radius: 12px;
+        background: #ffffff;
+        border: 1px solid #f3f4f6;
+
+        .dot {
+          width: 14px;
+          height: 14px;
+          border-radius: 50%;
+          flex-shrink: 0;
+
+          &.reserved { 
+            background: #fee2e2; 
+            border: 2.5px solid #ef4444; 
+          }
+          &.manual { 
+            background: #f3f4f6; 
+            border: 2.5px solid #6b7280; 
+          }
+          &.free { 
+            background: #ecfdf5; 
+            border: 2.5px solid #10b981; 
+          }
+        }
+
+        .text {
+          display: flex;
+          flex-direction: column;
+          
+          strong {
+            color: #1f2a44;
+            font-size: 14px;
+            font-weight: 600;
+          }
+
+          small {
+            color: #6b7280;
+            font-size: 12px;
+          }
+        }
+      }
+    }
+
+    .info-footer {
+      margin-top: 30px;
+      padding: 15px;
+      background: #eff6ff;
+      border-radius: 12px;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      border: 1px solid #dbeafe;
+
+      i { 
+        color: #3b82f6; 
+        font-size: 20px; 
+        margin-top: 2px;
+      }
+
+      p { 
+        margin: 0; 
+        font-size: 12.5px; 
+        color: #1e40af; 
+        line-height: 1.6; 
+      }
+    }
+  }
 }
 
 

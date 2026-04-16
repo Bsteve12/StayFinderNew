@@ -26,6 +26,14 @@ import java.util.Map;
 public class AlojamientoController {
 
     private final AlojamientoServiceInterface alojamientoService;
+    private final com.stayFinder.proyectoFinal.services.disponibilidadService.DisponibilidadService disponibilidadService;
+
+    @GetMapping("/{id}/fechas-ocupadas")
+    @Operation(summary = "Obtener resumen de fechas ocupadas (Reservas + Bloqueos)", description = "Devuelve una lista de rangos de fechas que no están disponibles.")
+    public ResponseEntity<List<com.stayFinder.proyectoFinal.services.disponibilidadService.DisponibilidadService.RangoFecha>> obtenerFechasOcupadas(
+            @PathVariable Long id) {
+        return ResponseEntity.ok(disponibilidadService.getFechasOcupadas(id));
+    }
 
     @PostMapping
     @Operation(summary = "Crear un alojamiento")
@@ -101,6 +109,15 @@ public class AlojamientoController {
     public ResponseEntity<List<BloqueoDisponibilidadResponseDTO>> obtenerBloqueos(
             @PathVariable Long id) {
         return ResponseEntity.ok(alojamientoService.obtenerBloqueos(id));
+    }
+
+    @DeleteMapping("/bloqueos/{bloqueoId}")
+    @Operation(summary = "Eliminar un bloqueo de fechas")
+    public ResponseEntity<Void> eliminarBloqueo(
+            @PathVariable Long bloqueoId,
+            @RequestParam Long ownerId) {
+        alojamientoService.eliminarBloqueo(bloqueoId, ownerId);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/dashboard-stats")

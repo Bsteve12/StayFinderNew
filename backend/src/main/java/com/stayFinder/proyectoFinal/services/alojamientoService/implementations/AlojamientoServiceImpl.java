@@ -355,7 +355,6 @@ public class AlojamientoServiceImpl implements AlojamientoServiceInterface {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public List<BloqueoDisponibilidadResponseDTO> obtenerBloqueos(Long alojamientoId) {
         List<BloqueoDisponibilidad> bloqueos = bloqueoRepo.findByAlojamientoId(alojamientoId);
         return bloqueos.stream().map(b -> new BloqueoDisponibilidadResponseDTO(
@@ -365,6 +364,22 @@ public class AlojamientoServiceImpl implements AlojamientoServiceInterface {
                 b.getFechaFin(),
                 b.getMotivo()
         )).toList();
+    }
+
+    @Override
+    public void eliminarBloqueo(Long bloqueoId, Long ownerId) {
+        BloqueoDisponibilidad bloqueo = bloqueoRepo.findById(bloqueoId)
+                .orElseThrow(() -> new RuntimeException("Bloqueo no encontrado"));
+                
+        // Resolución híbrida del owner para validación de permisos
+        Usuario actor = usuarioRepo.findAnyById(ownerId)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID/Cédula: " + ownerId));
+
+        if (!bloqueo.getAlojamiento().getOwner().getId().equals(actor.getId()) && actor.getRole() != Role.ADMIN) {
+            throw new RuntimeException("No tienes permisos para eliminar este bloqueo");
+        }
+
+        bloqueoRepo.delete(bloqueo);
     }
 
     @Override

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
@@ -115,6 +115,7 @@ interface UpdateUserDTO {
   ],
   templateUrl: './anfitrion.html',
   styleUrls: ['./anfitrion.scss'],
+  encapsulation: ViewEncapsulation.None
 })
 export class Anfitrion implements OnInit {
   private readonly API_URL = `${environment.apiUrl}/api`;
@@ -151,7 +152,9 @@ export class Anfitrion implements OnInit {
   selectedCalendarioAlojamiento: AlojamientoResponseDTO | null = null;
   bloqueoFechas: Date[] | null = null; // Changed to allow multiple distinct dates
   disabledDates: Date[] = [];
+  mapaDisponibilidad: Map<string, { tipo: string, id?: number }> = new Map();
   sidebarVisible: boolean = false;
+  minDate: Date = new Date();
 
   // Dialog states
   showCreateDialog: boolean = false;
@@ -847,45 +850,126 @@ export class Anfitrion implements OnInit {
   onCalendarioAlojamientoChange() {
     this.disabledDates = [];
     this.bloqueoFechas = null;
+    this.mapaDisponibilidad.clear();
     if (!this.selectedCalendarioAlojamiento) return;
 
-    const alojamientoId = this.selectedCalendarioAlojamiento.id;
+    this.loadingMetrics = true; 
+    this.http.get<any[]>(`${this.API_URL}/alojamientos/${this.selectedCalendarioAlojamiento.id}/fechas-ocupadas`).subscribe({
+      next: (ocupacion) => {
+        const dates: Date[] = [];
+        ocupacion.forEach((rango: any) => {
+          let current = new Date(rango.inicio);
+          const end = new Date(rango.fin);
+          // Estandarizar a medianoche local
+          current = new Date(current.getUTCFullYear(), current.getUTCMonth(), current.getUTCDate());
+          const endNorm = new Date(end.getUTCFullYear(), end.getUTCMonth(), end.getUTCDate());
 
-    forkJoin({
-      reservas: this.http.get<ReservaHistorialResponseDTO[]>(`${this.API_URL}/historial/anfitrion/${this.ownerId}`),
-      bloqueos: this.http.get<any[]>(`${this.API_URL}/alojamientos/${alojamientoId}/bloqueos`)
-    }).subscribe({
-      next: ({ reservas, bloqueos }) => {
-        let dates: Date[] = [];
+          while (current <= endNorm) {
+            const dateCopy = new Date(current);
+            const key = dateCopy.toISOString().split('T')[0];
+            
+            // Si hay solapamiento, preferimos RESERVA sobre BLOQUEO para visualización
+            if (!this.mapaDisponibilidad.has(key) || rango.tipo.startsWith('RESERVA')) {
+                this.mapaDisponibilidad.set(key, { 
+                    tipo: rango.tipo, 
+                    id: rango.id 
+                });
+            }
 
-        // Filtrar reservas que pertenezcan a este alojamiento y estén CONFIRMADA
-        reservas.filter(r => r.alojamientoNombre === this.selectedCalendarioAlojamiento!.nombre && r.estado === 'CONFIRMADA').forEach(r => {
-          let current = new Date(r.fechaInicio);
-          const end = new Date(r.fechaFin);
-          current.setHours(0, 0, 0, 0);
-          end.setHours(0, 0, 0, 0);
-          while (current <= end) {
-            dates.push(new Date(current));
+            // SOLO deshabilitamos si es una RESERVA real (no se puede desbloquear manualmente)
+            // Los bloqueos manuales se dejan habitilitados para poder seleccionarlos y borrarlos.
+            if (rango.tipo.startsWith('RESERVA')) {
+                dates.push(dateCopy);
+            }
+            
             current.setDate(current.getDate() + 1);
           }
         });
-
-        // Extraer fechas de bloqueos
-        bloqueos.forEach(b => {
-          let current = new Date(b.fechaInicio);
-          const end = new Date(b.fechaFin);
-          current.setHours(0, 0, 0, 0);
-          end.setHours(0, 0, 0, 0);
-          while (current <= end) {
-            dates.push(new Date(current));
-            current.setDate(current.getDate() + 1);
-          }
-        });
-
         this.disabledDates = dates;
+        this.loadingMetrics = false;
+        console.log('[Disponibilidad] Mapa cargado:', this.mapaDisponibilidad);
       },
-      error: (err) => console.error('Error cargando disponibilidad:', err)
+      error: (err) => {
+        console.error('Error cargando disponibilidad:', err);
+        this.loadingMetrics = false;
+      }
     });
+  }
+
+  getDateClass(date: any): string {
+    const d = new Date(date.year, date.month, date.day);
+    const key = d.toISOString().split('T')[0];
+    const info = this.mapaDisponibilidad.get(key);
+    
+    if (!info) return 'day-available';
+    
+    if (info.tipo === 'RESERVA_CONFIRMADA') return 'day-reserved-active';
+    if (info.tipo === 'RESERVA_PENDIENTE') return 'day-reserved-pending';
+    if (info.tipo === 'BLOQUEO_MANUAL') return 'day-manual-block';
+    
+    return 'day-available';
+  }
+
+  getDateTitle(date: any): string {
+    const d = new Date(date.year, date.month, date.day);
+    const key = d.toISOString().split('T')[0];
+    const info = this.mapaDisponibilidad.get(key);
+    
+    if (!info) return 'Disponible';
+    if (info.tipo === 'RESERVA_CONFIRMADA') return 'Reserva Confirmada (Pagada)';
+    if (info.tipo === 'RESERVA_PENDIENTE') return 'Reserva Pendiente de Pago';
+    if (info.tipo === 'BLOQUEO_MANUAL') return 'Bloqueo Manual (Anfitrión)';
+    return 'Ocupado';
+  }
+
+  hasBloqueoManualSeleccionado(): boolean {
+    if (!this.bloqueoFechas || this.bloqueoFechas.length === 0) return false;
+    return this.bloqueoFechas.some(d => {
+        const key = d.toISOString().split('T')[0];
+        return this.mapaDisponibilidad.get(key)?.tipo === 'BLOQUEO_MANUAL';
+    });
+  }
+
+  desbloquearFechasSeleccionadas(): void {
+    if (!this.bloqueoFechas || this.bloqueoFechas.length === 0) return;
+
+    const idsABorrar = new Set<number>();
+    this.bloqueoFechas.forEach(d => {
+        const key = d.toISOString().split('T')[0];
+        const info = this.mapaDisponibilidad.get(key);
+        if (info?.tipo === 'BLOQUEO_MANUAL' && info.id) {
+            idsABorrar.add(info.id);
+        }
+    });
+
+    if (idsABorrar.size === 0) {
+        this.messageService.add({ severity: 'info', summary: 'Info', detail: 'No hay bloqueos manuales en la selección.' });
+        return;
+    }
+
+    if (!confirm(`¿Estás seguro de liberar estas fechas? Se eliminarán ${idsABorrar.size} registro(s) de bloqueo.`)) return;
+
+    const requests = Array.from(idsABorrar).map(id => 
+        this.http.delete(`${this.API_URL}/alojamientos/bloqueos/${id}?ownerId=${this.ownerId}`)
+    );
+
+    forkJoin(requests).subscribe({
+        next: () => {
+            this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Fechas liberadas correctamente.' });
+            this.bloqueoFechas = null;
+            this.onCalendarioAlojamientoChange();
+        },
+        error: (err) => {
+            console.error('Error al desbloquear:', err);
+            this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudieron liberar todas las fechas.' });
+        }
+    });
+  }
+
+  getToday(): Date {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Normalizar a medianoche local
+    return today;
   }
 
   bloquearFechasSeleccionadas(): void {
@@ -939,9 +1023,10 @@ export class Anfitrion implements OnInit {
 
     const requests = ranges.map(range => {
       const payload = {
+        alojamientoId: this.selectedCalendarioAlojamiento!.id,
         fechaInicio: range.startDate.toISOString().split('T')[0],
         fechaFin: range.endDate.toISOString().split('T')[0],
-        justificacion: 'Bloqueo manual por el Anfitrión' // Changed from 'motivo' to 'justificacion'
+        motivo: 'Bloqueo manual por el Anfitrión'
       };
       return this.http.post(`${this.API_URL}/alojamientos/${this.selectedCalendarioAlojamiento!.id}/bloqueos?ownerId=${this.ownerId}`, payload);
     });

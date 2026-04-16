@@ -24,4 +24,14 @@ public interface ReservaRepository extends JpaRepository<Reserva, Long>, Reserva
 
     // Validar existencia de reserva de un usuario sobre un alojamiento de un owner con un estado específico
     boolean existsByUsuarioAndAlojamientoOwnerAndEstado(Usuario usuario, Usuario owner, EstadoReserva estado);
+
+    // Consulta de solapamiento de fechas para disponibilidad
+    @org.springframework.data.jpa.repository.Query("SELECT r FROM Reserva r WHERE r.alojamiento.id = :alojamientoId " +
+            "AND r.estado IN :estados " +
+            "AND r.fechaInicio < :fechaFin AND r.fechaFin > :fechaInicio")
+    List<Reserva> findOverlappingReservations(
+            @org.springframework.data.repository.query.Param("alojamientoId") Long alojamientoId,
+            @org.springframework.data.repository.query.Param("fechaInicio") java.time.LocalDate fechaInicio,
+            @org.springframework.data.repository.query.Param("fechaFin") java.time.LocalDate fechaFin,
+            @org.springframework.data.repository.query.Param("estados") List<EstadoReserva> estados);
 }

@@ -40,4 +40,22 @@ export class AlojamientosService {
     return this.http.get<AlojamientoResponseDTO>(`${this.ruta}/${id}`);
   }
 
+  getFechasOcupadas(id: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.ruta}/${id}/fechas-ocupadas`);
+  }
+
+  bloquearFechas(id: number, data: any, ownerId: number): Observable<any> {
+    const params = new HttpParams().set('ownerId', ownerId.toString());
+    return this.http.post<any>(`${this.ruta}/${id}/bloqueos`, data, { params });
+  }
+
+  obtenerBloqueos(id: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.ruta}/${id}/bloqueos`);
+  }
+
+  deleteBloqueo(bloqueoId: number, ownerId: number): Observable<void> {
+    const params = new HttpParams().set('ownerId', ownerId.toString());
+    return this.http.delete<void>(`${this.ruta}/bloqueos/${bloqueoId}`, { params });
+  }
+
 }

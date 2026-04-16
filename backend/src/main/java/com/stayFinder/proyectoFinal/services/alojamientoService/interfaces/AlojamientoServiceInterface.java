@@ -21,6 +21,7 @@ public interface AlojamientoServiceInterface{
     AlojamientoResponseDTO cambiarEstado(Long alojamientoId, EstadoAlojamiento nuevoEstado, Long ownerId);
     BloqueoDisponibilidadResponseDTO bloquearFechas(Long alojamientoId, BloqueoDisponibilidadRequestDTO req, Long ownerId);
     List<BloqueoDisponibilidadResponseDTO> obtenerBloqueos(Long alojamientoId);
+    void eliminarBloqueo(Long bloqueoId, Long ownerId);
     
     // Dashboard Stats
     Map<String, Object> obtenerEstadisticasDashboard();

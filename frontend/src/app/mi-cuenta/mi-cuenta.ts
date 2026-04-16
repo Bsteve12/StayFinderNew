@@ -41,6 +41,7 @@ interface HistorialReservasRequestDTO {
 
 interface ReservaHistorialResponseDTO {
   reservaId: number;
+  id?: number;
   alojamientoId: number;
   alojamientoNombre: string;
   alojamientoImagen: string;
@@ -192,6 +193,7 @@ export class MiCuenta implements OnInit {
   // 🔹 Cargar Solicitudes Anfitrión
   // ============================================
   loadSolicitudes() {
+    if (this.loadingSolicitudes) return;
     this.loadingSolicitudes = true;
     this.http.get<any[]>(`${this.API_URL}/solicitudes-owner/usuario/${this.usuarioId}`).subscribe({
       next: (data) => {

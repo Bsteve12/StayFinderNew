@@ -1,4 +1,4 @@
-import { Component, signal, OnInit, inject } from '@angular/core';
+import { Component, signal, OnInit, inject, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormControl } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -16,6 +16,8 @@ import { provideNativeDateAdapter, MAT_DATE_FORMATS, MAT_NATIVE_DATE_FORMATS } f
 import { AuthService } from '../services/auth.service';
 import { MessageService } from 'primeng/api';
 import { environment } from '../../environments/environment';
+import { DatePickerModule } from 'primeng/datepicker';
+import { Observable, firstValueFrom } from 'rxjs';
 
 interface AccommodationImage {
   url: string;
@@ -404,48 +406,40 @@ export class Detalle implements OnInit {
     MatButtonModule,
     MatFormFieldModule,
     MatInputModule,
-    MatDatepickerModule
+    MatDatepickerModule,
+    DatePickerModule
   ],
   providers: [
     provideNativeDateAdapter(),
     { provide: MAT_DATE_FORMATS, useValue: MAT_NATIVE_DATE_FORMATS }
   ],
+  encapsulation: ViewEncapsulation.None,
   template: `
     <div class="reserva-dialog">
       <h2 mat-dialog-title>Reservar Alojamiento</h2>
       <p class="subtitle">{{ data.alojamiento?.nombre || 'Alojamiento' }}</p>
       
       <mat-dialog-content>
-        <div class="form-group">
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Fecha de Check-in</mat-label>
-            <input 
-              matInput 
-              [matDatepicker]="pickerInicio" 
-              [(ngModel)]="fechaInicio" 
-              [min]="minDate"
-              (dateChange)="calcularPrecio()"
-              required
-            >
-            <mat-datepicker-toggle matIconSuffix [for]="pickerInicio"></mat-datepicker-toggle>
-            <mat-datepicker #pickerInicio></mat-datepicker>
-          </mat-form-field>
-        </div>
-
-        <div class="form-group">
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Fecha de Check-out</mat-label>
-            <input 
-              matInput 
-              [matDatepicker]="pickerFin" 
-              [(ngModel)]="fechaFin" 
-              [min]="getFechaMinFin()"
-              (dateChange)="calcularPrecio()"
-              required
-            >
-            <mat-datepicker-toggle matIconSuffix [for]="pickerFin"></mat-datepicker-toggle>
-            <mat-datepicker #pickerFin></mat-datepicker>
-          </mat-form-field>
+        <div class="form-group p-calendar-wrapper">
+          <label class="p-label">Fechas de estancia</label>
+          <p-datepicker 
+            [(ngModel)]="rangoFechas" 
+            selectionMode="range" 
+            [minDate]="getToday()" 
+            [disabledDates]="fechasOcupadas"
+            [readonlyInput]="true" 
+            [showIcon]="true"
+            placeholder="Selecciona el rango de fechas"
+            (onSelect)="onDateSelect()"
+            appendTo="body"
+            styleClass="w-full"
+          >
+            <ng-template pTemplate="date" let-date>
+              <span [ngClass]="getDateClass(date)" [title]="getDateTitle(date)">
+                {{ date.day }}
+              </span>
+            </ng-template>
+          </p-datepicker>
         </div>
 
         <div class="form-group">
@@ -589,7 +583,90 @@ export class Detalle implements OnInit {
       }
     }
 
+    .p-calendar-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 24px;
+      
+      .p-label {
+        font-weight: 600;
+        color: #4b5563;
+        font-size: 14px;
+      }
+    }
+
     ::ng-deep {
+      .p-calendar {
+        width: 100%;
+        .p-inputtext {
+          width: 100%;
+          border-radius: 8px;
+          border-color: #d1d5db;
+          padding: 10px 12px;
+          &:focus {
+            border-color: #7c3aed;
+            box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.2);
+          }
+        }
+      }
+
+      // 🔹 NUEVOS ESTILOS PARA FECHAS OCUPADAS (REFINAMIENTO VISUAL)
+      .p-datepicker td.p-disabled {
+        span {
+          background: #fef2f2 !important; // Fondo muy suave rojo
+          color: #ef4444 !important; // Texto rojo prominente
+          text-decoration: line-through !important;
+          opacity: 1 !important;
+          cursor: not-allowed !important;
+          border-radius: 8px !important;
+
+          // Marcador de punto rojo debajo del número
+          &::after {
+            content: "";
+            position: absolute;
+            bottom: 4px;
+            width: 5px;
+            height: 5px;
+            background: #ef4444;
+            border-radius: 50%;
+            box-shadow: 0 0 4px rgba(239, 68, 68, 0.5);
+          }
+        }
+      }
+
+      // Clases personalizadas vía Template
+      .day-reserved-active {
+        background: #ef4444 !important;
+        color: white !important;
+        border-radius: 8px !important;
+        box-shadow: 0 4px 8px rgba(239, 68, 68, 0.3);
+      }
+
+      .day-manual-block {
+        background: #4b5563 !important;
+        color: white !important;
+        border-radius: 8px !important;
+        text-decoration: line-through !important;
+      }
+
+      .day-available {
+        span::after {
+          content: "";
+          position: absolute;
+          bottom: 4px;
+          width: 5px;
+          height: 5px;
+          background: #10b981; // Verde esmeralda
+          border-radius: 50%;
+          box-shadow: 0 0 4px rgba(16, 185, 129, 0.5);
+        }
+      }
+
+      .p-datepicker td:not(.p-disabled):not(.p-datepicker-other-month) span {
+        font-weight: 500;
+        color: #1f2937;
+      }
       .mat-mdc-raised-button.mat-primary {
         background-color: #7c3aed !important;
 
@@ -616,15 +693,96 @@ export class Detalle implements OnInit {
     }
   `]
 })
-export class ReservaDialog {
+export class ReservaDialog implements OnInit {
   dialogRef = inject<MatDialogRef<ReservaDialog>>(MatDialogRef<ReservaDialog>);
   data = inject(MAT_DIALOG_DATA);
+  private alojamientosService = inject(AlojamientosService);
 
+  rangoFechas: Date[] | null = null;
   fechaInicio: Date | null = null;
   fechaFin: Date | null = null;
+  fechasOcupadas: Date[] = [];
+  mapaDisponibilidad: Map<string, string> = new Map();
   numeroHuespedes: number = 1;
   precioTotal: number = 0;
   minDate = new Date();
+
+  ngOnInit() {
+    this.cargarFechasOcupadas();
+  }
+
+  async cargarFechasOcupadas() {
+    // 🔹 Robust ID detection: checking both lowercase and uppercase 'id' properties if they exist
+    const id = this.data.alojamiento?.id || this.data.alojamiento?.alojamientoId;
+    if (!id) {
+      console.warn('[ReservaDialog] No se encontró ID de alojamiento para cargar disponibilidad');
+      return;
+    }
+    
+    try {
+      const ocupacion = await firstValueFrom(this.alojamientosService.getFechasOcupadas(Number(id)));
+      const datesToDisable: Date[] = [];
+      
+      ocupacion.forEach((rango: any) => {
+        const start = new Date(rango.inicio);
+        const end = new Date(rango.fin);
+        
+        // NORMALIZACIÓN A MEDIANOCHE LOCAL (Evita problemas de Zona Horaria UTC)
+        let current = new Date(start.getUTCFullYear(), start.getUTCMonth(), start.getUTCDate());
+        const endNorm = new Date(end.getUTCFullYear(), end.getUTCMonth(), end.getUTCDate());
+        
+        while (current <= endNorm) {
+          const dateCopy = new Date(current);
+          const key = dateCopy.toISOString().split('T')[0];
+          
+          this.mapaDisponibilidad.set(key, rango.tipo);
+          datesToDisable.push(dateCopy);
+          
+          current.setDate(current.getDate() + 1);
+        }
+      });
+      
+      this.fechasOcupadas = datesToDisable;
+      console.log(`[ReservaDialog] ${this.fechasOcupadas.length} fechas ocupadas cargadas. Mapa:`, this.mapaDisponibilidad);
+    } catch (error) {
+      console.error('Error al cargar disponibilidad:', error);
+    }
+  }
+
+  getDateClass(date: any): string {
+    const d = new Date(date.year, date.month, date.day);
+    const key = d.toISOString().split('T')[0];
+    const tipo = this.mapaDisponibilidad.get(key);
+    
+    if (!tipo) return 'day-available';
+    if (tipo.startsWith('RESERVA')) return 'day-reserved-active';
+    if (tipo === 'BLOQUEO_MANUAL') return 'day-manual-block';
+    return 'day-available';
+  }
+
+  getDateTitle(date: any): string {
+    const d = new Date(date.year, date.month, date.day);
+    const key = d.toISOString().split('T')[0];
+    const tipo = this.mapaDisponibilidad.get(key);
+    
+    if (!tipo) return 'Disponible';
+    if (tipo === 'RESERVA_CONFIRMADA') return 'Ya reservado (Confirmado)';
+    if (tipo === 'RESERVA_PENDIENTE') return 'Reserva en proceso';
+    if (tipo === 'BLOQUEO_MANUAL') return 'No disponible (Bloqueado por el anfitrión)';
+    return 'No disponible';
+  }
+
+  onDateSelect() {
+    if (this.rangoFechas && this.rangoFechas[0] && this.rangoFechas[1]) {
+      this.fechaInicio = this.rangoFechas[0];
+      this.fechaFin = this.rangoFechas[1];
+      this.calcularPrecio();
+    } else {
+      this.fechaInicio = null;
+      this.fechaFin = null;
+      this.precioTotal = 0;
+    }
+  }
 
   getFechaMinFin(): Date {
     if (!this.fechaInicio) return this.minDate;
@@ -652,6 +810,12 @@ export class ReservaDialog {
       this.numeroHuespedes > 0 &&
       this.numeroHuespedes <= this.data.capacidadMaxima
     );
+  }
+
+  getToday(): Date {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return today;
   }
 
   onCancel() {

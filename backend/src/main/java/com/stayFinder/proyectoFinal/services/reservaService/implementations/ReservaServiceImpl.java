@@ -31,18 +31,21 @@ public class ReservaServiceImpl implements ReservaServiceInterface {
     private final UsuarioRepository usuarioRepository;
     private final AlojamientoRepository alojamientoRepository;
     private final ReservaMapper reservaMapper;
-    private final EmailServiceInterface emailService; // Inyeccion del objeto
+    private final EmailServiceInterface emailService;
+    private final com.stayFinder.proyectoFinal.services.disponibilidadService.DisponibilidadService disponibilidadService;
 
     public ReservaServiceImpl(ReservaRepository reservaRepository,
             UsuarioRepository usuarioRepository,
             AlojamientoRepository alojamientoRepository,
             ReservaMapper reservaMapper,
-            EmailServiceInterface emailService) {
+            EmailServiceInterface emailService,
+            com.stayFinder.proyectoFinal.services.disponibilidadService.DisponibilidadService disponibilidadService) {
         this.reservaRepository = reservaRepository;
         this.usuarioRepository = usuarioRepository;
         this.alojamientoRepository = alojamientoRepository;
         this.reservaMapper = reservaMapper;
         this.emailService = emailService;
+        this.disponibilidadService = disponibilidadService;
     }
 
     // ------------------------- MÉTODOS EXISTENTES -------------------------
@@ -50,8 +53,11 @@ public class ReservaServiceImpl implements ReservaServiceInterface {
     @Override
     @Transactional
     public ReservaResponseDTO createReserva(ReservaRequestDTO dto, Long userId) throws Exception {
-        // Usamos findById porque el Auth Token devuelve el ID autoincremental de base
-        // de datos
+        // 🔹 MODIFICACIÓN PROCESO C: VALIDAR DISPONIBILIDAD ANTES DE NADA
+        if (!disponibilidadService.isDisponible(dto.alojamientoId(), dto.fechaInicio(), dto.fechaFin())) {
+            throw new Exception("Lo sentimos, estas fechas ya no están disponibles.");
+        }
+
         Usuario usuario = usuarioRepository.findById(userId)
                 .orElseThrow(() -> new Exception("Usuario no existe"));
 
@@ -200,7 +206,11 @@ public class ReservaServiceImpl implements ReservaServiceInterface {
         Alojamiento alojamiento = alojamientoRepository.findById(dto.alojamientoId())
                 .orElseThrow(() -> new Exception("Alojamiento no existe"));
 
-        // Buscar por el PK o Cédula de Base de datos (usuarioId) del DTO
+        // 🔹 MODIFICACIÓN PROCESO C: VALIDAR DISPONIBILIDAD
+        if (!disponibilidadService.isDisponible(dto.alojamientoId(), dto.fechaInicio(), dto.fechaFin())) {
+            throw new Exception("Lo sentimos, estas fechas ya no están disponibles. Alguien más podría estar reservando o el anfitrión ha bloqueado estos días.");
+        }
+
         Usuario usuario = usuarioRepository.findAnyById(dto.usuarioId())
                 .orElseThrow(() -> new Exception("Usuario no existe con ID/Cédula: " + dto.usuarioId()));
 
@@ -257,12 +267,15 @@ public class ReservaServiceImpl implements ReservaServiceInterface {
     @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public List<ReservaHistorialResponseDTO> historialReservasAnfitrion(Long ownerId,
             HistorialReservasRequestDTO filtros) throws Exception {
-        Usuario owner = usuarioRepository.findByUsuarioId(ownerId)
+        Usuario owner = usuarioRepository.findAnyById(ownerId)
                 .orElseThrow(() -> new Exception("Usuario no existe"));
 
-        List<Alojamiento> alojamientos = alojamientoRepository.findByOwnerId(owner.getId());
+        System.out.println("[HistorialAnfitrion] Owner encontrado: " + owner.getNombre() + " (ID PK: " + owner.getId() + ")");
 
-        return alojamientos.stream()
+        List<Alojamiento> alojamientos = alojamientoRepository.findByOwnerId(owner.getId());
+        System.out.println("[HistorialAnfitrion] Alojamientos encontrados: " + alojamientos.size());
+
+        List<ReservaHistorialResponseDTO> list = alojamientos.stream()
                 .flatMap(a -> reservaRepository.findByAlojamientoId(a.getId()).stream())
                 .filter(r -> filtros.fechaInicio() == null || !r.getFechaInicio().isBefore(filtros.fechaInicio()))
                 .filter(r -> filtros.fechaFin() == null || !r.getFechaFin().isAfter(filtros.fechaFin()))
@@ -282,6 +295,9 @@ public class ReservaServiceImpl implements ReservaServiceInterface {
                         r.getEstado(),
                         r.getTipoReserva()))
                 .toList();
+
+        System.out.println("[HistorialAnfitrion] Reservas filtradas totales: " + list.size());
+        return list;
     }
 
     // ------------------------- MÉTODOS AUXILIARES -------------------------
@@ -302,16 +318,9 @@ public class ReservaServiceImpl implements ReservaServiceInterface {
     }
 
     private void validarDisponibilidad(LocalDate inicio, LocalDate fin, Long alojamientoId) throws Exception {
-        // Verificar contra reservas CONFIRMADAS y PENDIENTES para evitar doble reserva
-        List<Reserva> confirmadas = reservaRepository.findByAlojamientoIdAndEstado(alojamientoId, EstadoReserva.CONFIRMADA);
-        List<Reserva> pendientes = reservaRepository.findByAlojamientoIdAndEstado(alojamientoId, EstadoReserva.PENDIENTE);
-        List<Reserva> todasActivas = new java.util.ArrayList<>();
-        todasActivas.addAll(confirmadas);
-        todasActivas.addAll(pendientes);
-        for (Reserva r : todasActivas) {
-            if (!(fin.isBefore(r.getFechaInicio()) || inicio.isAfter(r.getFechaFin()))) {
-                throw new Exception("El alojamiento no está disponible en las fechas seleccionadas");
-            }
+        // Mejorado Proceso C: Usar el servicio centralizado que incluye Bloqueos Manuales
+        if (!disponibilidadService.isDisponible(alojamientoId, inicio, fin)) {
+            throw new Exception("Lo sentimos, estas fechas ya no están disponibles. Alguien más podría estar reservando o el anfitrión ha bloqueado estos días.");
         }
     }
 
@@ -322,9 +331,9 @@ public class ReservaServiceImpl implements ReservaServiceInterface {
         Reserva reserva = reservaRepository.findById(reservaId)
                 .orElseThrow(() -> new Exception("Reserva no encontrada"));
 
-        // 1. Obtener al ACTOR (el usuario cuyo token se está usando)
-        Usuario actor = usuarioRepository.findByUsuarioId(userId)
-                .orElseThrow(() -> new Exception("Actor no encontrado: ID de token inválido"));
+        // 1. Obtener al ACTOR de forma robusta (PK o Cédula)
+        Usuario actor = usuarioRepository.findAnyById(userId)
+                .orElseThrow(() -> new Exception("Actor no encontrado con ID/Cédula: " + userId));
 
         // 2. Comprobación de rol de ADMINISTRADOR (¡La regla de oro!)
         if (actor.getRole() == Role.ADMIN) {
@@ -387,7 +396,7 @@ public class ReservaServiceImpl implements ReservaServiceInterface {
             throw new Exception("La fecha de reserva no puede ser en el pasado");
         }
 
-        // Validar disponibilidad para evitar doble reserva
+        // 🔹 MODIFICACIÓN PROCESO C: VALIDAR DISPONIBILIDAD (Reservas + Bloqueos)
         validarDisponibilidad(fechaReserva, fechaReserva.plusDays(1), alojamiento.getId());
 
         // Crear la reserva con estado PENDIENTE

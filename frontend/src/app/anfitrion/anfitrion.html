@@ -209,20 +209,6 @@
                 <p class="precio">Total: ${{ reserva.precioTotal | number }}</p>
               </div>
             </div>
-            <div class="historial-actions-col">
-              <button pButton label="Confirmar" icon="pi pi-check"
-                class="p-button-success p-button-sm"
-                *ngIf="reserva.estado === 'PENDIENTE'"
-                (click)="confirmarReservaAnfitrion(reserva.reservaId)">
-              </button>
-              <button pButton label="Cancelar" icon="pi pi-times"
-                class="p-button-danger p-button-sm p-button-outlined"
-                *ngIf="reserva.estado === 'PENDIENTE' || reserva.estado === 'CONFIRMADA'"
-                (click)="cancelarReservaAnfitrion(reserva.reservaId)">
-              </button>
-              <span *ngIf="reserva.estado === 'CANCELADA' || reserva.estado === 'COMPLETADA'"
-                class="no-actions-label">Sin acciones</span>
-            </div>
           </div>
         </div>
       </div>
@@ -274,44 +260,7 @@
         </div>
       </div>
 
-      <!-- NUEVA VISTA DE CALENDARIO -->
-      <div *ngIf="currentView === 'calendario'" class="calendario-view">
-        <div class="calendario-dashboard">
-          <p-card styleClass="calendario-card">
-            <h3>Bloquear Fechas de Disponibilidad</h3>
-            <p class="alerta-info">
-              Selecciona uno de tus alojamientos publicados y elige un rango de fechas en el calendario
-              para deshabilitarlo (por ejemplo, si planeas ir tú mismo, o necesitas hacer mantenimiento).
-            </p>
 
-            <div class="calendario-controls">
-              <div class="control-group">
-                <label>Alojamiento</label>
-                <p-select [options]="alojamientos" [(ngModel)]="selectedCalendarioAlojamiento" optionLabel="nombre"
-                  placeholder="Selecciona un alojamiento" (onChange)="onCalendarioAlojamientoChange()"
-                  styleClass="w-full">
-                </p-select>
-              </div>
-
-              <div class="control-group" *ngIf="selectedCalendarioAlojamiento">
-                <label>Fechas a Bloquear</label>
-                <div class="calendar-wrapper">
-                  <p-datepicker [(ngModel)]="bloqueoFechas" selectionMode="multiple" [readonlyInput]="true"
-                    [disabledDates]="disabledDates" placeholder="Selecciona uno o varios días" [inline]="true"
-                    styleClass="prime-calendar-custom">
-                  </p-datepicker>
-                </div>
-              </div>
-
-              <div class="control-group action-group" *ngIf="selectedCalendarioAlojamiento">
-                <button pButton label="Bloquear Fechas Seleccionadas" icon="pi pi-lock" class="btn-bloquear"
-                  (click)="bloquearFechasSeleccionadas()">
-                </button>
-              </div>
-            </div>
-          </p-card>
-        </div>
-      </div>
 
       <div *ngIf="currentView === 'servicios'" class="gestion-view">
         <div class="gestion-header">
@@ -352,10 +301,92 @@
         </div>
       </div>
 
-      <div *ngIf="currentView === 'calendario'" class="placeholder-view">
-        <i class="pi pi-calendar"></i>
-        <h3>Calendario de Disponibilidad</h3>
-        <p>Gestiona la disponibilidad de tus alojamientos</p>
+      <!-- CALENDARIO DE DISPONIBILIDAD (PROCESO C) -->
+      <div *ngIf="currentView === 'calendario'" class="calendar-management-view">
+        <div class="calendar-header">
+          <div class="header-text">
+            <h2>Gestión de Disponibilidad</h2>
+            <p>Bloquea fechas para mantenimiento o uso personal</p>
+          </div>
+          <div class="header-action">
+            <p-select [options]="alojamientos" [(ngModel)]="selectedCalendarioAlojamiento" optionLabel="nombre" 
+              placeholder="Selecciona un alojamiento" (onChange)="onCalendarioAlojamientoChange()" 
+              [style]="{'width': '300px'}"></p-select>
+          </div>
+        </div>
+
+        <div class="calendar-grid" *ngIf="selectedCalendarioAlojamiento">
+          <div class="calendar-main">
+            <p-card header="Selecciona fechas a bloquear">
+            <p-datepicker 
+                [(ngModel)]="bloqueoFechas" 
+                [inline]="true" 
+                selectionMode="multiple" 
+                [minDate]="getToday()" 
+                [disabledDates]="disabledDates" 
+                styleClass="custom-calendar-host"
+              >
+                <ng-template pTemplate="date" let-date>
+                  <span [ngClass]="getDateClass(date)" [title]="getDateTitle(date)">
+                    {{ date.day }}
+                  </span>
+                </ng-template>
+              </p-datepicker>
+              
+              <div class="actions flex-column gap-2 mt-3">
+                <button pButton label="Bloquear Fechas (Quitar disponibilidad)" icon="pi pi-lock" (click)="bloquearFechasSeleccionadas()" 
+                  class="p-button-danger w-full p-3" [disabled]="hasBloqueoManualSeleccionado() || !bloqueoFechas"></button>
+                  
+                <button pButton label="Desbloquear Fechas (Volver a disponible)" icon="pi pi-unlock" (click)="desbloquearFechasSeleccionadas()" 
+                  class="p-button-outlined p-button-secondary w-full p-3" 
+                  *ngIf="hasBloqueoManualSeleccionado()"></button>
+
+                <button pButton label="Limpiar Selección" icon="pi pi-times" (click)="bloqueoFechas = null" 
+                  class="p-button-text p-button-secondary w-full" 
+                  *ngIf="bloqueoFechas && bloqueoFechas.length > 0"></button>
+              </div>
+            </p-card>
+          </div>
+          
+          <div class="calendar-info">
+            <p-card header="Resumen de Ocupación">
+              <div class="legend">
+                <div class="legend-item">
+                  <span class="dot reserved"></span>
+                  <div class="text">
+                    <strong>Reservado</strong>
+                    <small>Fechas con reservas activas</small>
+                  </div>
+                </div>
+                <div class="legend-item">
+                  <span class="dot manual"></span>
+                  <div class="text">
+                    <strong>Bloqueo Manual</strong>
+                    <small>Fechas marcadas por ti</small>
+                  </div>
+                </div>
+                <div class="legend-item">
+                  <span class="dot free"></span>
+                  <div class="text">
+                    <strong>Disponible</strong>
+                    <small>Listo para recibir reservas</small>
+                  </div>
+                </div>
+              </div>
+
+              <div class="info-footer">
+                <i class="pi pi-info-circle"></i>
+                <p>Las fechas en rojo o gris oscuro ya están ocupadas y no pueden ser seleccionadas para un nuevo bloqueo.</p>
+              </div>
+            </p-card>
+          </div>
+        </div>
+        
+        <div class="placeholder-view" *ngIf="!selectedCalendarioAlojamiento">
+          <i class="pi pi-calendar-plus"></i>
+          <h3>Calendario</h3>
+          <p>Selecciona un alojamiento arriba para gestionar sus fechas disponibles.</p>
+        </div>
       </div>
 
       <div *ngIf="currentView === 'solicitar'" class="placeholder-view">
