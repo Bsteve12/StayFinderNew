@@ -154,14 +154,17 @@ export class AuthService {
         finalRole = finalRole.replace('ROLE_', '');
       }
 
-      return {
+      const user: User = {
         usuarioId: payload.jti ? parseInt(payload.jti, 10) : (payload.usuarioId || null),
-        id: payload.jti ? parseInt(payload.jti, 10) : (payload.usuarioId || null),
+        id: payload.userId ? parseInt(payload.userId, 10) : (payload.jti ? parseInt(payload.jti, 10) : null),
         email: payload.sub || null,
         nombre: payload.nombre || null,
         role: finalRole as 'CLIENT' | 'OWNER' | 'ADMIN' | undefined,
         imagenPerfil: payload.imagenPerfil || null
       };
+
+      console.log('✅ Usuario construido desde Token:', user);
+      return user;
     } catch (e) {
       return null;
     }

@@ -31,13 +31,14 @@ public class JWTUtil {
     }
 
     // CORRECCIÓN 1: Cambiamos el nombre del parámetro a 'usuarioId' y lo usamos en .setId()
-    public String GenerateToken(long usuarioId, String email, Role role, String nombre){
+    public String GenerateToken(long dbId, long usuarioId, String email, Role role, String nombre){
         long expirationInMs = tokenExpiration;
         Claims claims = Jwts.claims()
-                .setId(Long.toString(usuarioId)) //
+                .setId(Long.toString(usuarioId)) // Cédula (jti)
                 .setSubject(email)
                 .setIssuer(role.toString());
 
+        claims.put("userId", dbId); // ID Primario de Base de Datos
         claims.put("nombre", nombre); // Guardar el nombre en el JWT
 
         claims.setExpiration(new Date(System.currentTimeMillis() + expirationInMs))

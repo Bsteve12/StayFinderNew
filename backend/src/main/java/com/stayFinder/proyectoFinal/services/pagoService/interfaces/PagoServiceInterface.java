@@ -9,4 +9,5 @@ public interface PagoServiceInterface {
     PagoResponseDTO registrarPago(PagoRequestDTO dto);
     List<PagoResponseDTO> listarPagos();
     PagoResponseDTO obtenerPagoPorId(Long id);
+    PagoResponseDTO obtenerPagoPorReservaId(Long reservaId);
 }

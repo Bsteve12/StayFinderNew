@@ -55,4 +55,10 @@ public class SolicitudOwnerController {
                 .contentType(MediaType.APPLICATION_PDF)
                 .body(file);
     }
+
+    @GetMapping("/usuario/{usuarioId}")
+    @Operation(summary = "Obtener solicitudes por usuario", description = "Devuelve el listado de solicitudes para ser owner enviadas por un usuario específico")
+    public ResponseEntity<List<SolicitudOwnerResponseDTO>> obtenerSolicitudesPorUsuario(@PathVariable Long usuarioId) throws Exception {
+        return ResponseEntity.ok(solicitudService.obtenerSolicitudesPorUsuario(usuarioId));
+    }
 }

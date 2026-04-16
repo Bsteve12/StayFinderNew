@@ -1,6 +1,7 @@
 package com.stayFinder.proyectoFinal.dto.outputDTO;
 
 import com.stayFinder.proyectoFinal.entity.enums.EstadoReserva;
+import com.stayFinder.proyectoFinal.entity.enums.TipoReserva;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.LocalDate;
@@ -17,6 +18,12 @@ public record ReservaResponseDTO(
         @Schema(description = "ID del alojamiento reservado", example = "12")
         Long alojamientoId,
 
+        @Schema(description = "Nombre del alojamiento reservado", example = "Casa en la Playa")
+        String alojamientoNombre,
+
+        @Schema(description = "URL de imagen del alojamiento", example = "https://...")
+        String alojamientoImagen,
+
         @Schema(description = "Fecha de inicio", example = "2025-12-20")
         LocalDate fechaInicio,
 
@@ -30,5 +37,9 @@ public record ReservaResponseDTO(
         Double precioTotal,
 
         @Schema(description = "Estado de la reserva", example = "CONFIRMADA")
-        EstadoReserva estado
+        EstadoReserva estado,
+
+        @Schema(description = "Tipo de reserva", example = "SENCILLA")
+        TipoReserva tipoReserva
 ) {}
+

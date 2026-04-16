@@ -189,7 +189,9 @@
 
         <div class="historial-list" *ngIf="!loadingHistorial && historialReservas.length > 0">
           <div class="historial-item" *ngFor="let reserva of historialReservas">
-            <img [src]="reserva.alojamientoImagen" [alt]="reserva.alojamientoNombre" class="historial-image" />
+            <img [src]="reserva.alojamientoImagen || 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=400'"
+              [alt]="reserva.alojamientoNombre" class="historial-image"
+              onerror="this.src='https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=400'" />
             <div class="historial-content">
               <h3>{{ reserva.alojamientoNombre }}</h3>
               <p class="usuario"><i class="pi pi-user"></i> {{ reserva.usuarioNombre }}</p>
@@ -197,8 +199,29 @@
                 <i class="pi pi-calendar"></i>
                 {{ formatDate(reserva.fechaInicio) }} - {{ formatDate(reserva.fechaFin) }}
               </p>
-              <span class="estado-badge">{{ reserva.estado }}</span>
-              <p class="precio">Total: ${{ reserva.precioTotal | number }}</p>
+              <p *ngIf="reserva.numeroHuespedes" class="huespedes">
+                <i class="pi pi-users"></i> {{ reserva.numeroHuespedes }} huésped(es)
+              </p>
+              <div class="reserva-estado-row">
+                <span class="estado-badge" [ngClass]="getReservaEstadoClass(reserva.estado)">
+                  {{ reserva.estado }}
+                </span>
+                <p class="precio">Total: ${{ reserva.precioTotal | number }}</p>
+              </div>
+            </div>
+            <div class="historial-actions-col">
+              <button pButton label="Confirmar" icon="pi pi-check"
+                class="p-button-success p-button-sm"
+                *ngIf="reserva.estado === 'PENDIENTE'"
+                (click)="confirmarReservaAnfitrion(reserva.reservaId)">
+              </button>
+              <button pButton label="Cancelar" icon="pi pi-times"
+                class="p-button-danger p-button-sm p-button-outlined"
+                *ngIf="reserva.estado === 'PENDIENTE' || reserva.estado === 'CONFIRMADA'"
+                (click)="cancelarReservaAnfitrion(reserva.reservaId)">
+              </button>
+              <span *ngIf="reserva.estado === 'CANCELADA' || reserva.estado === 'COMPLETADA'"
+                class="no-actions-label">Sin acciones</span>
             </div>
           </div>
         </div>

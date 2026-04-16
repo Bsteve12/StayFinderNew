@@ -4,7 +4,7 @@ import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { Observable } from 'rxjs';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { MessageService } from 'primeng/api';
 import { environment } from '../../environments/environment';
@@ -12,12 +12,15 @@ import { environment } from '../../environments/environment';
 // Interfaces
 interface ReservaResponseDTO {
   id: number;
+  alojamientoId?: number;
   alojamientoNombre: string;
+  alojamientoImagen?: string;
   fechaInicio: string;
   fechaFin: string;
   estado: string;
   precioTotal: number;
-  alojamientoImagen?: string;
+  tipoReserva?: string;
+  numeroHuespedes?: number;
 }
 
 interface FavoriteResponseDTO {
@@ -37,20 +40,25 @@ interface HistorialReservasRequestDTO {
 }
 
 interface ReservaHistorialResponseDTO {
-  id: number;
+  reservaId: number;
+  alojamientoId: number;
   alojamientoNombre: string;
   alojamientoImagen: string;
+  usuarioId: number;
+  usuarioNombre: string;
   fechaInicio: string;
   fechaFin: string;
-  estado: string;
+  numeroHuespedes: number;
   precioTotal: number;
   fechaReserva: string;
+  estado: string;
+  tipoReserva: string;
 }
 
 @Component({
   selector: 'app-mi-cuenta',
   standalone: true, // Asegúrate de tenerlo si usas imports directos
-  imports: [CommonModule, HttpClientModule, ButtonModule, CardModule],
+  imports: [CommonModule, HttpClientModule, ButtonModule, CardModule, RouterLink],
   templateUrl: './mi-cuenta.html',
   styleUrl: './mi-cuenta.scss',
 })
@@ -61,20 +69,23 @@ export class MiCuenta implements OnInit {
   currentView: 'profile' | 'reservas' | 'favoritos' | 'historial' | 'solicitudes' = 'profile';
 
   // Usuario actual - AHORA DINÁMICO
-  usuarioId: number = 1;
-  usuarioNombre: string = 'Juan Pérez';
-  usuarioEmail: string = 'juan.perez@example.com';
-  imagenPerfil: string | null = null; // 👈 NUEVO CAMPO PARA LA IMAGEN
+  usuarioId: number = 0; // ID de BD (Primary Key)
+  documentoId: number = 0; // Cédula (Documento)
+  usuarioNombre: string = 'Usuario';
+  usuarioEmail: string = '';
+  imagenPerfil: string | null = null;
 
   // Datos
   reservas: ReservaResponseDTO[] = [];
   favoritos: FavoriteResponseDTO[] = [];
   historial: ReservaHistorialResponseDTO[] = [];
+  solicitudes: any[] = []; // NUEVO
 
   // Loading states
   loadingReservas: boolean = false;
   loadingFavoritos: boolean = false;
   loadingHistorial: boolean = false;
+  loadingSolicitudes: boolean = false; // NUEVO
 
   // Mobile Sidebar
   sidebarVisible: boolean = false;
@@ -94,18 +105,16 @@ export class MiCuenta implements OnInit {
   ngOnInit() {
     this.authService.currentUser$.subscribe(user => {
       if (user) {
-        this.usuarioId = user.id || 1;
-        this.usuarioNombre = user.nombre || 'Cargando...';
-        this.usuarioEmail = user.email || '';
+        this.usuarioId = user.id || 0; // Ahora es el ID Auténtico de BD (PK)
+        this.documentoId = user.usuarioId || 0; // Mantenemos el documento (Cédula) por si se necesita
+        this.usuarioNombre = user.nombre || 'Usuario';
 
-        // La imagen que viene en el token puede ser nula o la ruta parcial
         if (user.imagenPerfil) {
           this.imagenPerfil = this.baseUrl + user.imagenPerfil;
         } else {
           this.imagenPerfil = null;
         }
 
-        // 🔹 Llamada al backend para cercioranos de la foto más reciente
         this.authService.fetchUsuarioDetalle(this.usuarioId).subscribe({
           next: (detalle) => {
             if (detalle.imagenPerfil) {
@@ -114,7 +123,15 @@ export class MiCuenta implements OnInit {
           }
         });
 
-        this.loadReservas(); // Carga inicial con el ID correcto
+        // Solo cargar datos si tenemos un ID válido
+        if (this.usuarioId > 0) {
+          this.loadReservas();
+          this.loadFavoritos();
+          this.loadHistorial();
+        }
+      } else {
+        // No autenticado
+        this.loadingReservas = false;
       }
     });
   }
@@ -165,7 +182,29 @@ export class MiCuenta implements OnInit {
       case 'historial':
         this.loadHistorial();
         break;
+      case 'solicitudes':
+        this.loadSolicitudes();
+        break;
     }
+  }
+
+  // ============================================
+  // 🔹 Cargar Solicitudes Anfitrión
+  // ============================================
+  loadSolicitudes() {
+    this.loadingSolicitudes = true;
+    this.http.get<any[]>(`${this.API_URL}/solicitudes-owner/usuario/${this.usuarioId}`).subscribe({
+      next: (data) => {
+        console.log(`[DEBUG] Solicitudes recibidas para ID ${this.usuarioId}:`, data);
+        this.solicitudes = data;
+        this.loadingSolicitudes = false;
+      },
+      error: (err) => {
+        console.error('Error cargando solicitudes:', err);
+        this.solicitudes = [];
+        this.loadingSolicitudes = false;
+      }
+    });
   }
 
   // ============================================
@@ -187,18 +226,49 @@ export class MiCuenta implements OnInit {
 
     this.loadingReservas = true;
 
-    // El token pasará automáticamente por el interceptor, o si no, el controller `/api/reservas` obtiene 
-    // las reservas del usuario autenticado actual.
-    this.http.get<ReservaResponseDTO[]>(`${this.API_URL}/reservas`).subscribe({
+    this.http.get<any[]>(`${this.API_URL}/historial/usuario/${this.usuarioId}`).subscribe({
       next: (data) => {
-        this.reservas = data;
+        // Filtrar solo las activas (PENDIENTE o CONFIRMADA) y mapear los campos
+        this.reservas = data
+          .filter(r => r.estado === 'PENDIENTE' || r.estado === 'CONFIRMADA')
+          .map(r => ({
+            id: r.reservaId || r.id,
+            alojamientoId: r.alojamientoId,
+            alojamientoNombre: r.alojamientoNombre || 'Sin nombre',
+            alojamientoImagen: r.alojamientoImagen,
+            fechaInicio: r.fechaInicio,
+            fechaFin: r.fechaFin,
+            estado: r.estado,
+            precioTotal: r.precioTotal,
+            tipoReserva: r.tipoReserva,
+            numeroHuespedes: r.numeroHuespedes
+          }));
         this.loadingReservas = false;
       },
       error: (error) => {
         console.error('Error cargando reservas:', error);
         this.loadingReservas = false;
-        // Si quieres, podrías dejar el arreglo vacío o mostrar mensaje
         this.reservas = [];
+      }
+    });
+  }
+
+  // ============================================
+  // 🔹 Cancelar Reserva (Cliente)
+  // ============================================
+  cancelarReserva(id: number) {
+    if (!confirm('¿Estás seguro de que quieres cancelar esta reserva?')) return;
+
+    const payload = { reservaId: id, motivo: 'Cancelado por el cliente' };
+    this.http.patch(`${this.API_URL}/reservas/${id}/cancelar`, payload).subscribe({
+      next: () => {
+        this.messageService.add({ severity: 'info', summary: 'Cancelada', detail: 'Tu reserva ha sido cancelada exitosamente.' });
+        this.loadReservas();
+      },
+      error: (err) => {
+        console.error('Error cancelando reserva:', err);
+        const msg = err.error?.message || err.error || 'No se pudo cancelar la reserva.';
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: msg });
       }
     });
   }
@@ -220,18 +290,7 @@ export class MiCuenta implements OnInit {
         error: (error) => {
           console.error('Error cargando favoritos:', error);
           this.loadingFavoritos = false;
-          // Datos de ejemplo en caso de error para no romper la UI
-          this.favoritos = [
-            {
-              id: 1,
-              alojamientoId: 1,
-              alojamientoNombre: 'Villa Campestre',
-              alojamientoImagen: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=400',
-              alojamientoUbicacion: 'Medellín, Colombia',
-              alojamientoPrecio: 200000,
-              fechaAgregado: '2025-11-01'
-            }
-          ];
+          this.favoritos = [];
         }
       });
   }
@@ -241,42 +300,30 @@ export class MiCuenta implements OnInit {
   // ============================================
   loadHistorial(filtros?: HistorialReservasRequestDTO) {
     if (this.loadingHistorial) return;
-
     this.loadingHistorial = true;
 
     let url = `${this.API_URL}/historial/usuario/${this.usuarioId}`;
     const params: string[] = [];
-
     if (filtros?.fechaInicio) params.push(`fechaInicio=${filtros.fechaInicio}`);
     if (filtros?.fechaFin) params.push(`fechaFin=${filtros.fechaFin}`);
     if (filtros?.estado) params.push(`estado=${filtros.estado}`);
-
-    if (params.length > 0) {
-      url += '?' + params.join('&');
-    }
+    if (params.length > 0) url += '?' + params.join('&');
 
     this.http.get<ReservaHistorialResponseDTO[]>(url)
       .subscribe({
         next: (data) => {
-          this.historial = data;
+          // El endpoint /historial devuelve ReservaHistorialResponseDTO
+          // con campo 'reservaId' en lugar de 'id'
+          this.historial = data.map(r => ({
+            ...r,
+            id: (r as any).reservaId || (r as any).id || 0
+          })) as any;
           this.loadingHistorial = false;
         },
         error: (error) => {
           console.error('Error cargando historial:', error);
           this.loadingHistorial = false;
-          // Datos de ejemplo
-          this.historial = [
-            {
-              id: 3,
-              alojamientoNombre: 'Cabaña en la Montaña',
-              alojamientoImagen: 'https://images.unsplash.com/photo-1518780664697-55e3ad937233?w=400',
-              fechaInicio: '2025-10-01',
-              fechaFin: '2025-10-05',
-              estado: 'COMPLETADA',
-              precioTotal: 900000,
-              fechaReserva: '2025-09-15'
-            }
-          ];
+          this.historial = [];
         }
       });
   }

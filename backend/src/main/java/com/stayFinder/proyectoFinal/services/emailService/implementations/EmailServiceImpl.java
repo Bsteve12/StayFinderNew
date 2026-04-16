@@ -13,6 +13,7 @@ public class EmailServiceImpl implements EmailServiceInterface {
     private final JavaMailSender mailSender;
 
     @Override
+    @org.springframework.scheduling.annotation.Async
     public void sendReservationConfirmation(String toEmail, String subject, String body) {
         try {
             SimpleMailMessage msg = new SimpleMailMessage();
@@ -28,6 +29,7 @@ public class EmailServiceImpl implements EmailServiceInterface {
     }
 
     @Override
+    @org.springframework.scheduling.annotation.Async
     public void sendReservationCancellation(String toEmail, String subject, String body) {
         try {
             SimpleMailMessage msg = new SimpleMailMessage();
@@ -43,6 +45,7 @@ public class EmailServiceImpl implements EmailServiceInterface {
     }
 
     @Override
+    @org.springframework.scheduling.annotation.Async
     public void sendHostApplicationDecision(String toEmail, String subject, String body) {
         try {
             SimpleMailMessage msg = new SimpleMailMessage();

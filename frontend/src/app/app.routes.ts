@@ -12,6 +12,7 @@ import { ConvertirseAnfitrion } from './convertirse-anfitrion/convertirse-anfitr
 import { InicioMiCuenta } from './inicio-mi-cuenta/inicio-mi-cuenta';
 import { ResetPassword } from './reset-password/reset-password';
 import { Oauth2Redirect } from './oauth2-redirect/oauth2-redirect';
+import { PagarReserva } from './pagar-reserva/pagar-reserva';
 
 
 export const routes: Routes = [
@@ -29,4 +30,5 @@ export const routes: Routes = [
   { path: 'inicio-mi-cuenta', component: InicioMiCuenta },
   { path: 'reset-password', component: ResetPassword },
   { path: 'oauth2/redirect', component: Oauth2Redirect },
+  { path: 'pagar-reserva', component: PagarReserva },
 ];

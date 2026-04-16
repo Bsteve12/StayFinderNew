@@ -27,9 +27,9 @@ public class FavoriteServiceImpl implements FavoriteServiceInterface {
 
     @Override
     public FavoriteResponseDTO addFavorite(FavoriteRequestDTO dto) throws Exception {
-        // validar usuario
-        Usuario usuario = usuarioRepository.findById(dto.usuarioId())
-                .orElseThrow(() -> new Exception("Usuario no existe"));
+        // validar usuario (Soporta ID/Cédula)
+        Usuario usuario = usuarioRepository.findAnyById(dto.usuarioId())
+                .orElseThrow(() -> new Exception("Usuario no existe con ID/Cédula: " + dto.usuarioId()));
 
         // validar alojamiento
         Alojamiento alojamiento = alojamientoRepository.findById(dto.alojamientoId())
@@ -54,7 +54,11 @@ public class FavoriteServiceImpl implements FavoriteServiceInterface {
         Favorite favorite = favoriteRepository.findById(favoriteId)
                 .orElseThrow(() -> new Exception("Favorito no encontrado"));
 
-        if (!favorite.getUsuario().getId().equals(userId)) {
+        // Resolver ID primario del usuario actor de forma segura
+        Usuario actor = usuarioRepository.findAnyById(userId)
+                .orElseThrow(() -> new Exception("Usuario no encontrado con ID/Cédula: " + userId));
+
+        if (!favorite.getUsuario().getId().equals(actor.getId())) {
             throw new Exception("No tienes permisos para eliminar este favorito");
         }
 
@@ -63,8 +67,8 @@ public class FavoriteServiceImpl implements FavoriteServiceInterface {
 
     @Override
     public List<FavoriteResponseDTO> listFavoritesByUsuario(Long usuarioId) throws Exception {
-        Usuario usuario = usuarioRepository.findById(usuarioId)
-                .orElseThrow(() -> new Exception("Usuario no existe"));
+        Usuario usuario = usuarioRepository.findAnyById(usuarioId)
+                .orElseThrow(() -> new Exception("Usuario no existe con ID/Cédula: " + usuarioId));
 
         List<Favorite> list = favoriteRepository.findByUsuario(usuario);
         return list.stream()
@@ -74,8 +78,8 @@ public class FavoriteServiceImpl implements FavoriteServiceInterface {
 
     @Override
     public boolean isFavorito(Long usuarioId, Long alojamientoId) throws Exception {
-        Usuario usuario = usuarioRepository.findById(usuarioId)
-                .orElseThrow(() -> new Exception("Usuario no existe"));
+        Usuario usuario = usuarioRepository.findAnyById(usuarioId)
+                .orElseThrow(() -> new Exception("Usuario no existe con ID/Cédula: " + usuarioId));
 
         Alojamiento alojamiento = alojamientoRepository.findById(alojamientoId)
                 .orElseThrow(() -> new Exception("Alojamiento no existe"));

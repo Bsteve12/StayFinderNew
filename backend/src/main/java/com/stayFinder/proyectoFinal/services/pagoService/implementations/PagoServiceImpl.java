@@ -23,6 +23,7 @@ public class PagoServiceImpl implements PagoServiceInterface {
     private final PagoMapper mapper;
 
     @Override
+    @org.springframework.transaction.annotation.Transactional
     public PagoResponseDTO registrarPago(PagoRequestDTO dto) {
         Reserva reserva = reservaRepo.findById(dto.getReservaId())
                 .orElseThrow(() -> new RuntimeException("Reserva no encontrada"));
@@ -40,7 +41,13 @@ public class PagoServiceImpl implements PagoServiceInterface {
                 .fecha(LocalDateTime.now())
                 .build();
 
-        return mapper.toDto(pagoRepo.save(pago));
+        Pago saved = pagoRepo.save(pago);
+
+        // 🔹 Al registrar el pago, la reserva pasa a CONFIRMADA automáticamente
+        reserva.setEstado(com.stayFinder.proyectoFinal.entity.enums.EstadoReserva.CONFIRMADA);
+        reservaRepo.save(reserva);
+
+        return mapper.toDto(saved);
     }
 
     @Override
@@ -54,4 +61,12 @@ public class PagoServiceImpl implements PagoServiceInterface {
                 .map(mapper::toDto)
                 .orElseThrow(() -> new RuntimeException("Pago no encontrado"));
     }
+
+    @Override
+    public PagoResponseDTO obtenerPagoPorReservaId(Long reservaId) {
+        return pagoRepo.findByReservaId(reservaId)
+                .map(mapper::toDto)
+                .orElseThrow(() -> new RuntimeException("No se encontró pago para la reserva #" + reservaId));
+    }
 }
+

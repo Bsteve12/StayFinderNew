@@ -14,6 +14,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/pagos")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "${frontend.url}")
 public class PagoController {
 
     private final PagoServiceInterface pagoService;
@@ -37,5 +38,11 @@ public class PagoController {
     @ApiResponse(responseCode = "200", description = "Pago encontrado")
     public ResponseEntity<PagoResponseDTO> obtenerPago(@PathVariable Long id) {
         return ResponseEntity.ok(pagoService.obtenerPagoPorId(id));
+    }
+    @GetMapping("/reserva/{reservaId}")
+    @Operation(summary = "Obtener pago por ID de reserva")
+    @ApiResponse(responseCode = "200", description = "Pago encontrado")
+    public ResponseEntity<PagoResponseDTO> obtenerPagoPorReserva(@PathVariable Long reservaId) {
+        return ResponseEntity.ok(pagoService.obtenerPagoPorReservaId(reservaId));
     }
 }

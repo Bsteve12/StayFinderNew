@@ -40,6 +40,9 @@ public class SolicitudOwner {
 
     //  ruta del documento subido (PDF)
     private String documentoRuta;
+
+    private String comentarioAdmin; // Respuesta del administrador
+
     @ManyToOne
     @JoinColumn(name = "admin_id")
     private Usuario adminRevisor; // Admin que revisa la solicitud

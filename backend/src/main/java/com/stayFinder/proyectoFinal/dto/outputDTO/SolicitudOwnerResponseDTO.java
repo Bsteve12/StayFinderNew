@@ -20,6 +20,8 @@ public record SolicitudOwnerResponseDTO(
                 @Schema(description = "Ruta o URL del documento cargado como soporte", example = "https://cdn.stayfinder.com/documentos/solicitud45.pdf") String documentoRuta,
 
                 @Schema(description = "Fecha en que se envió la solicitud", example = "2025-03-20T14:45:00") LocalDateTime fechaSolicitud,
+                
+                @Schema(description = "Respuesta del administrador", example = "Documentación correcta.") String comentarioAdmin,
 
                 @Schema(description = "Fecha en que fue revisada la solicitud (si aplica)", example = "2025-03-22T09:10:00") LocalDateTime fechaRevision) {
 }

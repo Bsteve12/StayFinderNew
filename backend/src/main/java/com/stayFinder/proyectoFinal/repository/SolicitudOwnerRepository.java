@@ -7,4 +7,6 @@ import java.util.List;
 
 public interface SolicitudOwnerRepository extends JpaRepository<SolicitudOwner, Long> {
     List<SolicitudOwner> findByEstado(EstadoSolicitud estado);
+    List<SolicitudOwner> findByUsuario_UsuarioId(Long usuarioId);
+    List<SolicitudOwner> findByUsuario_Id(Long id);
 }

@@ -1626,3 +1626,112 @@
         }
     }
 }
+
+// ============================================
+// 🔹 Historial Reservas — Estado Badges + Acciones
+// ============================================
+.historial-item {
+    display: grid;
+    grid-template-columns: 120px 1fr auto;
+    gap: 20px;
+    align-items: center;
+    padding: 20px;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    margin-bottom: 16px;
+    background: white;
+    transition: all 0.3s ease;
+
+    &:hover {
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+        border-color: #c4b5fd;
+    }
+
+    .historial-image {
+        width: 120px;
+        height: 90px;
+        object-fit: cover;
+        border-radius: 12px;
+    }
+
+    .historial-content {
+        flex: 1;
+
+        h3 {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1e1b4b;
+            margin: 0 0 6px;
+        }
+
+        .usuario, .fechas, .huespedes {
+            color: #6b7280;
+            font-size: 14px;
+            margin: 4px 0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+
+            i { color: #7c3aed; }
+        }
+
+        .reserva-estado-row {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-top: 8px;
+
+            .precio {
+                color: #7c3aed;
+                font-weight: 700;
+                font-size: 16px;
+                margin: 0;
+            }
+        }
+    }
+
+    .historial-actions-col {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        min-width: 120px;
+        align-items: flex-end;
+
+        .no-actions-label {
+            font-size: 12px;
+            color: #9ca3af;
+            font-style: italic;
+        }
+    }
+}
+
+// Estado Badges para Reservas
+.estado-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.reserva-estado-confirmada {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.reserva-estado-pendiente {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.reserva-estado-cancelada {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.reserva-estado-completada {
+    background: #dbeafe;
+    color: #1e40af;
+}

@@ -16,4 +16,6 @@ public interface SolicitudOwnerServiceInterface {
     List<SolicitudOwnerResponseDTO> listarSolicitudesPendientes() throws Exception;
 
     Resource descargarDocumento(Long id) throws Exception;
+
+    List<SolicitudOwnerResponseDTO> obtenerSolicitudesPorUsuario(Long usuarioId) throws Exception;
 }

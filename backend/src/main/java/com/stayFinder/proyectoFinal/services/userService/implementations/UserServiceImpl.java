@@ -88,6 +88,7 @@ public class UserServiceImpl implements UserServiceInterface {
                 Usuario usuario = user.get();
 
                 String token = jwtUtil.GenerateToken(
+                        usuario.getId(),
                         usuario.getUsuarioId(),
                         usuario.getEmail(),
                         usuario.getRole(),
@@ -104,12 +105,12 @@ public class UserServiceImpl implements UserServiceInterface {
 
     @Override
     public UsuarioResponseDTO updateUser(Long usuarioId, UpdateUserDTO dto, Long actorUsuarioId) throws Exception {
-        Usuario actor = usuarioRepository.findByUsuarioId(actorUsuarioId)
-                .orElseThrow(() -> new Exception("Usuario actor no encontrado"));
-        Usuario usuario = usuarioRepository.findByUsuarioId(usuarioId)
-                .orElseThrow(() -> new Exception("Usuario no encontrado"));
+        Usuario actor = usuarioRepository.findAnyById(actorUsuarioId)
+                .orElseThrow(() -> new Exception("Usuario actor no encontrado con ID/Cédula: " + actorUsuarioId));
+        Usuario usuario = usuarioRepository.findAnyById(usuarioId)
+                .orElseThrow(() -> new Exception("Usuario no encontrado con ID/Cédula: " + usuarioId));
 
-        if (!actor.getUsuarioId().equals(usuario.getUsuarioId()) && actor.getRole() != Role.ADMIN) {
+        if (!actor.getId().equals(usuario.getId()) && actor.getRole() != Role.ADMIN) {
             throw new Exception("No tienes permisos para actualizar este usuario");
         }
 
@@ -126,12 +127,12 @@ public class UserServiceImpl implements UserServiceInterface {
 
     @Override
     public void deleteUser(Long usuarioId, Long actorUsuarioId) throws Exception {
-        Usuario actor = usuarioRepository.findByUsuarioId(actorUsuarioId)
-                .orElseThrow(() -> new Exception("Usuario actor no encontrado"));
-        Usuario usuario = usuarioRepository.findByUsuarioId(usuarioId)
-                .orElseThrow(() -> new Exception("Usuario no encontrado"));
+        Usuario actor = usuarioRepository.findAnyById(actorUsuarioId)
+                .orElseThrow(() -> new Exception("Usuario actor no encontrado con ID/Cédula: " + actorUsuarioId));
+        Usuario usuario = usuarioRepository.findAnyById(usuarioId)
+                .orElseThrow(() -> new Exception("Usuario no encontrado con ID/Cédula: " + usuarioId));
 
-        if (!actor.getUsuarioId().equals(usuario.getUsuarioId()) && actor.getRole() != Role.ADMIN) {
+        if (!actor.getId().equals(usuario.getId()) && actor.getRole() != Role.ADMIN) {
             throw new Exception("No tienes permisos para eliminar este usuario");
         }
 
@@ -140,13 +141,13 @@ public class UserServiceImpl implements UserServiceInterface {
 
     @Override
     public UsuarioResponseDTO assignRole(Long usuarioId, Role newRole, Long adminUsuarioId) throws Exception {
-        Usuario admin = usuarioRepository.findByUsuarioId(adminUsuarioId)
-                .orElseThrow(() -> new Exception("Admin no encontrado"));
+        Usuario admin = usuarioRepository.findAnyById(adminUsuarioId)
+                .orElseThrow(() -> new Exception("Admin no encontrado con ID/Cédula: " + adminUsuarioId));
         if (admin.getRole() != Role.ADMIN)
             throw new Exception("No autorizado para asignar roles");
 
-        Usuario usuario = usuarioRepository.findByUsuarioId(usuarioId)
-                .orElseThrow(() -> new Exception("Usuario no encontrado"));
+        Usuario usuario = usuarioRepository.findAnyById(usuarioId)
+                .orElseThrow(() -> new Exception("Usuario no encontrado con ID/Cédula: " + usuarioId));
 
         usuario.setRole(newRole);
         return usuarioMapper.toDto(usuarioRepository.save(usuario));
@@ -182,15 +183,13 @@ public class UserServiceImpl implements UserServiceInterface {
 
     public UsuarioResponseDTO uploadProfileImage(Long usuarioId, org.springframework.web.multipart.MultipartFile imagen,
             Long actorUsuarioId) throws Exception {
-        // actorUsuarioId viene de user.getId() (Primary Key DB), no del
-        // documento/cedula.
-        Usuario actor = usuarioRepository.findById(actorUsuarioId)
-                .orElseThrow(() -> new Exception("Usuario actor no encontrado"));
-        // usuarioId viene de la URL, el frontend asume que es el documento (cedula)
-        Usuario usuario = usuarioRepository.findByUsuarioId(usuarioId)
-                .orElseThrow(() -> new Exception("Usuario destino no encontrado"));
+        // Mejorado: Resolución híbrida para actor y destino
+        Usuario actor = usuarioRepository.findAnyById(actorUsuarioId)
+                .orElseThrow(() -> new Exception("Usuario actor no encontrado con ID/Cédula: " + actorUsuarioId));
+        Usuario usuario = usuarioRepository.findAnyById(usuarioId)
+                .orElseThrow(() -> new Exception("Usuario destino no encontrado con ID/Cédula: " + usuarioId));
 
-        if (!actor.getUsuarioId().equals(usuario.getUsuarioId()) && actor.getRole() != Role.ADMIN) {
+        if (!actor.getId().equals(usuario.getId()) && actor.getRole() != Role.ADMIN) {
             throw new Exception("No tienes permisos para actualizar este usuario");
         }
 

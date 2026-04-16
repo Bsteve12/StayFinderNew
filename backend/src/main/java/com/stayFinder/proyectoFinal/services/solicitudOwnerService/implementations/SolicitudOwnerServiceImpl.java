@@ -45,9 +45,9 @@ public class SolicitudOwnerServiceImpl implements SolicitudOwnerServiceInterface
     public SolicitudOwnerResponseDTO crearSolicitud(SolicitudOwnerRequestDTO dto, MultipartFile documento)
             throws Exception {
 
-        // Forzamos la limpieza de caché buscando el usuario directamente
-        Usuario usuario = usuarioRepo.findByUsuarioId(dto.usuarioId())
-                .orElseThrow(() -> new Exception("Usuario no encontrado"));
+        // Resolución híbrida por ID o Cédula
+        Usuario usuario = usuarioRepo.findAnyById(dto.usuarioId())
+                .orElseThrow(() -> new Exception("Usuario no encontrado con ID/Cédula: " + dto.usuarioId()));
 
         // Debug log para verificar qué rol está llegando (puedes verlo en consola)
         System.out.println(
@@ -102,7 +102,7 @@ public class SolicitudOwnerServiceImpl implements SolicitudOwnerServiceInterface
 
         solicitud.setAdminRevisor(admin);
         solicitud.setFechaRevision(LocalDateTime.now());
-        solicitud.setComentario(dto.comentario());
+        solicitud.setComentarioAdmin(dto.comentario()); // Usar el nuevo campo para la respuesta del admin
 
         if (LocalDateTime.now().isAfter(limite)) {
             solicitud.setEstado(EstadoSolicitud.RECHAZADA);
@@ -230,5 +230,24 @@ public class SolicitudOwnerServiceImpl implements SolicitudOwnerServiceInterface
             }
         }
         return actual;
+    }
+
+    @Override
+    public List<SolicitudOwnerResponseDTO> obtenerSolicitudesPorUsuario(Long usuarioId) throws Exception {
+        // Resolver el usuario por cualquiera de sus IDs
+        Usuario usuario = usuarioRepo.findAnyById(usuarioId)
+                .orElseThrow(() -> new Exception("Usuario no encontrado con ID/Cédula: " + usuarioId));
+
+        // Búsqueda Redundante: Buscar por ID Primario Y por Cédula para no perder nada
+        List<SolicitudOwner> porId = solicitudRepo.findByUsuario_Id(usuario.getId());
+        List<SolicitudOwner> porCedula = solicitudRepo.findByUsuario_UsuarioId(usuario.getUsuarioId());
+
+        // Combinar ambas listas (evitando duplicados por ID de la solicitud)
+        java.util.Set<SolicitudOwner> todas = new java.util.LinkedHashSet<>(porId);
+        todas.addAll(porCedula);
+
+        return todas.stream()
+                .map(mapper::toDto)
+                .collect(Collectors.toList());
     }
 }

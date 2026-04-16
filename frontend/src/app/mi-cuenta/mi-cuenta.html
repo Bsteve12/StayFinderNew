@@ -81,12 +81,8 @@
 
           <div class="profile-info">
             <div class="info-item">
-              <span class="label">Miembro desde:</span>
-              <span class="value">Enero 2024</span>
-            </div>
-            <div class="info-item">
               <span class="label">Reservas totales:</span>
-              <span class="value">5</span>
+              <span class="value">{{ historial.length + reservas.length }}</span>
             </div>
             <div class="info-item">
               <span class="label">Favoritos:</span>
@@ -112,7 +108,11 @@
 
         <div class="reservas-grid" *ngIf="!loadingReservas && reservas.length > 0">
           <div class="reserva-card" *ngFor="let reserva of reservas">
-            <img [src]="reserva.alojamientoImagen" [alt]="reserva.alojamientoNombre" class="reserva-image" />
+            <img
+              [src]="reserva.alojamientoImagen || 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=400'"
+              [alt]="reserva.alojamientoNombre"
+              class="reserva-image"
+              onerror="this.src='https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=400'" />
             <div class="reserva-content">
               <h3>{{ reserva.alojamientoNombre }}</h3>
               <div class="reserva-dates">
@@ -125,12 +125,18 @@
                 </span>
                 <span class="precio">${{ reserva.precioTotal | number }}</span>
               </div>
-              <button pButton label="Ver Detalles" class="detail-button"
-                (click)="verDetalleReserva(reserva.id)"></button>
+              <div class="reserva-actions">
+                <button pButton label="Cancelar Reserva" icon="pi pi-times"
+                  class="p-button-outlined p-button-danger cancel-btn"
+                  *ngIf="reserva.estado === 'PENDIENTE' || reserva.estado === 'CONFIRMADA'"
+                  (click)="cancelarReserva(reserva.id)">
+                </button>
+              </div>
             </div>
           </div>
         </div>
       </div>
+
 
       <!-- Vista: Favoritos -->
       <div *ngIf="currentView === 'favoritos'" class="favoritos-view">
@@ -179,26 +185,79 @@
 
         <div class="historial-list" *ngIf="!loadingHistorial && historial.length > 0">
           <div class="historial-item" *ngFor="let item of historial">
-            <img [src]="item.alojamientoImagen" [alt]="item.alojamientoNombre" class="historial-image" />
+            <img
+              [src]="item.alojamientoImagen || 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=400'"
+              [alt]="item.alojamientoNombre"
+              class="historial-image"
+              onerror="this.src='https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=400'" />
             <div class="historial-content">
               <h3>{{ item.alojamientoNombre }}</h3>
               <div class="historial-info">
                 <span class="fecha">
                   <i class="pi pi-calendar"></i>
-                  {{ formatDate(item.fechaInicio) }} - {{ formatDate(item.fechaFin) }}
+                  {{ formatDate(item.fechaInicio) }} — {{ formatDate(item.fechaFin) }}
                 </span>
                 <span class="estado" [ngClass]="getEstadoClass(item.estado)">
                   {{ item.estado }}
                 </span>
               </div>
-              <p class="precio-total">Total: ${{ item.precioTotal | number }}</p>
+              <p class="precio-total">Total: ${{ item.precioTotal | number:'1.0-0' }} COP</p>
             </div>
             <div class="historial-actions">
-              <button pButton label="Ver Detalles" class="p-button-outlined"></button>
+              <!-- Si está pendiente de pago, mostrar botón de pagar -->
+              <a *ngIf="item.estado === 'PENDIENTE'"
+                [routerLink]="['/pagar-reserva']"
+                [queryParams]="{ reservaId: item.id || item['reservaId'], monto: item.precioTotal, alojamiento: item.alojamientoNombre }"
+                class="btn-pagar-pendiente">
+                <i class="pi pi-credit-card"></i> Pagar ahora
+              </a>
+              <button *ngIf="item.estado !== 'PENDIENTE'" pButton label="Ver Detalles" class="p-button-outlined"></button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Vista: Solicitudes (WIP) -->
+      <div *ngIf="currentView === 'solicitudes'" class="solicitudes-view">
+        <div *ngIf="loadingSolicitudes" class="loading">
+          <i class="pi pi-spin pi-spinner"></i>
+          <p>Cargando solicitudes...</p>
+        </div>
+
+        <div *ngIf="!loadingSolicitudes && solicitudes.length === 0" class="empty-state">
+          <i class="pi pi-briefcase"></i>
+          <p>No tienes solicitudes activas para anfitrión</p>
+        </div>
+
+        <div class="reservas-grid" *ngIf="!loadingSolicitudes && solicitudes.length > 0">
+          <div class="reserva-card" *ngFor="let sol of solicitudes">
+            <div class="reserva-header" style="align-items: center; gap: 10px;">
+              <i class="pi pi-file-pdf" style="font-size: 2rem; color: #E74C3C;"></i>
+              <div class="alojamiento-info" style="flex: 1;">
+                <h3 style="margin: 0; font-size: 1.1rem; color: #2C3E50;">Solicitud para Anfitrión</h3>
+                <p style="margin: 4px 0 0; color: #7F8C8D; font-size: 0.9rem;">
+                  ID: #{{ sol.id }} - Fecha: {{ sol.fechaSolicitud | date:'dd/MM/yyyy' }}
+                </p>
+              </div>
+            </div>
+            <div class="reserva-body">
+              <div class="reserva-detalles">
+                <p><strong>Comentario de la Postulación:</strong> {{ sol.comentario || 'Ninguno' }}</p>
+                <p><strong>Respuesta del Administrador:</strong> {{ sol.comentarioAdmin || 'Aún no hay respuesta (En revisión)' }}</p>
+              </div>
+              <div class="reserva-estado">
+                <span class="estado-badge" [ngClass]="{
+                  'estado-pendiente': sol.estado === 'PENDIENTE',
+                  'estado-confirmada': sol.estado === 'APROBADA',
+                  'estado-cancelada': sol.estado === 'RECHAZADA'
+                }">
+                  {{ sol.estado }}
+                </span>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
   </main>
-</div>
+</div>

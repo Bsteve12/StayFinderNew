@@ -15,6 +15,7 @@ import com.stayFinder.proyectoFinal.repository.AlojamientoRepository;
 import com.stayFinder.proyectoFinal.repository.ReservaRepository;
 import com.stayFinder.proyectoFinal.repository.UsuarioRepository;
 import com.stayFinder.proyectoFinal.services.reservaService.interfaces.ReservaServiceInterface;
+import org.springframework.transaction.annotation.Transactional;
 import com.stayFinder.proyectoFinal.services.emailService.interfaces.EmailServiceInterface;
 import org.springframework.stereotype.Service;
 
@@ -47,6 +48,7 @@ public class ReservaServiceImpl implements ReservaServiceInterface {
     // ------------------------- MÉTODOS EXISTENTES -------------------------
 
     @Override
+    @Transactional
     public ReservaResponseDTO createReserva(ReservaRequestDTO dto, Long userId) throws Exception {
         // Usamos findById porque el Auth Token devuelve el ID autoincremental de base
         // de datos
@@ -59,6 +61,18 @@ public class ReservaServiceImpl implements ReservaServiceInterface {
         validarFechas(dto.fechaInicio(), dto.fechaFin());
         validarCapacidad(dto.numeroHuespedes(), alojamiento.getCapacidadMaxima());
         validarDisponibilidad(dto.fechaInicio(), dto.fechaFin(), alojamiento.getId());
+
+        // 🔹 Guardia adicional anti-spam: Si ESTE MISMO usuario ya tiene una reserva PENDIENTE
+        // para este MISMO alojamiento en MISMAS fechas, lanzar error para evitar duplicados en UI
+        List<Reserva> misPendientes = reservaRepository.findByAlojamientoIdAndEstado(alojamiento.getId(), EstadoReserva.PENDIENTE);
+        boolean duplicateSpam = misPendientes.stream().anyMatch(r ->
+            r.getUsuario().getId().equals(usuario.getId()) &&
+            r.getFechaInicio().equals(dto.fechaInicio()) &&
+            r.getFechaFin().equals(dto.fechaFin())
+        );
+        if (duplicateSpam) {
+            throw new Exception("Ya tienes una reserva PENDIENTE para este mismo alojamiento y fechas. Proceda a pagarla en su historial.");
+        }
 
         Reserva reserva = reservaMapper.toEntity(dto);
         reserva.setUsuario(usuario);
@@ -80,6 +94,7 @@ public class ReservaServiceImpl implements ReservaServiceInterface {
     }
 
     @Override
+    @Transactional
     public void cancelarReserva(CancelarReservaRequestDTO dto, Long userId) throws Exception {
         Reserva reserva = obtenerReservaValida(dto.reservaId(), userId);
 
@@ -153,13 +168,23 @@ public class ReservaServiceImpl implements ReservaServiceInterface {
 
     @Override
     public List<ReservaResponseDTO> obtenerReservasUsuario(Long usuarioId) throws Exception {
-        // Verificar la existencia del usuario usando su PK de Base de datos
-        usuarioRepository.findById(usuarioId)
-                .orElseThrow(() -> new Exception("Usuario no existe"));
+        // Resolver usuario de Forma Híbrida (ID o Cédula)
+        Usuario usuario = usuarioRepository.findAnyById(usuarioId)
+                .orElseThrow(() -> new Exception("Usuario no existe con ID/Cédula: " + usuarioId));
 
         // Se mantiene findByUsuarioId aquí, asumiendo que el método en
         // ReservaRepository busca por la FK (usuario_id)
-        return reservaRepository.findByUsuarioId(usuarioId)
+        return reservaRepository.findByUsuarioId(usuario.getId())
+                .stream()
+                .map(reservaMapper::toDto)
+                .toList();
+    }
+
+    @Override
+    public List<ReservaResponseDTO> obtenerReservasPorAlojamiento(Long alojamientoId) throws Exception {
+        alojamientoRepository.findById(alojamientoId)
+                .orElseThrow(() -> new Exception("Alojamiento no encontrado"));
+        return reservaRepository.findByAlojamientoId(alojamientoId)
                 .stream()
                 .map(reservaMapper::toDto)
                 .toList();
@@ -175,9 +200,9 @@ public class ReservaServiceImpl implements ReservaServiceInterface {
         Alojamiento alojamiento = alojamientoRepository.findById(dto.alojamientoId())
                 .orElseThrow(() -> new Exception("Alojamiento no existe"));
 
-        // Buscar por el PK de Base de datos (usuarioId) del DTO
-        Usuario usuario = usuarioRepository.findById(dto.usuarioId())
-                .orElseThrow(() -> new Exception("Usuario no existe"));
+        // Buscar por el PK o Cédula de Base de datos (usuarioId) del DTO
+        Usuario usuario = usuarioRepository.findAnyById(dto.usuarioId())
+                .orElseThrow(() -> new Exception("Usuario no existe con ID/Cédula: " + dto.usuarioId()));
 
         Reserva reserva = reservaMapper.toEntity(dto);
         reserva.setUsuario(usuario);
@@ -198,12 +223,14 @@ public class ReservaServiceImpl implements ReservaServiceInterface {
     // ------------------------- NUEVOS MÉTODOS: HISTORIAL -------------------------
 
     @Override
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public List<ReservaHistorialResponseDTO> historialReservasUsuario(Long usuarioId,
             HistorialReservasRequestDTO filtros) throws Exception {
-        usuarioRepository.findById(usuarioId)
-                .orElseThrow(() -> new Exception("Usuario no existe"));
+        // Resolver usuario de Forma Híbrida para Historial
+        Usuario usuario = usuarioRepository.findAnyById(usuarioId)
+                .orElseThrow(() -> new Exception("Usuario no encontrado con ID/Cédula: " + usuarioId));
 
-        List<Reserva> reservas = reservaRepository.findByUsuarioId(usuarioId);
+        List<Reserva> reservas = reservaRepository.findByUsuarioId(usuario.getId());
 
         return reservas.stream()
                 .filter(r -> filtros.fechaInicio() == null || !r.getFechaInicio().isBefore(filtros.fechaInicio()))
@@ -213,8 +240,7 @@ public class ReservaServiceImpl implements ReservaServiceInterface {
                         r.getId(),
                         r.getAlojamiento().getId(),
                         r.getAlojamiento().getNombre(),
-                        (!r.getAlojamiento().getImagenes().isEmpty() ? r.getAlojamiento().getImagenes().get(0).getUrl()
-                                : null),
+                        (r.getAlojamiento().getImagenes() != null && !r.getAlojamiento().getImagenes().isEmpty() ? r.getAlojamiento().getImagenes().get(0).getUrl() : null),
                         r.getUsuario().getId(),
                         r.getUsuario().getNombre(),
                         r.getFechaInicio(),
@@ -228,12 +254,13 @@ public class ReservaServiceImpl implements ReservaServiceInterface {
     }
 
     @Override
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public List<ReservaHistorialResponseDTO> historialReservasAnfitrion(Long ownerId,
             HistorialReservasRequestDTO filtros) throws Exception {
-        usuarioRepository.findById(ownerId)
+        Usuario owner = usuarioRepository.findByUsuarioId(ownerId)
                 .orElseThrow(() -> new Exception("Usuario no existe"));
 
-        List<Alojamiento> alojamientos = alojamientoRepository.findByOwnerId(ownerId);
+        List<Alojamiento> alojamientos = alojamientoRepository.findByOwnerId(owner.getId());
 
         return alojamientos.stream()
                 .flatMap(a -> reservaRepository.findByAlojamientoId(a.getId()).stream())
@@ -244,8 +271,7 @@ public class ReservaServiceImpl implements ReservaServiceInterface {
                         r.getId(),
                         r.getAlojamiento().getId(),
                         r.getAlojamiento().getNombre(),
-                        (!r.getAlojamiento().getImagenes().isEmpty() ? r.getAlojamiento().getImagenes().get(0).getUrl()
-                                : null),
+                        (r.getAlojamiento().getImagenes() != null && !r.getAlojamiento().getImagenes().isEmpty() ? r.getAlojamiento().getImagenes().get(0).getUrl() : null),
                         r.getUsuario().getId(),
                         r.getUsuario().getNombre(),
                         r.getFechaInicio(),
@@ -276,9 +302,13 @@ public class ReservaServiceImpl implements ReservaServiceInterface {
     }
 
     private void validarDisponibilidad(LocalDate inicio, LocalDate fin, Long alojamientoId) throws Exception {
-        List<Reserva> reservas = reservaRepository.findByAlojamientoIdAndEstado(alojamientoId,
-                EstadoReserva.CONFIRMADA);
-        for (Reserva r : reservas) {
+        // Verificar contra reservas CONFIRMADAS y PENDIENTES para evitar doble reserva
+        List<Reserva> confirmadas = reservaRepository.findByAlojamientoIdAndEstado(alojamientoId, EstadoReserva.CONFIRMADA);
+        List<Reserva> pendientes = reservaRepository.findByAlojamientoIdAndEstado(alojamientoId, EstadoReserva.PENDIENTE);
+        List<Reserva> todasActivas = new java.util.ArrayList<>();
+        todasActivas.addAll(confirmadas);
+        todasActivas.addAll(pendientes);
+        for (Reserva r : todasActivas) {
             if (!(fin.isBefore(r.getFechaInicio()) || inicio.isAfter(r.getFechaFin()))) {
                 throw new Exception("El alojamiento no está disponible en las fechas seleccionadas");
             }
@@ -342,6 +372,7 @@ public class ReservaServiceImpl implements ReservaServiceInterface {
     }
 
     @Override
+    @Transactional
     public ReservaResponseDTO createReservaBasica(CreateReservaRequestDTO dto, Long usuarioId) throws Exception {
         // Buscar usando la PK base de datos
         Usuario usuario = usuarioRepository.findById(usuarioId)
@@ -355,6 +386,9 @@ public class ReservaServiceImpl implements ReservaServiceInterface {
         if (fechaReserva.isBefore(LocalDate.now())) {
             throw new Exception("La fecha de reserva no puede ser en el pasado");
         }
+
+        // Validar disponibilidad para evitar doble reserva
+        validarDisponibilidad(fechaReserva, fechaReserva.plusDays(1), alojamiento.getId());
 
         // Crear la reserva con estado PENDIENTE
         Reserva reserva = Reserva.builder()

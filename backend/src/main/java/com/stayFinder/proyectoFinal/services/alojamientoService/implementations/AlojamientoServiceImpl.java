@@ -49,8 +49,9 @@ public class AlojamientoServiceImpl implements AlojamientoServiceInterface {
 
     @Override
     public AlojamientoResponseDTO crear(AlojamientoRequestDTO req, Long ownerId) {
-        Usuario owner = usuarioRepo.findByUsuarioId(ownerId)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        // Resolución híbrida para el creador del alojamiento
+        Usuario owner = usuarioRepo.findAnyById(ownerId)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID/Cédula: " + ownerId));
 
         // Validación de roles permitidos
         if (!(owner.getRole().equals(Role.OWNER) || owner.getRole().equals(Role.ADMIN))) {
@@ -111,8 +112,12 @@ public class AlojamientoServiceImpl implements AlojamientoServiceInterface {
             throw new RuntimeException("El alojamiento fue eliminado");
         }
 
-        if (!alojamiento.getOwner().getUsuarioId().equals(ownerId)) {
-            throw new RuntimeException("No puedes editar un alojamiento que no es tuyo");
+        // Resolución híbrida del owner para validar autoría
+        Usuario owner = usuarioRepo.findAnyById(ownerId)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID/Cédula: " + ownerId));
+
+        if (!alojamiento.getOwner().getId().equals(owner.getId()) && owner.getRole() != Role.ADMIN) {
+            throw new RuntimeException("No tienes permisos para editar este alojamiento");
         }
 
         alojamiento.setNombre(req.nombre());
@@ -156,8 +161,9 @@ public class AlojamientoServiceImpl implements AlojamientoServiceInterface {
     }
 
     public List<AlojamientoResponseDTO> obtenerAlojamientosDeOwner(Long ownerId) {
-        Usuario owner = usuarioRepo.findByUsuarioId(ownerId)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        // Mejorado: Buscar por CUALQUIERA de los dos identificadores para evitar "datos borrados" en sesiones antiguas
+        Usuario owner = usuarioRepo.findAnyById(ownerId)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID/Cédula: " + ownerId));
                 
         return alojamientoRepo.findByOwnerIdAndEliminadoFalse(owner.getId()).stream()
                 .map(a -> {
@@ -231,8 +237,12 @@ public class AlojamientoServiceImpl implements AlojamientoServiceInterface {
         Alojamiento alojamiento = alojamientoRepo.findById(alojamientoId)
                 .orElseThrow(() -> new RuntimeException("Alojamiento no encontrado"));
 
-        if (!alojamiento.getOwner().getUsuarioId().equals(ownerId)) {
-            throw new RuntimeException("No puedes eliminar un alojamiento que no es tuyo");
+        // Resolución híbrida del owner para validación de permisos
+        Usuario owner = usuarioRepo.findAnyById(ownerId)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID/Cédula: " + ownerId));
+
+        if (!alojamiento.getOwner().getId().equals(owner.getId()) && owner.getRole() != Role.ADMIN) {
+            throw new RuntimeException("No tienes permisos para eliminar este alojamiento");
         }
 
         // Validar reservas futuras confirmadas antes de marcar como eliminado
@@ -295,7 +305,11 @@ public class AlojamientoServiceImpl implements AlojamientoServiceInterface {
         Alojamiento alojamiento = alojamientoRepo.findById(alojamientoId)
                 .orElseThrow(() -> new RuntimeException("Alojamiento no encontrado"));
                 
-        if (!alojamiento.getOwner().getUsuarioId().equals(ownerId) && !alojamiento.getOwner().getRole().equals(Role.ADMIN)) {
+        // Resolución híbrida del owner para validación de permisos
+        Usuario actor = usuarioRepo.findAnyById(ownerId)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID/Cédula: " + ownerId));
+
+        if (!alojamiento.getOwner().getId().equals(actor.getId()) && actor.getRole() != Role.ADMIN) {
             throw new RuntimeException("No tienes permisos para cambiar el estado de este alojamiento");
         }
         
@@ -314,8 +328,12 @@ public class AlojamientoServiceImpl implements AlojamientoServiceInterface {
         Alojamiento alojamiento = alojamientoRepo.findById(alojamientoId)
                 .orElseThrow(() -> new RuntimeException("Alojamiento no encontrado"));
                 
-        if (!alojamiento.getOwner().getUsuarioId().equals(ownerId)) {
-            throw new RuntimeException("No puedes bloquear fechas de un alojamiento que no es tuyo");
+        // Resolución híbrida del owner para validación de permisos
+        Usuario owner = usuarioRepo.findAnyById(ownerId)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID/Cédula: " + ownerId));
+
+        if (!alojamiento.getOwner().getId().equals(owner.getId()) && owner.getRole() != Role.ADMIN) {
+            throw new RuntimeException("No tienes permisos para bloquear fechas de este alojamiento");
         }
         
         BloqueoDisponibilidad bloqueo = BloqueoDisponibilidad.builder()

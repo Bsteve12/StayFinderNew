@@ -302,11 +302,15 @@ export class Detalle implements OnInit {
     });
   }
 
+  procesandoReserva: boolean = false;
+
   onReserve() {
     if (!this.isAuthenticated || !this.usuarioId) {
       this.messageService.add({ severity: 'warn', summary: 'Atención', detail: 'Debes iniciar sesión para realizar una reserva.' });
       return;
     }
+    if (this.procesandoReserva) return;
+    this.procesandoReserva = true;
 
     const dialogRef = this.dialog.open(ReservaDialog, {
       width: '600px',
@@ -318,6 +322,7 @@ export class Detalle implements OnInit {
     });
 
     dialogRef.afterClosed().subscribe(result => {
+      this.procesandoReserva = false;
       if (result) {
         this.crearReserva(result);
       }
@@ -325,6 +330,9 @@ export class Detalle implements OnInit {
   }
 
   crearReserva(datos: any) {
+    if (this.procesandoReserva) return;
+    this.procesandoReserva = true;
+
     const reservaDTO: ReservaRequestDTO = {
       usuarioId: this.usuarioId!,
       alojamientoId: Number(this.alojamientoId()),
@@ -342,36 +350,29 @@ export class Detalle implements OnInit {
     ).subscribe({
       next: (reserva) => {
         console.log('Reserva creada:', reserva);
-        this.messageService.add({ severity: 'success', summary: 'Éxito', detail: `¡Reserva creada exitosamente!\n\nTotal: $${reserva.precioTotal.toLocaleString()}\nEstado: ${reserva.estado}` });
+        this.messageService.add({
+          severity: 'success',
+          summary: '¡Reserva creada!',
+          detail: `Tu reserva está PENDIENTE. Completa el pago para confirmarla.`
+        });
 
-        this.procesarPago(reserva);
+        // Redirigir a la página de pago con los datos de la reserva
+        setTimeout(() => {
+          this.router.navigate(['/pagar-reserva'], {
+            queryParams: {
+              reservaId: reserva.id,
+              monto: reserva.precioTotal,
+              alojamiento: reserva.alojamientoNombre || this.accommodation?.title || 'Alojamiento Reservado',
+              fechaInicio: reserva.fechaInicio,
+              fechaFin: reserva.fechaFin
+            }
+          });
+        }, 1500);
       },
       error: (error) => {
+        this.procesandoReserva = false;
         console.error('Error creando reserva:', error);
         this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error al crear la reserva. Por favor intenta nuevamente.' });
-      }
-    });
-  }
-
-  procesarPago(reserva: ReservaResponseDTO) {
-    const pagoDTO: PagoRequestDTO = {
-      reservaId: reserva.id,
-      monto: reserva.precioTotal,
-      metodoPago: 'TARJETA'
-    };
-
-    this.http.post(`${this.API_URL}/pagos`, pagoDTO).subscribe({
-      next: (pago) => {
-        console.log('Pago registrado:', pago);
-        this.messageService.add({ severity: 'success', summary: 'Éxito', detail: '¡Pago procesado exitosamente! Redirigiendo a tus reservas...' });
-
-        setTimeout(() => {
-          this.router.navigate(['/dashboard/reservas']);
-        }, 2000);
-      },
-      error: (error) => {
-        console.error('Error procesando pago:', error);
-        this.messageService.add({ severity: 'error', summary: 'Error de Pago', detail: 'Reserva creada pero hubo un error en el pago.\nPor favor contacta soporte con el ID de reserva: ' + reserva.id });
       }
     });
   }
@@ -387,6 +388,7 @@ export class Detalle implements OnInit {
     this.router.navigate(['/']);
   }
 }
+
 
 // ============================================
 // DIALOG DE RESERVA

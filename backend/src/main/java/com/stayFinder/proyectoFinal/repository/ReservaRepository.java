@@ -19,7 +19,8 @@ public interface ReservaRepository extends JpaRepository<Reserva, Long>, Reserva
     List<Reserva> findByAlojamientoId(Long alojamientoId);
 
     // Reservas confirmadas de un alojamiento
-    List<Reserva> findByAlojamientoIdAndEstado(Long alojamientoId, EstadoReserva estado);
+    @org.springframework.data.jpa.repository.Query("SELECT r FROM Reserva r WHERE r.alojamiento.id = :alojamientoId AND r.estado = :estado")
+    List<Reserva> findByAlojamientoIdAndEstado(@org.springframework.data.repository.query.Param("alojamientoId") Long alojamientoId, @org.springframework.data.repository.query.Param("estado") EstadoReserva estado);
 
     // Validar existencia de reserva de un usuario sobre un alojamiento de un owner con un estado específico
     boolean existsByUsuarioAndAlojamientoOwnerAndEstado(Usuario usuario, Usuario owner, EstadoReserva estado);

@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 @SpringBootApplication
 @EnableJpaAuditing
+@org.springframework.scheduling.annotation.EnableAsync
 public class GestionDeReservaApplication {
 
 	public static void main(String[] args) {

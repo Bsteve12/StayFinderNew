@@ -59,14 +59,19 @@ interface SolicitudPublicacionResponseDTO {
 
 interface ReservaHistorialResponseDTO {
   reservaId: number;
+  id?: number;
+  alojamientoId?: number;
   alojamientoNombre: string;
   alojamientoImagen: string;
   usuarioNombre: string;
+  usuarioId?: number;
   fechaInicio: string;
   fechaFin: string;
   estado: string;
   precioTotal: number;
   fechaReserva: string;
+  tipoReserva?: string;
+  numeroHuespedes?: number;
 }
 
 interface ServicioRequestDTO {
@@ -188,7 +193,8 @@ export class Anfitrion implements OnInit {
   ngOnInit() {
     this.auth.currentUser$.subscribe(user => {
       if (user) {
-        this.ownerId = user.id || 1;
+        this.ownerId = user.id || user.usuarioId || 0; // Preferir ID de base de datos
+        console.log('[Anfitrion] ownerId (PK) cargado:', this.ownerId);
         this.ownerNombre = user.nombre || 'Nombre del Anfitrión';
         this.ownerEmail = user.email || 'correo@ejemplo.com';
 
@@ -491,6 +497,11 @@ export class Anfitrion implements OnInit {
   }
 
   crearAlojamiento() {
+    if (!this.ownerId || this.ownerId === 0) {
+      this.messageService.add({ severity: 'error', summary: 'Error de sesión', detail: 'No se pudo identificar tu cuenta. Por favor, cierra sesión y vuelve a iniciar.' });
+      return;
+    }
+
     if (!this.validarMinimoImagenes()) {
       this.messageService.add({ severity: 'warn', summary: 'Imágenes Incompletas', detail: 'Debes agregar al menos 3 imágenes para publicar el alojamiento.' });
       return;
@@ -738,22 +749,59 @@ export class Anfitrion implements OnInit {
         error: (error) => {
           console.error('Error cargando historial:', error);
           this.loadingHistorial = false;
-          // Datos de ejemplo
-          this.historialReservas = [
-            {
-              reservaId: 1,
-              alojamientoNombre: 'Casa en la Playa',
-              alojamientoImagen: 'https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?w=400',
-              usuarioNombre: 'Juan Pérez',
-              fechaInicio: '2025-11-20',
-              fechaFin: '2025-11-25',
-              estado: 'CONFIRMADA',
-              precioTotal: 750000,
-              fechaReserva: '2025-11-01'
-            }
-          ];
+          this.historialReservas = [];
         }
       });
+  }
+
+  // ============================================
+  // 🔹 Confirmar Reserva (Anfitrión)
+  // ============================================
+  confirmarReservaAnfitrion(reservaId: number) {
+    if (!confirm('¿Confirmar esta reserva?')) return;
+
+    this.http.patch(`${this.API_URL}/reservas/${reservaId}/confirmar`, {}).subscribe({
+      next: () => {
+        this.messageService.add({ severity: 'success', summary: 'Confirmada', detail: `Reserva #${reservaId} confirmada exitosamente.` });
+        this.loadHistorialReservas();
+      },
+      error: (err) => {
+        console.error('Error confirmando reserva:', err);
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: err.error?.message || 'No se pudo confirmar la reserva.' });
+      }
+    });
+  }
+
+  // ============================================
+  // 🔹 Cancelar Reserva (Anfitrión)
+  // ============================================
+  cancelarReservaAnfitrion(reservaId: number) {
+    if (!confirm('¿Cancelar esta reserva? Esta acción no se puede deshacer.')) return;
+
+    const payload = { reservaId: reservaId, motivo: 'Cancelado por el anfitrión' };
+    this.http.patch(`${this.API_URL}/reservas/${reservaId}/cancelar`, payload).subscribe({
+      next: () => {
+        this.messageService.add({ severity: 'info', summary: 'Cancelada', detail: `Reserva #${reservaId} cancelada.` });
+        this.loadHistorialReservas();
+      },
+      error: (err) => {
+        console.error('Error cancelando reserva:', err);
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: err.error?.message || 'No se pudo cancelar la reserva.' });
+      }
+    });
+  }
+
+  // ============================================
+  // 🔹 Helper: clase CSS del estado de reserva
+  // ============================================
+  getReservaEstadoClass(estado: string): string {
+    switch ((estado || '').toUpperCase()) {
+      case 'CONFIRMADA':  return 'reserva-estado-confirmada';
+      case 'PENDIENTE':   return 'reserva-estado-pendiente';
+      case 'CANCELADA':   return 'reserva-estado-cancelada';
+      case 'COMPLETADA':  return 'reserva-estado-completada';
+      default: return '';
+    }
   }
 
   // ============================================

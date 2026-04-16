@@ -14,6 +14,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/historial")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "${frontend.url}")
 public class HistorialReservaController {
 
     private final ReservaServiceInterface reservaService;

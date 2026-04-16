@@ -6,9 +6,12 @@ import com.stayFinder.proyectoFinal.entity.Reserva;
 import com.stayFinder.proyectoFinal.entity.enums.EstadoReserva;
 import com.stayFinder.proyectoFinal.repository.AlojamientoRepository;
 import com.stayFinder.proyectoFinal.repository.ReservaRepository;
+import com.stayFinder.proyectoFinal.entity.Usuario;
+import com.stayFinder.proyectoFinal.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.util.Optional;
 
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
@@ -23,10 +26,15 @@ public class OwnerMetricsService {
 
     private final AlojamientoRepository alojamientoRepo;
     private final ReservaRepository reservaRepo;
+    private final UsuarioRepository usuarioRepo;
 
     public OwnerMetricsResponseDTO getOwnerMetrics(Long ownerId) {
-        // 1. Obtener los alojamientos activos del owner
-        List<Alojamiento> alojamientos = alojamientoRepo.findByOwnerIdAndEliminadoFalse(ownerId);
+        // Mejorado: Resolver el owner por PK o Cédula
+        Usuario owner = usuarioRepo.findAnyById(ownerId)
+                .orElseThrow(() -> new RuntimeException("Anfitrión no encontrado con ID/Cédula: " + ownerId));
+
+        // 1. Obtener los alojamientos activos del owner usando su PK real
+        List<Alojamiento> alojamientos = alojamientoRepo.findByOwnerIdAndEliminadoFalse(owner.getId());
         long totalAlojamientos = alojamientos.size();
 
         // 2. Extraer reservas de todos sus alojamientos

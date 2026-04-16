@@ -1,1 +1,181 @@
-<p>pagar-reserva works!</p>
+<div class="pago-page">
+
+  <!-- Panel izquierdo: Resumen de la reserva -->
+  <aside class="resumen-panel">
+    <div class="resumen-card">
+      <div class="resumen-logo">
+        <img src="StayFinder.png" alt="StayFinder" class="logo" />
+        <span>StayFinder</span>
+      </div>
+
+      <h2 class="resumen-titulo">Resumen de tu reserva</h2>
+
+      <div class="resumen-alojamiento">
+        <div class="aloj-icon">
+          <i class="pi pi-home"></i>
+        </div>
+        <div>
+          <p class="aloj-nombre">{{ alojamiento }}</p>
+          <p class="aloj-id">Reserva #{{ reservaId }}</p>
+        </div>
+      </div>
+
+      <div class="resumen-fechas">
+        <div class="fecha-item">
+          <i class="pi pi-sign-in"></i>
+          <div>
+            <span class="fecha-label">Check-in</span>
+            <span class="fecha-valor">{{ formatDate(fechaInicio) }}</span>
+          </div>
+        </div>
+        <div class="fecha-separador">→</div>
+        <div class="fecha-item">
+          <i class="pi pi-sign-out"></i>
+          <div>
+            <span class="fecha-label">Check-out</span>
+            <span class="fecha-valor">{{ formatDate(fechaFin) }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="resumen-total">
+        <span class="total-label">Total a pagar</span>
+        <span class="total-monto">${{ monto | number:'1.0-0' }} COP</span>
+      </div>
+
+      <div class="resumen-seguridad">
+        <i class="pi pi-lock"></i>
+        <span>Pago 100% seguro y encriptado</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Panel derecho: Formulario de pago -->
+  <main class="pago-panel">
+
+    <!-- Confirmación de pago -->
+    <div *ngIf="pagado" class="pago-exitoso">
+      <div class="success-icon">
+        <i class="pi pi-check-circle"></i>
+      </div>
+      <h2>¡Pago Confirmado!</h2>
+      <p>Tu reserva ha sido <strong>confirmada</strong> exitosamente.</p>
+      <p class="redirect-msg">Redirigiendo a tus reservas...</p>
+    </div>
+
+    <!-- Formulario de pago -->
+    <div *ngIf="!pagado" class="pago-form-container">
+      <h1 class="pago-titulo">Completa tu pago</h1>
+      <p class="pago-subtitulo">Tu reserva está pendiente. Paga ahora para confirmarla.</p>
+
+      <!-- Selector de método -->
+      <div class="metodo-selector">
+        <button class="metodo-btn" [class.active]="metodoPago === 'TARJETA'" (click)="metodoPago = 'TARJETA'">
+          <i class="pi pi-credit-card"></i>
+          <span>Tarjeta</span>
+        </button>
+        <button class="metodo-btn" [class.active]="metodoPago === 'PSE'" (click)="metodoPago = 'PSE'">
+          <i class="pi pi-building"></i>
+          <span>PSE</span>
+        </button>
+        <button class="metodo-btn" [class.active]="metodoPago === 'EFECTIVO'" (click)="metodoPago = 'EFECTIVO'">
+          <i class="pi pi-money-bill"></i>
+          <span>Efectivo</span>
+        </button>
+      </div>
+
+      <!-- Formulario de Tarjeta -->
+      <form *ngIf="metodoPago === 'TARJETA'" class="pago-form" (ngSubmit)="pagar()">
+
+        <div class="card-visual">
+          <div class="card-chip">
+            <div class="chip-left"></div>
+            <div class="chip-right"></div>
+          </div>
+          <div class="card-number">
+            {{ numeroTarjeta || '•••• •••• •••• ••••' }}
+          </div>
+          <div class="card-bottom">
+            <div>
+              <span class="card-label">Titular</span>
+              <span class="card-value">{{ nombreTitular || 'NOMBRE APELLIDO' }}</span>
+            </div>
+            <div>
+              <span class="card-label">Vence</span>
+              <span class="card-value">{{ vencimiento || 'MM/AA' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="titular">Nombre del titular</label>
+          <input id="titular" type="text" [(ngModel)]="nombreTitular" name="titular"
+            placeholder="Como aparece en la tarjeta" maxlength="40" autocomplete="cc-name" />
+        </div>
+
+        <div class="form-group">
+          <label for="numero">Número de tarjeta</label>
+          <div class="card-input-wrap">
+            <i class="pi pi-credit-card card-icon"></i>
+            <input id="numero" type="text" [value]="numeroTarjeta" name="numero"
+              (input)="onCardInput($event)"
+              placeholder="1234 5678 9012 3456"
+              maxlength="19" autocomplete="cc-number" />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="vencimiento">Vencimiento</label>
+            <input id="vencimiento" type="text" [value]="vencimiento" name="vencimiento"
+              (input)="onVencimientoInput($event)"
+              placeholder="MM/AA" maxlength="5" autocomplete="cc-exp" />
+          </div>
+          <div class="form-group">
+            <label for="cvv">CVV</label>
+            <input id="cvv" type="password" [(ngModel)]="cvv" name="cvv"
+              placeholder="•••" maxlength="4" autocomplete="cc-csc" />
+          </div>
+        </div>
+
+        <button type="submit" class="btn-pagar" [disabled]="procesando || !isFormValid()">
+          <i class="pi" [class.pi-spin]="procesando" [class.pi-spinner]="procesando" [class.pi-lock]="!procesando"></i>
+          {{ procesando ? 'Procesando...' : 'Pagar $' + (monto | number:'1.0-0') + ' COP' }}
+        </button>
+
+      </form>
+
+      <!-- PSE -->
+      <div *ngIf="metodoPago === 'PSE'" class="pse-section">
+        <div class="pse-info">
+          <i class="pi pi-info-circle"></i>
+          <p>Serás redirigido al portal PSE para completar tu pago de forma segura.</p>
+        </div>
+        <button class="btn-pagar" (click)="pagar()" [disabled]="procesando">
+          <i class="pi pi-external-link"></i>
+          {{ procesando ? 'Procesando...' : 'Continuar con PSE' }}
+        </button>
+      </div>
+
+      <!-- Efectivo -->
+      <div *ngIf="metodoPago === 'EFECTIVO'" class="efectivo-section">
+        <div class="efectivo-info">
+          <i class="pi pi-map-marker"></i>
+          <div>
+            <p><strong>Pago en punto efectivo</strong></p>
+            <p>Muestra el código de tu reserva <strong>#{{ reservaId }}</strong> en cualquier punto Efecty, Baloto o Vía Baloto.</p>
+          </div>
+        </div>
+        <button class="btn-pagar" (click)="pagar()" [disabled]="procesando">
+          {{ procesando ? 'Procesando...' : 'Confirmar pago en efectivo' }}
+        </button>
+      </div>
+
+      <button class="btn-cancelar" (click)="cancelar()" [disabled]="procesando">
+        Cancelar y ver mis reservas
+      </button>
+    </div>
+
+  </main>
+
+</div>

@@ -40,5 +40,7 @@ public interface ReservaServiceInterface {
 
     ReservaResponseDTO createReservaBasica(CreateReservaRequestDTO dto, Long usuarioId) throws Exception;
 
-}
+    // Obtener reservas de un alojamiento específico (para anfitrión)
+    List<ReservaResponseDTO> obtenerReservasPorAlojamiento(Long alojamientoId) throws Exception;
 
+}

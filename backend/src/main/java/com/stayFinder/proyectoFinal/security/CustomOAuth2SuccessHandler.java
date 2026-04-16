@@ -58,7 +58,7 @@ public class CustomOAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHa
             usuario = usuarioRepository.save(usuario);
         }
 
-        String jwt = jwtUtil.GenerateToken(usuario.getUsuarioId(), usuario.getEmail(), usuario.getRole(),
+        String jwt = jwtUtil.GenerateToken(usuario.getId(), usuario.getUsuarioId(), usuario.getEmail(), usuario.getRole(),
                 usuario.getNombre());
 
         // 🟢 REDIRECCIÓN CORREGIDA PARA PRODUCCIÓN
