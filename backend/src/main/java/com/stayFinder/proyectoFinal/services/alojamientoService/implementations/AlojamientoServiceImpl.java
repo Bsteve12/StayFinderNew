@@ -152,7 +152,11 @@ public class AlojamientoServiceImpl implements AlojamientoServiceInterface {
         dto.setPrecio(alojamiento.getPrecio());
         dto.setDescripcion(alojamiento.getDescripcion());
         dto.setCapacidadMaxima(alojamiento.getCapacidadMaxima());
-        dto.setOwnerId(alojamiento.getOwner().getUsuarioId());
+        
+        if (alojamiento.getOwner() != null) {
+            dto.setOwnerId(alojamiento.getOwner().getUsuarioId());
+        }
+        
         dto.setEstado(determinarEstado(alojamiento));
         
         dto.setServicios(mapearServicios(alojamiento.getId()));

@@ -73,11 +73,17 @@ public class ReservaController {
     // 🔹 Crear reserva completa (con fechas y detalles)
     // ============================================
     @PostMapping
-    @Operation(summary = "Crear reserva", description = "Crea una nueva reserva para el usuario autenticado.")
+    @Operation(summary = "Crear reserva", description = "Crea una nueva reserva para el usuario autenticado u obtenido desde el DTO.")
     public ResponseEntity<ReservaResponseDTO> create(
             @Valid @RequestBody ReservaRequestDTO reserva,
             @Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl user) throws Exception {
-        ReservaResponseDTO response = reservaService.createReserva(reserva, user.getId());
+        
+        Long userId = (user != null) ? user.getId() : reserva.usuarioId();
+        if (userId == null) {
+            throw new Exception("Error de autenticación: No se ha podido validar el usuario que crea la reserva.");
+        }
+        
+        ReservaResponseDTO response = reservaService.createReserva(reserva, userId);
         return ResponseEntity.ok(response);
     }
 

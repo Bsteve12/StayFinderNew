@@ -374,7 +374,19 @@ export class Detalle implements OnInit {
       error: (error) => {
         this.procesandoReserva = false;
         console.error('Error creando reserva:', error);
-        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error al crear la reserva. Por favor intenta nuevamente.' });
+        
+        let errorMsg = 'Error al crear la reserva. Por favor intenta nuevamente.';
+        if (error.error) {
+          if (typeof error.error === 'string') {
+            errorMsg = error.error;
+          } else if (error.error.message) {
+            errorMsg = error.error.message;
+          } else if (error.error.error) {
+            errorMsg = error.error.error;
+          }
+        }
+        
+        this.messageService.add({ severity: 'error', summary: 'Aviso del Servidor', detail: errorMsg });
       }
     });
   }
@@ -393,7 +405,7 @@ export class Detalle implements OnInit {
 
 
 // ============================================
-// DIALOG DE RESERVA
+// DIALOG DE RESERVA (VERSIÓN ROBUSTA 100%)
 // ============================================
 @Component({
   selector: 'reserva-dialog',
@@ -401,82 +413,63 @@ export class Detalle implements OnInit {
   imports: [
     CommonModule,
     FormsModule,
-    ReactiveFormsModule,
     MatDialogModule,
     MatButtonModule,
     MatFormFieldModule,
     MatInputModule,
-    MatDatepickerModule,
     DatePickerModule
   ],
-  providers: [
-    provideNativeDateAdapter(),
-    { provide: MAT_DATE_FORMATS, useValue: MAT_NATIVE_DATE_FORMATS }
-  ],
-  encapsulation: ViewEncapsulation.None,
   template: `
-    <div class="reserva-dialog">
-      <h2 mat-dialog-title>Reservar Alojamiento</h2>
-      <p class="subtitle">{{ data.alojamiento?.nombre || 'Alojamiento' }}</p>
+    <div class="reserva-redo">
+      <h2 mat-dialog-title>Crea tu Reserva</h2>
       
       <mat-dialog-content>
-        <div class="form-group p-calendar-wrapper">
-          <label class="p-label">Fechas de estancia</label>
+        <div class="sf-form-section">
+          <label class="sf-label">Selecciona el rango de fechas</label>
           <p-datepicker 
             [(ngModel)]="rangoFechas" 
             selectionMode="range" 
-            [minDate]="getToday()" 
-            [disabledDates]="fechasOcupadas"
+            [minDate]="minDate" 
             [readonlyInput]="true" 
             [showIcon]="true"
-            placeholder="Selecciona el rango de fechas"
+            [disabledDates]="fechasOcupadas"
+            placeholder="Clic para elegir entrada y salida"
             (onSelect)="onDateSelect()"
             appendTo="body"
-            styleClass="w-full"
+            styleClass="sf-calendar-range"
+            [inputStyle]="{'width': '100%', 'padding': '12px', 'border-radius': '8px'}"
           >
             <ng-template pTemplate="date" let-date>
-              <span [ngClass]="getDateClass(date)" [title]="getDateTitle(date)">
-                {{ date.day }}
-              </span>
+                <span class="sf-calendar-cell" [ngClass]="getDateClass(date)" [title]="getDateTitle(date)">
+                    {{date.day}}
+                </span>
             </ng-template>
           </p-datepicker>
+          <small class="sf-help">Haz clic primero en la entrada y luego en la salida.</small>
         </div>
 
-        <div class="form-group">
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Número de huéspedes</mat-label>
-            <input 
-              matInput 
-              type="number" 
-              [(ngModel)]="numeroHuespedes" 
-              [min]="1" 
-              [max]="data.capacidadMaxima"
-              required
-            >
-            <mat-hint>Máximo: {{ data.capacidadMaxima }} huéspedes</mat-hint>
+        <div class="sf-form-section mt-4">
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Número de Huéspedes</mat-label>
+            <input matInput type="number" [(ngModel)]="numeroHuespedes" [min]="1" [max]="data.capacidadMaxima" (change)="onDateSelect()">
+            <mat-hint>Capacidad máxima: {{ data.capacidadMaxima }}</mat-hint>
           </mat-form-field>
         </div>
 
-        <div class="resumen" *ngIf="fechaInicio && fechaFin">
-          <h3>Resumen de la reserva</h3>
-          <div class="resumen-item">
-            <span>Precio por noche:</span>
-            <span>\${{ data.precioNoche | number }}</span>
+        <div class="sf-summary-card" *ngIf="fechaInicio && fechaFin">
+          <div class="sf-summary-row">
+            <span>Estancia ({{ calcularDias() }} {{ calcularDias() === 1 ? 'noche' : 'noches' }})</span>
+            <span>{{ precioTotal | currency:'USD':'symbol':'1.0-0' }}</span>
           </div>
-          <div class="resumen-item">
-            <span>Noches:</span>
-            <span>{{ calcularDias() }}</span>
-          </div>
-          <div class="resumen-divider"></div>
-          <div class="resumen-item total">
-            <span><strong>Total a pagar:</strong></span>
-            <span><strong>\${{ precioTotal | number }}</strong></span>
+          <div class="sf-summary-divider"></div>
+          <div class="sf-summary-total">
+            <span>Total estimado</span>
+            <span>{{ precioTotal | currency:'USD':'symbol':'1.0-0' }}</span>
           </div>
         </div>
 
-        <div class="info-box" *ngIf="!fechaInicio || !fechaFin">
-          <i class="pi pi-info-circle"></i>
-          <p>Selecciona las fechas para ver el resumen de tu reserva</p>
+        <div class="sf-info-alert" *ngIf="!fechaInicio || !fechaFin">
+          <p>Selecciona ambas fechas para calcular el valor total.</p>
         </div>
       </mat-dialog-content>
 
@@ -488,208 +481,77 @@ export class Detalle implements OnInit {
           [disabled]="!isValid()" 
           (click)="onConfirm()"
         >
-          Confirmar Reserva
+          Confirmar y Pagar
         </button>
       </mat-dialog-actions>
     </div>
   `,
   styles: [`
-    .reserva-dialog {
-      padding: 8px;
+    .reserva-redo {
+      padding: 10px;
+      min-width: 320px;
     }
-
-    .subtitle {
-      color: #6b7280;
-      font-size: 16px;
-      margin: -8px 0 24px;
-    }
-
-    mat-dialog-content {
-      padding: 20px 0;
-      min-height: 400px;
-    }
-
-    .form-group {
-      margin-bottom: 20px;
-    }
-
-    .full-width {
-      width: 100%;
-    }
-
-    .resumen {
-      background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%);
-      padding: 20px;
-      border-radius: 12px;
-      margin-top: 24px;
-      border: 2px solid #c4b5fd;
-
-      h3 {
-        margin: 0 0 16px;
-        color: #5b21b6;
-        font-size: 18px;
-        font-weight: 700;
-      }
-
-      .resumen-item {
-        display: flex;
-        justify-content: space-between;
-        padding: 8px 0;
-        color: #1e1b4b;
-        font-size: 15px;
-
-        &.total {
-          font-size: 20px;
-          color: #5b21b6;
-          margin-top: 8px;
-        }
-      }
-
-      .resumen-divider {
-        height: 1px;
-        background: #c4b5fd;
-        margin: 12px 0;
-      }
-    }
-
-    .info-box {
-      background: #dbeafe;
-      padding: 16px;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-top: 20px;
-
-      i {
-        color: #1e40af;
-        font-size: 24px;
-      }
-
-      p {
-        margin: 0;
-        color: #1e40af;
-        font-size: 14px;
-      }
-    }
-
-    mat-dialog-actions {
-      margin-top: 20px;
-      padding: 16px 0 0;
-      border-top: 1px solid #e5e7eb;
-
-      button {
-        margin-left: 8px;
-      }
-    }
-
-    .p-calendar-wrapper {
+    .sf-form-section {
+      margin-bottom: 24px;
       display: flex;
       flex-direction: column;
       gap: 8px;
-      margin-bottom: 24px;
-      
-      .p-label {
-        font-weight: 600;
-        color: #4b5563;
-        font-size: 14px;
-      }
+    }
+    .sf-label {
+      font-weight: 600;
+      color: #374151;
+      font-size: 14px;
+    }
+    .sf-help {
+      color: #6b7280;
+      font-size: 12px;
+    }
+    .sf-calendar-range {
+      width: 100%;
+    }
+    .sf-summary-card {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 20px;
+      margin-top: 10px;
+    }
+    .sf-summary-row {
+      display: flex;
+      justify-content: space-between;
+      color: #475569;
+      margin-bottom: 12px;
+    }
+    .sf-summary-divider {
+      height: 1px;
+      background: #e2e8f0;
+      margin: 12px 0;
+    }
+    .sf-summary-total {
+      display: flex;
+      justify-content: space-between;
+      font-weight: 700;
+      font-size: 18px;
+      color: #1e293b;
+    }
+    .sf-info-alert {
+      padding: 16px;
+      background: #eff6ff;
+      border-radius: 8px;
     }
 
-    ::ng-deep {
-      .p-calendar {
-        width: 100%;
-        .p-inputtext {
-          width: 100%;
-          border-radius: 8px;
-          border-color: #d1d5db;
-          padding: 10px 12px;
-          &:focus {
-            border-color: #7c3aed;
-            box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.2);
-          }
-        }
-      }
+    .mat-mdc-form-field-focus-overlay {
+      background-color: transparent;
+    }
 
-      // 🔹 NUEVOS ESTILOS PARA FECHAS OCUPADAS (REFINAMIENTO VISUAL)
-      .p-datepicker td.p-disabled {
-        span {
-          background: #fef2f2 !important; // Fondo muy suave rojo
-          color: #ef4444 !important; // Texto rojo prominente
-          text-decoration: line-through !important;
-          opacity: 1 !important;
-          cursor: not-allowed !important;
-          border-radius: 8px !important;
+    .mat-mdc-form-field.mat-focused .mdc-notched-outline__leading,
+    .mat-mdc-form-field.mat-focused .mdc-notched-outline__notch,
+    .mat-mdc-form-field.mat-focused .mdc-notched-outline__trailing {
+      border-color: #7c3aed !important;
+    }
 
-          // Marcador de punto rojo debajo del número
-          &::after {
-            content: "";
-            position: absolute;
-            bottom: 4px;
-            width: 5px;
-            height: 5px;
-            background: #ef4444;
-            border-radius: 50%;
-            box-shadow: 0 0 4px rgba(239, 68, 68, 0.5);
-          }
-        }
-      }
-
-      // Clases personalizadas vía Template
-      .day-reserved-active {
-        background: #ef4444 !important;
-        color: white !important;
-        border-radius: 8px !important;
-        box-shadow: 0 4px 8px rgba(239, 68, 68, 0.3);
-      }
-
-      .day-manual-block {
-        background: #4b5563 !important;
-        color: white !important;
-        border-radius: 8px !important;
-        text-decoration: line-through !important;
-      }
-
-      .day-available {
-        span::after {
-          content: "";
-          position: absolute;
-          bottom: 4px;
-          width: 5px;
-          height: 5px;
-          background: #10b981; // Verde esmeralda
-          border-radius: 50%;
-          box-shadow: 0 0 4px rgba(16, 185, 129, 0.5);
-        }
-      }
-
-      .p-datepicker td:not(.p-disabled):not(.p-datepicker-other-month) span {
-        font-weight: 500;
-        color: #1f2937;
-      }
-      .mat-mdc-raised-button.mat-primary {
-        background-color: #7c3aed !important;
-
-        &:hover:not(:disabled) {
-          background-color: #6d28d9 !important;
-        }
-      }
-
-      .mat-mdc-form-field-focus-overlay {
-        background-color: transparent;
-      }
-
-      .mat-mdc-form-field.mat-focused {
-        .mdc-notched-outline__leading,
-        .mdc-notched-outline__notch,
-        .mdc-notched-outline__trailing {
-          border-color: #7c3aed !important;
-        }
-
-        .mat-mdc-floating-label {
-          color: #7c3aed !important;
-        }
-      }
+    .mat-mdc-form-field.mat-focused .mat-mdc-floating-label {
+      color: #7c3aed !important;
     }
   `]
 })

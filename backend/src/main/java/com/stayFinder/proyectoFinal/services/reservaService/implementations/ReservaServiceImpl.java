@@ -53,50 +53,60 @@ public class ReservaServiceImpl implements ReservaServiceInterface {
     @Override
     @Transactional
     public ReservaResponseDTO createReserva(ReservaRequestDTO dto, Long userId) throws Exception {
-        // 🔹 MODIFICACIÓN PROCESO C: VALIDAR DISPONIBILIDAD ANTES DE NADA
-        if (!disponibilidadService.isDisponible(dto.alojamientoId(), dto.fechaInicio(), dto.fechaFin())) {
-            throw new Exception("Lo sentimos, estas fechas ya no están disponibles.");
+        try {
+            // 🔹 MODIFICACIÓN PROCESO C: VALIDAR DISPONIBILIDAD ANTES DE NADA
+            if (!disponibilidadService.isDisponible(dto.alojamientoId(), dto.fechaInicio(), dto.fechaFin())) {
+                throw new Exception("Lo sentimos, estas fechas ya no están disponibles.");
+            }
+
+            Usuario usuario = usuarioRepository.findById(userId)
+                    .orElseThrow(() -> new Exception("Usuario no existe"));
+
+            Alojamiento alojamiento = alojamientoRepository.findById(dto.alojamientoId())
+                    .orElseThrow(() -> new Exception("Alojamiento no existe"));
+
+            validarFechas(dto.fechaInicio(), dto.fechaFin());
+            validarCapacidad(dto.numeroHuespedes(), alojamiento.getCapacidadMaxima());
+            validarDisponibilidad(dto.fechaInicio(), dto.fechaFin(), alojamiento.getId());
+
+            // 🔹 Guardia adicional anti-spam
+            List<Reserva> misPendientes = reservaRepository.findByAlojamientoIdAndEstado(alojamiento.getId(), EstadoReserva.PENDIENTE);
+            boolean duplicateSpam = misPendientes.stream()
+                .filter(r -> r.getUsuario() != null)
+                .anyMatch(r ->
+                    r.getUsuario().getId().equals(usuario.getId()) &&
+                    r.getFechaInicio().equals(dto.fechaInicio()) &&
+                    r.getFechaFin().equals(dto.fechaFin())
+                );
+            
+            if (duplicateSpam) {
+                throw new Exception("Ya tienes una reserva PENDIENTE para este mismo alojamiento y fechas. Proceda a pagarla en su historial.");
+            }
+
+            Reserva reserva = reservaMapper.toEntity(dto);
+            reserva.setUsuario(usuario);
+            reserva.setAlojamiento(alojamiento);
+            reserva.setEstado(EstadoReserva.PENDIENTE);
+            reserva.setPrecioTotal(calcularPrecioTotal(dto, alojamiento));
+
+            Reserva saved = reservaRepository.save(reserva);
+
+            // Notificación (Safe)
+            try {
+                emailService.sendReservationConfirmation(
+                        usuario.getEmail(),
+                        "Reserva creada",
+                        "Hola " + usuario.getNombre() + ", tu reserva #" + saved.getId() + " fue creada y está en estado PENDIENTE.");
+            } catch (Exception e) {
+                System.err.println("Error enviando email: " + e.getMessage());
+            }
+
+            return reservaMapper.toDto(saved);
+        } catch (Exception e) {
+            System.err.println("Error Crítico en createReserva: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
         }
-
-        Usuario usuario = usuarioRepository.findById(userId)
-                .orElseThrow(() -> new Exception("Usuario no existe"));
-
-        Alojamiento alojamiento = alojamientoRepository.findById(dto.alojamientoId())
-                .orElseThrow(() -> new Exception("Alojamiento no existe"));
-
-        validarFechas(dto.fechaInicio(), dto.fechaFin());
-        validarCapacidad(dto.numeroHuespedes(), alojamiento.getCapacidadMaxima());
-        validarDisponibilidad(dto.fechaInicio(), dto.fechaFin(), alojamiento.getId());
-
-        // 🔹 Guardia adicional anti-spam: Si ESTE MISMO usuario ya tiene una reserva PENDIENTE
-        // para este MISMO alojamiento en MISMAS fechas, lanzar error para evitar duplicados en UI
-        List<Reserva> misPendientes = reservaRepository.findByAlojamientoIdAndEstado(alojamiento.getId(), EstadoReserva.PENDIENTE);
-        boolean duplicateSpam = misPendientes.stream().anyMatch(r ->
-            r.getUsuario().getId().equals(usuario.getId()) &&
-            r.getFechaInicio().equals(dto.fechaInicio()) &&
-            r.getFechaFin().equals(dto.fechaFin())
-        );
-        if (duplicateSpam) {
-            throw new Exception("Ya tienes una reserva PENDIENTE para este mismo alojamiento y fechas. Proceda a pagarla en su historial.");
-        }
-
-        Reserva reserva = reservaMapper.toEntity(dto);
-        reserva.setUsuario(usuario);
-        reserva.setAlojamiento(alojamiento);
-        reserva.setEstado(EstadoReserva.PENDIENTE);
-        reserva.setPrecioTotal(calcularPrecioTotal(dto, alojamiento));
-
-        Reserva saved = reservaRepository.save(reserva);
-
-        // Notificación de confirmación inicial (pendiente de confirmar)
-        emailService.sendReservationConfirmation(
-                usuario.getEmail(),
-                "Reserva creada",
-                "Hola " + usuario.getNombre() +
-                        ", tu reserva #" + saved.getId() +
-                        " fue creada y está en estado PENDIENTE.");
-
-        return reservaMapper.toDto(saved);
     }
 
     @Override
@@ -311,8 +321,8 @@ public class ReservaServiceImpl implements ReservaServiceInterface {
         }
     }
 
-    private void validarCapacidad(int numeroHuespedes, int capacidadMaxima) throws Exception {
-        if (numeroHuespedes > capacidadMaxima) {
+    private void validarCapacidad(int numeroHuespedes, Integer capacidadMaxima) throws Exception {
+        if (capacidadMaxima != null && numeroHuespedes > capacidadMaxima) {
             throw new Exception("El número de huéspedes excede la capacidad máxima");
         }
     }
@@ -366,9 +376,10 @@ public class ReservaServiceImpl implements ReservaServiceInterface {
             noches = 1;
         }
 
-        double precioBase = noches * alojamiento.getPrecio();
+        double precioBaseAlojamiento = (alojamiento.getPrecio() != null) ? alojamiento.getPrecio() : 0.0;
+        double precioBase = noches * precioBaseAlojamiento;
 
-        if (dto.tipoReserva() == TipoReserva.VIP) {
+        if (dto.tipoReserva() != null && dto.tipoReserva() == TipoReserva.VIP) {
             if (noches > 7) {
                 precioBase *= 0.5;
             }

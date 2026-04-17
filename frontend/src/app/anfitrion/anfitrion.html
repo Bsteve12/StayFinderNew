@@ -310,75 +310,80 @@
           </div>
           <div class="header-action">
             <p-select [options]="alojamientos" [(ngModel)]="selectedCalendarioAlojamiento" optionLabel="nombre" 
-              placeholder="Selecciona un alojamiento" (onChange)="onCalendarioAlojamientoChange()" 
-              [style]="{'width': '300px'}"></p-select>
+              placeholder="Selecciona un alojamiento" (onChange)="onCalendarioAlojamientoChange()"></p-select>
           </div>
         </div>
 
         <div class="calendar-grid" *ngIf="selectedCalendarioAlojamiento">
           <div class="calendar-main">
-            <p-card header="Selecciona fechas a bloquear">
-            <p-datepicker 
-                [(ngModel)]="bloqueoFechas" 
-                [inline]="true" 
-                selectionMode="multiple" 
-                [minDate]="getToday()" 
-                [disabledDates]="disabledDates" 
-                styleClass="custom-calendar-host"
-              >
-                <ng-template pTemplate="date" let-date>
-                  <span [ngClass]="getDateClass(date)" [title]="getDateTitle(date)">
-                    {{ date.day }}
-                  </span>
-                </ng-template>
-              </p-datepicker>
-              
-              <div class="actions flex-column gap-2 mt-3">
-                <button pButton label="Bloquear Fechas (Quitar disponibilidad)" icon="pi pi-lock" (click)="bloquearFechasSeleccionadas()" 
-                  class="p-button-danger w-full p-3" [disabled]="hasBloqueoManualSeleccionado() || !bloqueoFechas"></button>
+            <div class="custom-calendar-card">
+              <div class="custom-card-header">Selecciona fechas a bloquear</div>
+              <div class="custom-card-body">
+                <p-datepicker 
+                    [(ngModel)]="bloqueoFechas" 
+                    [inline]="true" 
+                    selectionMode="multiple" 
+                    [minDate]="getToday()" 
+                    [disabledDates]="disabledDates" 
+                    styleClass="custom-calendar-host"
+                  >
+                    <ng-template pTemplate="date" let-date>
+                      <span [ngClass]="getDateClass(date)" [title]="getDateTitle(date)">
+                        {{ date.day }}
+                      </span>
+                    </ng-template>
+                  </p-datepicker>
                   
-                <button pButton label="Desbloquear Fechas (Volver a disponible)" icon="pi pi-unlock" (click)="desbloquearFechasSeleccionadas()" 
-                  class="p-button-outlined p-button-secondary w-full p-3" 
-                  *ngIf="hasBloqueoManualSeleccionado()"></button>
+                  <div class="actions flex-column gap-2 mt-3">
+                    <button pButton label="Bloquear Fechas" icon="pi pi-lock" (click)="bloquearFechasSeleccionadas()" 
+                      class="p-button-danger w-full p-3" [disabled]="hasBloqueoManualSeleccionado() || !bloqueoFechas"></button>
+                      
+                    <button pButton label="Desbloquear Fechas" icon="pi pi-unlock" (click)="desbloquearFechasSeleccionadas()" 
+                      class="p-button-outlined p-button-secondary w-full p-3" 
+                      *ngIf="hasBloqueoManualSeleccionado()"></button>
 
-                <button pButton label="Limpiar Selección" icon="pi pi-times" (click)="bloqueoFechas = null" 
-                  class="p-button-text p-button-secondary w-full" 
-                  *ngIf="bloqueoFechas && bloqueoFechas.length > 0"></button>
+                    <button pButton label="Limpiar Selección" icon="pi pi-times" (click)="bloqueoFechas = null" 
+                      class="p-button-text p-button-secondary w-full" 
+                      *ngIf="bloqueoFechas && bloqueoFechas.length > 0"></button>
+                  </div>
               </div>
-            </p-card>
+            </div>
           </div>
           
           <div class="calendar-info">
-            <p-card header="Resumen de Ocupación">
-              <div class="legend">
-                <div class="legend-item">
-                  <span class="dot reserved"></span>
-                  <div class="text">
-                    <strong>Reservado</strong>
-                    <small>Fechas con reservas activas</small>
+            <div class="custom-calendar-card">
+              <div class="custom-card-header">Resumen de Ocupación</div>
+              <div class="custom-card-body">
+                <div class="legend">
+                  <div class="legend-item">
+                    <span class="dot reserved"></span>
+                    <div class="text">
+                      <strong>Reservado</strong>
+                      <small>Fechas con reservas activas</small>
+                    </div>
+                  </div>
+                  <div class="legend-item">
+                    <span class="dot manual"></span>
+                    <div class="text">
+                      <strong>Bloqueo Manual</strong>
+                      <small>Fechas marcadas por ti</small>
+                    </div>
+                  </div>
+                  <div class="legend-item">
+                    <span class="dot free"></span>
+                    <div class="text">
+                      <strong>Disponible</strong>
+                      <small>Listo para recibir reservas</small>
+                    </div>
                   </div>
                 </div>
-                <div class="legend-item">
-                  <span class="dot manual"></span>
-                  <div class="text">
-                    <strong>Bloqueo Manual</strong>
-                    <small>Fechas marcadas por ti</small>
-                  </div>
-                </div>
-                <div class="legend-item">
-                  <span class="dot free"></span>
-                  <div class="text">
-                    <strong>Disponible</strong>
-                    <small>Listo para recibir reservas</small>
-                  </div>
-                </div>
-              </div>
 
-              <div class="info-footer">
-                <i class="pi pi-info-circle"></i>
-                <p>Las fechas en rojo o gris oscuro ya están ocupadas y no pueden ser seleccionadas para un nuevo bloqueo.</p>
+                <div class="info-footer">
+                  <i class="pi pi-info-circle"></i>
+                  <p>Las fechas en rojo o gris ya están ocupadas y no pueden ser seleccionadas.</p>
+                </div>
               </div>
-            </p-card>
+            </div>
           </div>
         </div>
         
