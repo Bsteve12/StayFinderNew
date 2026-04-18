@@ -3,7 +3,6 @@ package com.stayFinder.proyectoFinal.services.chatService.implementations;
 import com.stayFinder.proyectoFinal.dto.inputDTO.ChatRequestDTO;
 import com.stayFinder.proyectoFinal.dto.outputDTO.ChatResponseDTO;
 import com.stayFinder.proyectoFinal.entity.Chat;
-import com.stayFinder.proyectoFinal.entity.Reserva;
 import com.stayFinder.proyectoFinal.entity.Usuario;
 import com.stayFinder.proyectoFinal.entity.enums.EstadoReserva;
 import com.stayFinder.proyectoFinal.mapper.ChatMapper;
@@ -11,19 +10,27 @@ import com.stayFinder.proyectoFinal.repository.ChatRepository;
 import com.stayFinder.proyectoFinal.repository.ReservaRepository;
 import com.stayFinder.proyectoFinal.repository.UsuarioRepository;
 import com.stayFinder.proyectoFinal.services.chatService.interfaces.ChatServiceInterface;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
-@RequiredArgsConstructor
 public class ChatServiceImpl implements ChatServiceInterface {
 
     private final ChatRepository chatRepo;
     private final UsuarioRepository usuarioRepo;
     private final ReservaRepository reservaRepo;
-    private final ChatMapper chatMapper = org.mapstruct.factory.Mappers.getMapper(ChatMapper.class);
+    private final ChatMapper chatMapper;
+
+    public ChatServiceImpl(ChatRepository chatRepo,
+                           UsuarioRepository usuarioRepo,
+                           ReservaRepository reservaRepo,
+                           ChatMapper chatMapper) {
+        this.chatRepo = chatRepo;
+        this.usuarioRepo = usuarioRepo;
+        this.reservaRepo = reservaRepo;
+        this.chatMapper = chatMapper;
+    }
 
     @Override
     public ChatResponseDTO crearChat(ChatRequestDTO dto) {

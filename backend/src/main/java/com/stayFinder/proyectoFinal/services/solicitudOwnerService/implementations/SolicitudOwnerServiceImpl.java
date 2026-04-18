@@ -89,9 +89,8 @@ public class SolicitudOwnerServiceImpl implements SolicitudOwnerServiceInterface
         SolicitudOwner solicitud = solicitudRepo.findById(dto.solicitudId())
                 .orElseThrow(() -> new Exception("Solicitud no encontrada"));
 
-        String adminEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-        Usuario admin = usuarioRepo.findByEmail(adminEmail)
-                .orElseThrow(() -> new Exception("Admin no encontrado"));
+        Usuario admin = usuarioRepo.findAnyById(dto.adminId())
+                .orElseThrow(() -> new Exception("Admin no encontrado con ID/Cédula: " + dto.adminId()));
 
         if (admin.getRole() != Role.ADMIN) {
             throw new Exception("Solo administradores pueden responder solicitudes");

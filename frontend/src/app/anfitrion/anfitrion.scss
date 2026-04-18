@@ -1256,51 +1256,23 @@
         .p-dialog-content {
             padding: 24px;
             background: #ffffff;
+        }
 
-            .p-fluid {
-                display: flex;
-                flex-direction: column;
-                gap: 1.5rem;
+        // Validation error messages
+        .p-error {
+            color: #e11d48;
+            font-size: 0.78rem;
+            margin-top: 2px;
+            margin-bottom: 8px;
+            display: block;
+            font-weight: 500;
+            line-height: 1.3;
+        }
 
-                .field {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 0.5rem;
-
-                    label {
-                        font-weight: 600;
-                        color: #374151;
-                        font-size: 0.95rem;
-                        background: #ffffff !important;
-                        padding: 0 4px;
-                        margin-left: -4px;
-                        z-index: 2;
-                    }
-
-                    .p-inputtext,
-                    input {
-                        padding: 0.75rem 1rem !important;
-                        border-radius: 8px !important;
-                        border: 1px solid #d1d5db !important;
-                        background-color: #f9fafb !important;
-                        color: #1f2937 !important;
-                        transition: all 0.2s;
-                        font-size: 0.95rem;
-                        box-shadow: none !important;
-
-                        &:focus {
-                            outline: none !important;
-                            border-color: #7c3aed !important;
-                            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1) !important;
-                            background-color: #ffffff !important;
-                        }
-
-                        &::placeholder {
-                            color: #9ca3af !important;
-                        }
-                    }
-                }
-            }
+        // Disabled submit button
+        button[disabled] {
+            opacity: 0.45 !important;
+            cursor: not-allowed !important;
         }
 
         .p-dialog-footer {
@@ -1344,7 +1316,7 @@
 }
 
 // ============================================
-// 🔹 FloatLabel Overrides & Form Grids
+// 🔹 FloatLabel Overrides & UI/UX Fixes
 // ============================================
 .grid-form-container {
     .form-card {
@@ -1352,19 +1324,115 @@
         border: 1px solid #e5e7eb;
         
         .p-card-header {
-            padding: 1rem 1.25rem 0;
+            padding: 1.5rem 1.5rem 0.5rem;
             font-weight: 700;
-            color: #374151;
-            font-size: 1.1rem;
-        }
-        .p-card-content {
-            padding: 0;
+            color: #1e1b4b;
+            font-size: 1.2rem;
+            border-bottom: 2px solid #f3f4f6;
+            margin-bottom: 1.5rem;
         }
     }
-    
-    .custom-shadow-card {
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03) !important;
+
+    /* Estructura de Rejilla Profesional */
+    .grid-form-container {
+        overflow: visible !important; /* Asegurar que las etiquetas no se corten al flotar */
     }
+
+    .formgrid.grid {
+        margin: 0 -0.75rem;
+        overflow: visible !important;
+        
+        .field {
+            padding: 0 0.75rem;
+            margin-bottom: 2rem !important; /* Espaciado técnico solicitado */
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            overflow: visible !important;
+        }
+    }
+
+    /* Corrección Maestra de FloatLabel (Refined Expert Implementation) */
+    ::ng-deep {
+        p-floatLabel {
+            display: block;
+            position: relative;
+            padding-top: 0.5rem;
+            overflow: visible !important;
+
+            label {
+                left: 1rem !important;
+                color: #64748b !important; /* Slate 500 para mejor contraste */
+                background: transparent !important;
+                padding: 0 4px !important;
+                transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+                font-weight: 500;
+                pointer-events: none;
+                top: 50% !important;
+                transform: translateY(-50%) !important;
+            }
+
+            /* Estado Flotante Técnica: translateY(-1.25rem) scale(0.75) */
+            input:focus ~ label,
+            input.p-filled ~ label,
+            textarea:focus ~ label,
+            textarea.p-filled ~ label,
+            .p-inputwrapper-focus ~ label,
+            .p-inputwrapper-filled ~ label {
+                top: 50% !important;
+                transform: translateY(-1.25rem) scale(0.75) !important; /* Especificación técnica del usuario */
+                font-size: 1rem !important; /* Se compensa con el scale */
+                color: #4f46e5 !important;
+                background: #ffffff !important;
+                padding: 0 10px !important;
+                z-index: 100;
+                font-weight: 700;
+                border-radius: 4px;
+            }
+
+            input.p-inputtext, 
+            textarea.p-inputtext,
+            .p-inputtext {
+                padding: 1rem 1.25rem !important;
+                border-radius: 10px !important;
+                border: 1.5px solid #cbd5e1 !important; /* Slate 300 */
+                font-size: 1rem;
+                color: #1e293b;
+                background-color: #ffffff !important;
+                transition: border-color 0.2s, box-shadow 0.2s;
+
+                &:focus {
+                    border-color: #4f46e5 !important;
+                    box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.08) !important;
+                    outline: none !important;
+                }
+            }
+        }
+
+        /* Estilo de Errores Refinado */
+        .p-error {
+            margin-top: 0.4rem;
+            margin-left: 0.25rem;
+            font-size: 0.8rem !important; /* Definido por especificación */
+            font-weight: 600;
+            color: #ef4444;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            letter-spacing: -0.01em;
+            
+            &::before {
+                content: '\e946'; 
+                font-family: 'primeicons';
+                font-size: 0.85rem;
+            }
+        }
+    }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 // ============================================

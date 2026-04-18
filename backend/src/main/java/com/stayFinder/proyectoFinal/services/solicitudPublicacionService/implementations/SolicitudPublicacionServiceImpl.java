@@ -74,8 +74,8 @@ public class SolicitudPublicacionServiceImpl implements SolicitudPublicacionServ
         SolicitudPublicacion solicitud = solicitudRepo.findById(dto.solicitudId())
                 .orElseThrow(() -> new RuntimeException("Solicitud no encontrada"));
 
-        Usuario admin = usuarioRepo.findByUsuarioId(dto.adminId())
-                .orElseThrow(() -> new RuntimeException("Admin no encontrado"));
+        Usuario admin = usuarioRepo.findAnyById(dto.adminId())
+                .orElseThrow(() -> new RuntimeException("Admin no encontrado con ID/Cédula: " + dto.adminId()));
 
         if (admin.getRole() != Role.ADMIN) {
             throw new RuntimeException("Solo un ADMIN puede responder solicitudes");

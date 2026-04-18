@@ -866,6 +866,23 @@ export class Anfitrion implements OnInit {
     };
   }
 
+  /**
+   * Validación preventiva del formulario de alojamiento.
+   * Previene campos nulos/vacíos que generarían NullPointerException en el backend.
+   */
+  isFormValid(): boolean {
+    const f = this.alojamientoForm;
+    if (!f) return false;
+
+    const nombreOk = !!(f.nombre && f.nombre.trim().length >= 5);
+    const descripcionOk = !!(f.descripcion && f.descripcion.trim().length >= 20);
+    const direccionOk = !!(f.direccion && f.direccion.trim().length > 0);
+    const precioOk = f.precio != null && f.precio > 0;
+    const capacidadOk = f.capacidadMaxima != null && f.capacidadMaxima >= 1;
+
+    return nombreOk && descripcionOk && direccionOk && precioOk && capacidadOk;
+  }
+
   getEstadoClass(estado: string): string {
     switch (estado.toLowerCase()) {
       case 'publicado': return 'estado-publicado';
