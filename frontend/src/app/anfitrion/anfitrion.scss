@@ -2177,4 +2177,88 @@
 .reserva-estado-completada {
     background: #dbeafe;
     color: #1e40af;
-}
+}
+
+/* ============================================
+   🔹 Correcciones de Legibilidad: Gestión Alojamiento
+   ============================================ */
+
+.custom-dialog {
+    // Asegurar que las etiquetas no se corten
+    overflow: visible !important;
+
+    ::ng-deep {
+        .p-dialog-content {
+            overflow: visible !important;
+            padding-top: 1.5rem; // Espacio para la primera etiqueta flotante
+        }
+
+        // Corrección de FloatLabel: Ajuste de posición y escala al flotar
+        .p-floatlabel, .p-floatLabel {
+            display: block;
+            position: relative;
+
+            label {
+                transition-duration: 0.2s;
+                top: 50%;
+                transform: translateY(-50%);
+                z-index: 10;
+            }
+
+            // Cuando el input tiene foco o contenido (etiqueta flota)
+            input:focus ~ label,
+            input.p-filled ~ label,
+            textarea:focus ~ label,
+            textarea.p-filled ~ label,
+            .p-inputwrapper-focus ~ label,
+            .p-inputwrapper-filled ~ label {
+                transform: translateY(-1.25rem) scale(0.75) !important;
+                background-color: white;
+                padding: 0 5px;
+                color: #7c3aed; // Color vibrante para el estado activo
+                font-weight: 600;
+            }
+        }
+
+
+        // Estilo de Errores: Pequeños y organizados
+        .p-error {
+            font-size: 0.8rem !important;
+            margin-top: 0.25rem;
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+    }
+
+    // Espaciado Vertical (Gap): Separación aireada entre campos
+    .field {
+        margin-bottom: 2rem !important;
+        position: relative;
+    }
+
+    // Mejora de la Card del Formulario
+    .form-card {
+        border: none;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        border-radius: 16px;
+        
+        .p-card-header {
+            background: #f8fafc;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #e2e8f0;
+            border-radius: 16px 16px 0 0;
+            
+            .p-card-title {
+                font-size: 1.1rem;
+                color: #1e293b;
+                font-weight: 700;
+            }
+        }
+    }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+

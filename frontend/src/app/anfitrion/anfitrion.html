@@ -413,61 +413,72 @@
 </div>
 
 <p-dialog [(visible)]="showCreateDialog" header="Crear Alojamiento" [modal]="true" [style]="{width: '65vw'}" styleClass="custom-dialog">
-  <div class="grid-form-container flex flex-column gap-4 mt-3">
+  <div class="grid-form-container flex flex-column gap-4 mt-3" [formGroup]="alojamientoForm">
     <p-card header="Información Básica" styleClass="form-card custom-shadow-card">
       <div class="grid p-fluid">
         <!-- Fila 1: Nombre (Ancho completo) -->
-        <div class="col-12 field mb-4">
+        <div class="col-12 field">
           <p-floatLabel>
-            <input id="nombre" type="text" pInputText [(ngModel)]="alojamientoForm.nombre" class="w-full" minlength="5" />
+            <input id="nombre" type="text" pInputText formControlName="nombre" class="w-full" />
             <label for="nombre">Nombre del Alojamiento</label>
           </p-floatLabel>
-          <small class="p-error" *ngIf="alojamientoForm.nombre && alojamientoForm.nombre.trim().length > 0 && alojamientoForm.nombre.trim().length < 5">Mínimo 5 caracteres</small>
+          <small class="p-error" *ngIf="alojamientoForm.get('nombre')?.invalid && alojamientoForm.get('nombre')?.touched">
+            El nombre debe tener al menos 5 caracteres
+          </small>
         </div>
 
         <!-- Fila 2: Ubicación y Precio (Dos columnas) -->
         <div class="col-12 md:col-6 field">
           <p-floatLabel>
-            <input id="direccion" type="text" pInputText [(ngModel)]="alojamientoForm.direccion" class="w-full"/>
+            <input id="direccion" type="text" pInputText formControlName="direccion" class="w-full"/>
             <label for="direccion">Ubicación / Dirección Exacta</label>
           </p-floatLabel>
-          <small class="p-error" *ngIf="alojamientoForm.direccion !== undefined && alojamientoForm.direccion.trim().length === 0">Campo obligatorio</small>
+          <small class="p-error" *ngIf="alojamientoForm.get('direccion')?.invalid && alojamientoForm.get('direccion')?.touched">
+            La ubicación es obligatoria
+          </small>
         </div>
         <div class="col-12 md:col-6 field">
           <p-floatLabel>
-            <input id="precio" type="number" pInputText [(ngModel)]="alojamientoForm.precio" class="w-full" min="1"/>
+            <input id="precio" type="number" pInputText formControlName="precio" class="w-full" />
             <label for="precio">Precio Base (por Noche)</label>
           </p-floatLabel>
-          <small class="p-error" *ngIf="alojamientoForm.precio !== null && alojamientoForm.precio <= 0">Debe ser mayor a 0</small>
+          <small class="p-error" *ngIf="alojamientoForm.get('precio')?.invalid && alojamientoForm.get('precio')?.touched">
+            El precio debe ser mayor a 0
+          </small>
         </div>
 
         <!-- Fila 3: Capacidad -->
         <div class="col-12 field">
           <p-floatLabel>
-            <input id="capacidad" type="number" pInputText [(ngModel)]="alojamientoForm.capacidadMaxima" class="w-full" min="1"/>
+            <input id="capacidad" type="number" pInputText formControlName="capacidadMaxima" class="w-full" />
             <label for="capacidad">Huéspedes Máximos Permitidos</label>
           </p-floatLabel>
-          <small class="p-error" *ngIf="alojamientoForm.capacidadMaxima !== null && alojamientoForm.capacidadMaxima < 1">Mínimo 1 huésped</small>
+          <small class="p-error" *ngIf="alojamientoForm.get('capacidadMaxima')?.invalid && alojamientoForm.get('capacidadMaxima')?.touched">
+            Mínimo 1 huésped
+          </small>
         </div>
 
         <!-- Fila 3: Descripción (Ancho completo) -->
         <div class="col-12 field">
           <p-floatLabel>
-            <textarea id="descripcion" pInputTextarea [(ngModel)]="alojamientoForm.descripcion" rows="4" class="w-full" minlength="20"></textarea>
+            <textarea id="descripcion" pInputTextarea formControlName="descripcion" rows="4" class="w-full"></textarea>
             <label for="descripcion">Descripción detallada para los usuarios</label>
           </p-floatLabel>
-          <small class="p-error" *ngIf="alojamientoForm.descripcion && alojamientoForm.descripcion.trim().length > 0 && alojamientoForm.descripcion.trim().length < 20">Mínimo 20 caracteres ({{ alojamientoForm.descripcion.trim().length }}/20)</small>
+          <small class="p-error" *ngIf="alojamientoForm.get('descripcion')?.invalid && alojamientoForm.get('descripcion')?.touched">
+            La descripción debe tener al menos 20 caracteres
+          </small>
         </div>
 
         <!-- Fila 4: Servicios -->
         <div class="col-12 field">
           <label class="block mb-2 font-bold text-gray-700">Servicios Incluídos</label>
-          <p-multiSelect [options]="servicios" [(ngModel)]="alojamientoForm.serviciosIds"
+          <p-multiSelect [options]="servicios" formControlName="serviciosIds"
             defaultLabel="Selecciona los comodidades y servicios..." optionLabel="nombre" optionValue="id" display="chip"
             [style]="{'width': '100%'}"></p-multiSelect>
         </div>
       </div>
     </p-card>
+
 
     <p-card header="Multimedia (Requiere mínimo 3)" styleClass="form-card custom-shadow-card">
       <div class="drop-zone-container">
@@ -519,61 +530,72 @@
 </p-dialog>
 
 <p-dialog [(visible)]="showEditDialog" header="Editar Alojamiento" [modal]="true" [style]="{width: '65vw'}" styleClass="custom-dialog">
-  <div class="grid-form-container flex flex-column gap-4 mt-3">
+  <div class="grid-form-container flex flex-column gap-4 mt-3" [formGroup]="alojamientoForm">
     <p-card header="Información Básica" styleClass="form-card custom-shadow-card">
       <div class="grid p-fluid">
         <!-- Fila 1: Nombre (Ancho completo) -->
-        <div class="col-12 field mb-4">
+        <div class="col-12 field">
           <p-floatLabel>
-            <input id="editNombre" type="text" pInputText [(ngModel)]="alojamientoForm.nombre" class="w-full" minlength="5" />
+            <input id="editNombre" type="text" pInputText formControlName="nombre" class="w-full" />
             <label for="editNombre">Nombre del Alojamiento</label>
           </p-floatLabel>
-          <small class="p-error" *ngIf="alojamientoForm.nombre && alojamientoForm.nombre.trim().length > 0 && alojamientoForm.nombre.trim().length < 5">Mínimo 5 caracteres</small>
+          <small class="p-error" *ngIf="alojamientoForm.get('nombre')?.invalid && alojamientoForm.get('nombre')?.touched">
+            El nombre debe tener al menos 5 caracteres
+          </small>
         </div>
 
         <!-- Fila 2: Ubicación y Precio (Dos columnas) -->
         <div class="col-12 md:col-6 field">
           <p-floatLabel>
-            <input id="editDireccion" type="text" pInputText [(ngModel)]="alojamientoForm.direccion" class="w-full" />
+            <input id="editDireccion" type="text" pInputText formControlName="direccion" class="w-full" />
             <label for="editDireccion">Ubicación / Dirección Exacta</label>
           </p-floatLabel>
-          <small class="p-error" *ngIf="alojamientoForm.direccion !== undefined && alojamientoForm.direccion.trim().length === 0">Campo obligatorio</small>
+          <small class="p-error" *ngIf="alojamientoForm.get('direccion')?.invalid && alojamientoForm.get('direccion')?.touched">
+            La ubicación es obligatoria
+          </small>
         </div>
         <div class="col-12 md:col-6 field">
           <p-floatLabel>
-            <input id="editPrecio" type="number" pInputText [(ngModel)]="alojamientoForm.precio" class="w-full" min="1" />
+            <input id="editPrecio" type="number" pInputText formControlName="precio" class="w-full" />
             <label for="editPrecio">Precio Base (por Noche)</label>
           </p-floatLabel>
-          <small class="p-error" *ngIf="alojamientoForm.precio !== null && alojamientoForm.precio <= 0">Debe ser mayor a 0</small>
+          <small class="p-error" *ngIf="alojamientoForm.get('precio')?.invalid && alojamientoForm.get('precio')?.touched">
+            El precio debe ser mayor a 0
+          </small>
         </div>
 
         <!-- Fila 3: Capacidad -->
         <div class="col-12 field">
           <p-floatLabel>
-            <input id="editCapacidad" type="number" pInputText [(ngModel)]="alojamientoForm.capacidadMaxima" class="w-full" min="1" />
+            <input id="editCapacidad" type="number" pInputText formControlName="capacidadMaxima" class="w-full" />
             <label for="editCapacidad">Huéspedes Máximos Permitidos</label>
           </p-floatLabel>
-          <small class="p-error" *ngIf="alojamientoForm.capacidadMaxima !== null && alojamientoForm.capacidadMaxima < 1">Mínimo 1 huésped</small>
+          <small class="p-error" *ngIf="alojamientoForm.get('capacidadMaxima')?.invalid && alojamientoForm.get('capacidadMaxima')?.touched">
+            Mínimo 1 huésped
+          </small>
         </div>
 
         <!-- Fila 3: Descripción (Ancho completo) -->
         <div class="col-12 field">
           <p-floatLabel>
-            <textarea id="editDescripcion" pInputTextarea [(ngModel)]="alojamientoForm.descripcion" rows="4" class="w-full" minlength="20"></textarea>
+            <textarea id="editDescripcion" pInputTextarea formControlName="descripcion" rows="4" class="w-full"></textarea>
             <label for="editDescripcion">Descripción detallada</label>
           </p-floatLabel>
-          <small class="p-error" *ngIf="alojamientoForm.descripcion && alojamientoForm.descripcion.trim().length > 0 && alojamientoForm.descripcion.trim().length < 20">Mínimo 20 caracteres ({{ alojamientoForm.descripcion.trim().length }}/20)</small>
+          <small class="p-error" *ngIf="alojamientoForm.get('descripcion')?.invalid && alojamientoForm.get('descripcion')?.touched">
+            La descripción debe tener al menos 20 caracteres
+          </small>
         </div>
 
         <!-- Fila 4: Servicios -->
         <div class="col-12 field">
           <label class="block mb-2 font-bold text-gray-700">Servicios Incluídos</label>
-          <p-multiSelect [options]="servicios" [(ngModel)]="alojamientoForm.serviciosIds"
+          <p-multiSelect [options]="servicios" formControlName="serviciosIds"
             defaultLabel="Selecciona comodidades y servicios..." optionLabel="nombre" optionValue="id" display="chip"
             [style]="{'width': '100%'}"></p-multiSelect>
         </div>
       </div>
     </p-card>
+
 
     <p-card header="Multimedia (Total exigido: 3 min)" styleClass="form-card custom-shadow-card">
       <div class="drop-zone-container">

@@ -1,7 +1,8 @@
 import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { DialogModule } from 'primeng/dialog';
@@ -113,8 +114,10 @@ interface UpdateUserDTO {
     MultiSelectModule,
     ChartModule,
     DatePickerModule,
-    SelectModule
+    SelectModule,
+    ReactiveFormsModule
   ],
+
   templateUrl: './anfitrion.html',
   styleUrls: ['./anfitrion.scss'],
   encapsulation: ViewEncapsulation.None
@@ -165,7 +168,8 @@ export class Anfitrion implements OnInit {
   showServicioDialog: boolean = false;
 
   // Formulario Alojamiento
-  alojamientoForm: AlojamientoRequestDTO = this.getEmptyForm();
+  alojamientoForm: FormGroup;
+
   selectedAlojamiento: AlojamientoResponseDTO | null = null;
 
   // Formulario Servicio
@@ -195,7 +199,16 @@ export class Anfitrion implements OnInit {
 
   public readonly baseUrl = environment.apiUrl;
 
-  constructor(private http: HttpClient, private auth: AuthService, private router: Router, private messageService: MessageService) { }
+  constructor(
+    private http: HttpClient, 
+    private auth: AuthService, 
+    private router: Router, 
+    private messageService: MessageService,
+    private fb: FormBuilder
+  ) { 
+    this.alojamientoForm = this.initAlojamientoForm();
+  }
+
 
   ngOnInit() {
     this.auth.currentUser$.subscribe(user => {
@@ -529,7 +542,14 @@ export class Anfitrion implements OnInit {
   // 🔹 Crear Alojamiento
   // ============================================
   openCreateDialog() {
-    this.alojamientoForm = this.getEmptyForm();
+    this.alojamientoForm.reset({
+      nombre: '',
+      descripcion: '',
+      direccion: '',
+      precio: 0,
+      capacidadMaxima: 1,
+      serviciosIds: []
+    });
     this.imagenesArchivos = [];
     this.imagenesPreviews = [];
     this.imagenesAntiguasUrls = [];
@@ -537,6 +557,7 @@ export class Anfitrion implements OnInit {
     this.imageUrlInput = '';
     this.showCreateDialog = true;
   }
+
 
   crearAlojamiento() {
     if (!this.ownerId || this.ownerId === 0) {
@@ -551,8 +572,9 @@ export class Anfitrion implements OnInit {
 
     this.http.post<AlojamientoResponseDTO>(
       `${this.API_URL}/alojamientos?ownerId=${this.ownerId}`,
-      this.alojamientoForm
+      this.alojamientoForm.value
     ).subscribe({
+
       next: (response) => {
         console.log('Alojamiento creado:', response);
         const newAlojamientoId = response.id;
@@ -596,14 +618,15 @@ export class Anfitrion implements OnInit {
   // ============================================
   openEditDialog(alojamiento: AlojamientoResponseDTO) {
     this.selectedAlojamiento = alojamiento;
-    this.alojamientoForm = {
+    this.alojamientoForm.patchValue({
       nombre: alojamiento.nombre,
       descripcion: alojamiento.descripcion,
       direccion: alojamiento.direccion,
       precio: alojamiento.precio,
       capacidadMaxima: alojamiento.capacidadMaxima || 1,
       serviciosIds: alojamiento.servicios ? alojamiento.servicios.map(s => s.id) : []
-    };
+    });
+
     this.imagenesAntiguasUrls = alojamiento.imagenes ? alojamiento.imagenes.map(i => i.url) : [];
     this.imagenesArchivos = [];
     this.imagenesPreviews = [];
@@ -622,8 +645,9 @@ export class Anfitrion implements OnInit {
 
     this.http.put<AlojamientoResponseDTO>(
       `${this.API_URL}/alojamientos/${this.selectedAlojamiento.id}?ownerId=${this.ownerId}`,
-      this.alojamientoForm
+      this.alojamientoForm.value
     ).subscribe({
+
       next: (response) => {
         console.log('Alojamiento editado:', response);
         const alojamientoId = response.id;
@@ -674,10 +698,10 @@ export class Anfitrion implements OnInit {
   }
 
   private finalizarGuardado() {
-    this.showCreateDialog = false;
     this.showEditDialog = false;
     this.selectedAlojamiento = null;
-    this.alojamientoForm = this.getEmptyForm();
+    this.alojamientoForm.reset();
+
     this.imagenesArchivos = [];
     this.imagenesPreviews = [];
     this.imagenesAntiguasUrls = [];
@@ -855,6 +879,17 @@ export class Anfitrion implements OnInit {
     return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
   }
 
+  initAlojamientoForm(): FormGroup {
+    return this.fb.group({
+      nombre: ['', [Validators.required, Validators.minLength(5)]],
+      descripcion: ['', [Validators.required, Validators.minLength(20)]],
+      direccion: ['', [Validators.required]],
+      precio: [0, [Validators.required, Validators.min(1)]],
+      capacidadMaxima: [1, [Validators.required, Validators.min(1)]],
+      serviciosIds: [[]]
+    });
+  }
+
   getEmptyForm(): AlojamientoRequestDTO {
     return {
       nombre: '',
@@ -866,22 +901,15 @@ export class Anfitrion implements OnInit {
     };
   }
 
+
   /**
-   * Validación preventiva del formulario de alojamiento.
+   * Validación reactiva del formulario de alojamiento.
    * Previene campos nulos/vacíos que generarían NullPointerException en el backend.
    */
   isFormValid(): boolean {
-    const f = this.alojamientoForm;
-    if (!f) return false;
-
-    const nombreOk = !!(f.nombre && f.nombre.trim().length >= 5);
-    const descripcionOk = !!(f.descripcion && f.descripcion.trim().length >= 20);
-    const direccionOk = !!(f.direccion && f.direccion.trim().length > 0);
-    const precioOk = f.precio != null && f.precio > 0;
-    const capacidadOk = f.capacidadMaxima != null && f.capacidadMaxima >= 1;
-
-    return nombreOk && descripcionOk && direccionOk && precioOk && capacidadOk;
+    return this.alojamientoForm.valid;
   }
+
 
   getEstadoClass(estado: string): string {
     switch (estado.toLowerCase()) {
