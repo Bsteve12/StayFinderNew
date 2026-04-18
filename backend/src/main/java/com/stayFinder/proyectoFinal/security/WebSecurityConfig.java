@@ -56,7 +56,7 @@ public class WebSecurityConfig {
                 frontendUrl,
                 "https://stayfinder-backend-86433570710.us-central1.run.app"));
 
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
 

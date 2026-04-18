@@ -208,6 +208,15 @@
                 </span>
                 <p class="precio">Total: ${{ reserva.precioTotal | number }}</p>
               </div>
+
+              <div class="historial-actions" style="margin-top: 15px; display: flex; gap: 10px; justify-content: flex-end;" *ngIf="reserva.estado === 'PENDIENTE' || reserva.estado === 'CONFIRMADA'">
+                <button pButton label="Confirmar" icon="pi pi-check" class="p-button-success p-button-sm" 
+                  *ngIf="reserva.estado === 'PENDIENTE'" 
+                  (click)="confirmarReservaAnfitrion(reserva.reservaId || reserva.id || 0)"></button>
+                <button pButton label="Cancelar" icon="pi pi-times" class="p-button-danger p-button-sm" 
+                  *ngIf="reserva.estado === 'PENDIENTE' || reserva.estado === 'CONFIRMADA'" 
+                  (click)="cancelarReservaAnfitrion(reserva.reservaId || reserva.id || 0)"></button>
+              </div>
             </div>
           </div>
         </div>

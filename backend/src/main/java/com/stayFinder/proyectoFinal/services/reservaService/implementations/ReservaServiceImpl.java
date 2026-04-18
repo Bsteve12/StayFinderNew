@@ -114,12 +114,20 @@ public class ReservaServiceImpl implements ReservaServiceInterface {
     public void cancelarReserva(CancelarReservaRequestDTO dto, Long userId) throws Exception {
         Reserva reserva = obtenerReservaValida(dto.reservaId(), userId);
 
-        // 🔹 Validar que falten al menos 48h para la fecha de inicio
-        LocalDate hoy = LocalDate.now();
-        long horasHastaCheckIn = ChronoUnit.HOURS.between(hoy.atStartOfDay(), reserva.getFechaInicio().atStartOfDay());
+        Usuario actor = usuarioRepository.findAnyById(userId)
+                .orElseThrow(() -> new Exception("Actor no encontrado"));
 
-        if (horasHastaCheckIn < 48) {
-            throw new Exception("La reserva solo puede cancelarse hasta 48 horas antes del check-in");
+        boolean esAdmin = (actor.getRole() == Role.ADMIN);
+        boolean esAnfitrion = reserva.getAlojamiento().getOwner().getId().equals(actor.getId());
+
+        // 🔹 Validar que falten al menos 72h para la fecha de inicio SI es el cliente (no admin ni anfitrión)
+        if (!esAdmin && !esAnfitrion) {
+            LocalDate hoy = LocalDate.now();
+            long horasHastaCheckIn = ChronoUnit.HOURS.between(hoy.atStartOfDay(), reserva.getFechaInicio().atStartOfDay());
+
+            if (horasHastaCheckIn < 72) {
+                throw new Exception("La reserva solo puede cancelarse hasta 72 horas antes del check-in");
+            }
         }
 
         reserva.setEstado(EstadoReserva.CANCELADA);
@@ -351,7 +359,14 @@ public class ReservaServiceImpl implements ReservaServiceInterface {
             return reserva;
         }
 
-        // 3. Comprobación de propietario (para roles CLIENT/OWNER)
+        // 3. Comprobación si es el DUEÑO del Alojamiento
+        Long alojamientoOwnerId = reserva.getAlojamiento().getOwner().getId();
+        if (alojamientoOwnerId != null && alojamientoOwnerId.equals(actor.getId())) {
+            // El anfitrión tiene permiso
+            return reserva;
+        }
+
+        // 4. Comprobación de propietario (CLIENTE de la reserva)
         Long reservaOwnerId = reserva.getUsuario().getUsuarioId();
 
         // Verificación de integridad: el dueño de la reserva debe tener un ID de
@@ -363,7 +378,7 @@ public class ReservaServiceImpl implements ReservaServiceInterface {
         }
 
         // Si el actor no es el dueño de la reserva, denegar permiso
-        if (!reservaOwnerId.equals(userId)) {
+        if (!reservaOwnerId.equals(userId) && !reserva.getUsuario().getId().equals(actor.getId())) {
             throw new Exception("No tiene permiso para modificar esta reserva");
         }
 
