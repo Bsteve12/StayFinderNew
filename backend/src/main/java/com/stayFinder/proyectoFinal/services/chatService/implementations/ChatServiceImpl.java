@@ -23,7 +23,7 @@ public class ChatServiceImpl implements ChatServiceInterface {
     private final ChatRepository chatRepo;
     private final UsuarioRepository usuarioRepo;
     private final ReservaRepository reservaRepo;
-    private final ChatMapper chatMapper;
+    private final ChatMapper chatMapper = org.mapstruct.factory.Mappers.getMapper(ChatMapper.class);
 
     @Override
     public ChatResponseDTO crearChat(ChatRequestDTO dto) {

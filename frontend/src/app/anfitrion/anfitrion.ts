@@ -6,6 +6,7 @@ import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
+import { FloatLabelModule } from 'primeng/floatlabel';
 import { TextareaModule } from 'primeng/textarea';
 import { CarouselModule } from 'primeng/carousel';
 import { MultiSelectModule } from 'primeng/multiselect';
@@ -106,6 +107,7 @@ interface UpdateUserDTO {
     CardModule,
     DialogModule,
     InputTextModule,
+    FloatLabelModule,
     TextareaModule,
     CarouselModule,
     MultiSelectModule,
@@ -178,6 +180,8 @@ export class Anfitrion implements OnInit {
 
   imageUrlInput: string = '';
   imagenesUrls: string[] = []; // URLs nuevas que se agregan manualmente
+  isDragOverCreate: boolean = false;
+  isDragOverEdit: boolean = false;
 
   showEditProfileDialog: boolean = false;
   profileForm: UpdateUserDTO = {
@@ -409,17 +413,50 @@ export class Anfitrion implements OnInit {
   // ============================================
   onFilesSelected(event: any) {
     const files: FileList = event.target.files;
-    if (files) {
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        this.imagenesArchivos.push(file);
+    this.processFiles(files);
+  }
 
-        // Crear preview
-        const reader = new FileReader();
-        reader.onload = (e: any) => {
-          this.imagenesPreviews.push(e.target.result);
-        };
-        reader.readAsDataURL(file);
+  onDragOver(event: DragEvent, type: 'create' | 'edit') {
+    event.preventDefault();
+    event.stopPropagation();
+    if (type === 'create') this.isDragOverCreate = true;
+    else this.isDragOverEdit = true;
+  }
+
+  onDragLeave(event: DragEvent, type: 'create' | 'edit') {
+    event.preventDefault();
+    event.stopPropagation();
+    if (type === 'create') this.isDragOverCreate = false;
+    else this.isDragOverEdit = false;
+  }
+
+  onDrop(event: DragEvent, type: 'create' | 'edit') {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    if (type === 'create') this.isDragOverCreate = false;
+    else this.isDragOverEdit = false;
+
+    if (event.dataTransfer?.files) {
+      this.processFiles(event.dataTransfer.files);
+    }
+  }
+
+  private processFiles(files: FileList) {
+    if (files) {
+      // Loop over the files using regular for loop to be safe across browsers
+      for (let i = 0; i < files.length; i++) {
+        const file = files.item(i);
+        if (file) {
+          this.imagenesArchivos.push(file);
+
+          // Crear preview miniatura inmediata en la UI
+          const reader = new FileReader();
+          reader.onload = (e: any) => {
+            this.imagenesPreviews.push(e.target.result);
+          };
+          reader.readAsDataURL(file);
+        }
       }
     }
   }
@@ -468,7 +505,9 @@ export class Anfitrion implements OnInit {
             const imgs = a.imagenes?.map(img => {
               return {
                 ...img,
-                url: img.url.startsWith('/api') ? `${environment.apiUrl}${img.url}` : img.url
+                url: img.url.startsWith('http') 
+                  ? img.url 
+                  : `${environment.apiUrl.replace(/\/$/, '')}/${img.url.replace(/^\/?(api\/)?/, '')}`
               };
             }) || [];
             return {

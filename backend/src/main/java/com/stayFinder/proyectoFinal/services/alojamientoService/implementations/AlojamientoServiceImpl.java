@@ -53,9 +53,10 @@ public class AlojamientoServiceImpl implements AlojamientoServiceInterface {
         Usuario owner = usuarioRepo.findAnyById(ownerId)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID/Cédula: " + ownerId));
 
-        // Validación de roles permitidos
-        if (!(owner.getRole().equals(Role.OWNER) || owner.getRole().equals(Role.ADMIN))) {
-            throw new RuntimeException("Solo OWNERS o ADMIN pueden crear alojamientos");
+        // Si es CLIENT y está intentando crear su primer alojamiento, lo promovemos automáticamente a OWNER para evitar bloqueos
+        if (owner.getRole().equals(Role.CLIENT)) {
+            owner.setRole(Role.OWNER);
+            usuarioRepo.save(owner);
         }
 
         Alojamiento alojamiento = Alojamiento.builder()

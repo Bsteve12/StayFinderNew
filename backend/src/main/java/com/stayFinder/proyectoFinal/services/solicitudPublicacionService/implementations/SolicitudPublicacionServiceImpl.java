@@ -40,7 +40,7 @@ public class SolicitudPublicacionServiceImpl implements SolicitudPublicacionServ
 
     @Override
     public SolicitudPublicacionResponseDTO crearSolicitud(SolicitudPublicacionRequestDTO dto) {
-        Usuario usuario = usuarioRepo.findByUsuarioId(dto.usuarioId())
+        Usuario usuario = usuarioRepo.findAnyById(dto.usuarioId())
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
         if (usuario.getRole() != Role.OWNER) {

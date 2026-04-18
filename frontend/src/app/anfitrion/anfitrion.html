@@ -412,158 +412,196 @@
   </main>
 </div>
 
-<p-dialog [(visible)]="showCreateDialog" header="Crear Alojamiento" [modal]="true" [style]="{width: '600px'}">
-  <div class="form-content">
-    <div class="form-field">
-      <label>Nombre</label>
-      <input type="text" pInputText [(ngModel)]="alojamientoForm.nombre" />
-    </div>
-
-    <div class="form-field">
-      <label>Descripción</label>
-      <textarea pInputTextarea [(ngModel)]="alojamientoForm.descripcion" rows="3"></textarea>
-    </div>
-
-    <div class="form-field">
-      <label>Ubicación (Dirección)</label>
-      <input type="text" pInputText [(ngModel)]="alojamientoForm.direccion" />
-    </div>
-
-    <div class="form-row">
-      <div class="form-field">
-        <label>Precio por noche</label>
-        <input type="number" pInputText [(ngModel)]="alojamientoForm.precio" />
-      </div>
-
-      <div class="form-field">
-        <label>Capacidad Máxima</label>
-        <input type="number" pInputText [(ngModel)]="alojamientoForm.capacidadMaxima" />
-      </div>
-    </div>
-
-    <div class="form-field">
-      <label>Servicios Incluídos</label>
-      <p-multiSelect [options]="servicios" [(ngModel)]="alojamientoForm.serviciosIds"
-        defaultLabel="Selecciona los servicios..." optionLabel="nombre" optionValue="id" display="chip"
-        [style]="{'width': '100%'}"></p-multiSelect>
-    </div>
-
-    <div class="form-field">
-      <label>Imágenes (Mínimo 3)</label>
-      <div class="image-input-group">
-        <input type="file" multiple accept="image/*" (change)="onFilesSelected($event)" class="file-input" #fileInput
-          style="display: none;" />
-        <button pButton icon="pi pi-upload" label="Archivos Locales" (click)="fileInput.click()"
-          class="btn-add-image p-button-outlined"></button>
-
-        <input type="text" pInputText [(ngModel)]="imageUrlInput" placeholder="URL de web..."
-          (keyup.enter)="addImageUrl()" style="flex: 1;" />
-        <button pButton icon="pi pi-plus" (click)="addImageUrl()" class="btn-add-image-url"></button>
-      </div>
-      <div class="images-preview">
-        <!-- Previews de archivos locales -->
-        <div class="image-preview-item" *ngFor="let preview of imagenesPreviews; let i = index">
-          <img [src]="preview" alt="Preview Local" class="thumbnail-preview" />
-          <button pButton icon="pi pi-times" class="p-button-rounded p-button-danger p-button-sm btn-remove-img"
-            (click)="removeImage(i, true)"></button>
+<p-dialog [(visible)]="showCreateDialog" header="Crear Alojamiento" [modal]="true" [style]="{width: '65vw'}" styleClass="custom-dialog">
+  <div class="grid-form-container flex flex-column gap-4 mt-3">
+    <p-card header="Información Básica" styleClass="form-card custom-shadow-card">
+      <div class="p-fluid grid formgrid">
+        <div class="field col-12 md:col-6 mb-4 mt-2">
+          <p-floatLabel>
+            <input id="nombre" type="text" pInputText [(ngModel)]="alojamientoForm.nombre" class="w-full" />
+            <label for="nombre">Nombre del Alojamiento</label>
+          </p-floatLabel>
         </div>
-        <!-- Previews de URLs externas -->
-        <div class="image-preview-item" *ngFor="let url of imagenesUrls; let i = index">
-          <img [src]="url" alt="Preview URL" class="thumbnail-preview" />
-          <button pButton icon="pi pi-times" class="p-button-rounded p-button-danger p-button-sm btn-remove-img"
-            (click)="removeImageUrl(i)"></button>
+        <div class="field col-12 md:col-6 mb-4 mt-2">
+          <p-floatLabel>
+            <input id="direccion" type="text" pInputText [(ngModel)]="alojamientoForm.direccion" class="w-full"/>
+            <label for="direccion">Ubicación / Dirección Exacta</label>
+          </p-floatLabel>
+        </div>
+        <div class="field col-12 md:col-6 mb-4">
+          <p-floatLabel>
+            <input id="precio" type="number" pInputText [(ngModel)]="alojamientoForm.precio" class="w-full"/>
+            <label for="precio">Precio Base (por Noche)</label>
+          </p-floatLabel>
+        </div>
+        <div class="field col-12 md:col-6 mb-4">
+          <p-floatLabel>
+            <input id="capacidad" type="number" pInputText [(ngModel)]="alojamientoForm.capacidadMaxima" class="w-full"/>
+            <label for="capacidad">Huéspedes Máximos</label>
+          </p-floatLabel>
+        </div>
+        <div class="field col-12 mb-4">
+          <p-floatLabel>
+            <textarea id="descripcion" pInputTextarea [(ngModel)]="alojamientoForm.descripcion" rows="4" class="w-full"></textarea>
+            <label for="descripcion">Descripción detallada para los usuarios</label>
+          </p-floatLabel>
+        </div>
+        <div class="field col-12">
+          <label class="block mb-2 font-bold text-gray-700">Servicios Incluídos</label>
+          <p-multiSelect [options]="servicios" [(ngModel)]="alojamientoForm.serviciosIds"
+            defaultLabel="Selecciona los comodidades y servicios..." optionLabel="nombre" optionValue="id" display="chip"
+            [style]="{'width': '100%'}"></p-multiSelect>
         </div>
       </div>
-    </div>
+    </p-card>
+
+    <p-card header="Multimedia (Requiere mínimo 3)" styleClass="form-card custom-shadow-card">
+      <div class="drop-zone-container">
+        <div class="drop-zone" 
+             [class.drag-over]="isDragOverCreate"
+             (dragover)="onDragOver($event, 'create')"
+             (dragleave)="onDragLeave($event, 'create')"
+             (drop)="onDrop($event, 'create')"
+             (click)="fileInputCreate.click()">
+          <i class="pi pi-images upload-icon"></i>
+          <h4>Arrastra y suelta imágenes aquí</h4>
+          <p class="drop-zone-text">O haz clic para explorar en tu equipo (.jpg, .png, .webp)</p>
+          <input type="file" multiple accept="image/*, image/webp" (change)="onFilesSelected($event)" class="file-input" #fileInputCreate style="display: none;" />
+        </div>
+        
+        <div class="url-input-group mt-4 flex gap-2 w-full align-items-center">
+           <p-floatLabel class="flex-1 w-full mt-2">
+              <input id="urlInput" type="text" pInputText [(ngModel)]="imageUrlInput" (keyup.enter)="addImageUrl()" class="w-full" />
+              <label for="urlInput">URL Alternativa (Vía web)</label>
+           </p-floatLabel>
+           <button pButton icon="pi pi-plus" (click)="addImageUrl()" class="p-button-secondary h-auto"></button>
+        </div>
+      </div>
+
+      <div class="images-preview-wrapper mt-4" *ngIf="imagenesPreviews.length > 0 || imagenesUrls.length > 0">
+        <h5 class="mb-3 font-semibold text-gray-600">Miniaturas Cargadas</h5>
+        <div class="preview-grid flex flex-wrap gap-3">
+          <div class="image-preview-item" *ngFor="let preview of imagenesPreviews; let i = index">
+            <img [src]="preview" alt="Preview Local" class="thumbnail-preview modern-thumbnail" />
+            <button pButton icon="pi pi-times" class="p-button-rounded p-button-danger p-button-sm btn-remove-img"
+              (click)="removeImage(i, true)"></button>
+          </div>
+          <div class="image-preview-item" *ngFor="let url of imagenesUrls; let i = index">
+            <img [src]="url" alt="Preview URL" class="thumbnail-preview modern-thumbnail" />
+            <button pButton icon="pi pi-times" class="p-button-rounded p-button-danger p-button-sm btn-remove-img"
+              (click)="removeImageUrl(i)"></button>
+          </div>
+        </div>
+      </div>
+    </p-card>
   </div>
 
   <ng-template pTemplate="footer">
-    <button pButton label="Cancelar" class="p-button-text" (click)="showCreateDialog = false"></button>
-    <button pButton label="Guardar" (click)="crearAlojamiento()"></button>
+    <div class="flex justify-content-end gap-3 w-full border-top-1 border-gray-200 pt-3 mt-2">
+      <button pButton label="Cancelar" icon="pi pi-times" class="p-button-text p-button-secondary custom-hover-btn" (click)="showCreateDialog = false"></button>
+      <button pButton label="Guardar Alojamiento" icon="pi pi-save" class="p-button-primary custom-hover-btn" (click)="crearAlojamiento()"></button>
+    </div>
   </ng-template>
 </p-dialog>
 
-<p-dialog [(visible)]="showEditDialog" header="Editar Alojamiento" [modal]="true" [style]="{width: '600px'}">
-  <div class="form-content">
-    <div class="form-field">
-      <label>Nombre</label>
-      <input type="text" pInputText [(ngModel)]="alojamientoForm.nombre" />
-    </div>
-
-    <div class="form-field">
-      <label>Descripción</label>
-      <textarea pInputTextarea [(ngModel)]="alojamientoForm.descripcion" rows="3"></textarea>
-    </div>
-
-    <div class="form-field">
-      <label>Ubicación (Dirección)</label>
-      <input type="text" pInputText [(ngModel)]="alojamientoForm.direccion" />
-    </div>
-
-    <div class="form-row">
-      <div class="form-field">
-        <label>Precio por noche</label>
-        <input type="number" pInputText [(ngModel)]="alojamientoForm.precio" />
+<p-dialog [(visible)]="showEditDialog" header="Editar Alojamiento" [modal]="true" [style]="{width: '65vw'}" styleClass="custom-dialog">
+  <div class="grid-form-container flex flex-column gap-4 mt-3">
+    <p-card header="Información Básica" styleClass="form-card custom-shadow-card">
+      <div class="p-fluid grid formgrid">
+        <div class="field col-12 md:col-6 mb-4 mt-2">
+          <p-floatLabel>
+            <input id="editNombre" type="text" pInputText [(ngModel)]="alojamientoForm.nombre" class="w-full" />
+            <label for="editNombre">Nombre del Alojamiento</label>
+          </p-floatLabel>
+        </div>
+        <div class="field col-12 md:col-6 mb-4 mt-2">
+          <p-floatLabel>
+            <input id="editDireccion" type="text" pInputText [(ngModel)]="alojamientoForm.direccion" class="w-full" />
+            <label for="editDireccion">Ubicación / Dirección Exacta</label>
+          </p-floatLabel>
+        </div>
+        <div class="field col-12 md:col-6 mb-4">
+          <p-floatLabel>
+            <input id="editPrecio" type="number" pInputText [(ngModel)]="alojamientoForm.precio" class="w-full" />
+            <label for="editPrecio">Precio Base (por Noche)</label>
+          </p-floatLabel>
+        </div>
+        <div class="field col-12 md:col-6 mb-4">
+          <p-floatLabel>
+            <input id="editCapacidad" type="number" pInputText [(ngModel)]="alojamientoForm.capacidadMaxima" class="w-full" />
+            <label for="editCapacidad">Huéspedes Máximos</label>
+          </p-floatLabel>
+        </div>
+        <div class="field col-12 mb-4">
+          <p-floatLabel>
+            <textarea id="editDescripcion" pInputTextarea [(ngModel)]="alojamientoForm.descripcion" rows="4" class="w-full"></textarea>
+            <label for="editDescripcion">Descripción detallada</label>
+          </p-floatLabel>
+        </div>
+        <div class="field col-12">
+          <label class="block mb-2 font-bold text-gray-700">Servicios Incluídos</label>
+          <p-multiSelect [options]="servicios" [(ngModel)]="alojamientoForm.serviciosIds"
+            defaultLabel="Selecciona comandos y servicios..." optionLabel="nombre" optionValue="id" display="chip"
+            [style]="{'width': '100%'}"></p-multiSelect>
+        </div>
       </div>
+    </p-card>
 
-      <div class="form-field">
-        <label>Capacidad Máxima</label>
-        <input type="number" pInputText [(ngModel)]="alojamientoForm.capacidadMaxima" />
-      </div>
-    </div>
+    <p-card header="Multimedia (Total exigido: 3 min)" styleClass="form-card custom-shadow-card">
+      <div class="drop-zone-container">
+        <div class="drop-zone" 
+             [class.drag-over]="isDragOverEdit"
+             (dragover)="onDragOver($event, 'edit')"
+             (dragleave)="onDragLeave($event, 'edit')"
+             (drop)="onDrop($event, 'edit')"
+             (click)="fileInputEdit.click()">
+          <i class="pi pi-images upload-icon"></i>
+          <h4>Añadir nuevas imágenes</h4>
+          <p class="drop-zone-text">Arrastra los archivos o haz clic aquí (.jpg, .png, .webp)</p>
+          <input type="file" multiple accept="image/*, image/webp" (change)="onFilesSelected($event)" class="file-input" #fileInputEdit style="display: none;" />
+        </div>
 
-    <div class="form-field">
-      <label>Servicios Incluídos</label>
-      <p-multiSelect [options]="servicios" [(ngModel)]="alojamientoForm.serviciosIds"
-        defaultLabel="Selecciona los servicios..." optionLabel="nombre" optionValue="id" display="chip"
-        [style]="{'width': '100%'}"></p-multiSelect>
-    </div>
-
-    <div class="form-field">
-      <label>Imágenes (Mínimo 3 combinadas)</label>
-      <div class="image-input-group">
-        <input type="file" multiple accept="image/*" (change)="onFilesSelected($event)" class="file-input"
-          #editFileInput style="display: none;" />
-        <button pButton icon="pi pi-upload" label="Archivos Locales" (click)="editFileInput.click()"
-          class="btn-add-image p-button-outlined"></button>
-
-        <input type="text" pInputText [(ngModel)]="imageUrlInput" placeholder="URL de web..."
-          (keyup.enter)="addImageUrl()" style="flex: 1;" />
-        <button pButton icon="pi pi-plus" (click)="addImageUrl()" class="btn-add-image-url"></button>
-      </div>
-
-      <p style="font-size: 0.85rem; color: #666; margin-bottom: 0.5rem;" *ngIf="imagenesAntiguasUrls.length > 0">
-        Imágenes previas (Guardadas):</p>
-      <div class="images-preview">
-        <div class="image-preview-item" *ngFor="let url of imagenesAntiguasUrls; let i = index">
-          <img [src]="url.startsWith('/api') ? baseUrl + url : url" alt="Previa antigua" class="thumbnail-preview" />
-          <button pButton icon="pi pi-times" class="p-button-rounded p-button-danger p-button-sm btn-remove-img"
-            (click)="removeImage(i, false)"></button>
+        <div class="url-input-group mt-4 flex gap-2 w-full align-items-center">
+           <p-floatLabel class="flex-1 w-full mt-2">
+              <input id="editUrlInput" type="text" pInputText [(ngModel)]="imageUrlInput" (keyup.enter)="addImageUrl()" class="w-full" />
+              <label for="editUrlInput">URL Alternativa (Vía web)</label>
+           </p-floatLabel>
+           <button pButton icon="pi pi-plus" (click)="addImageUrl()" class="p-button-secondary h-auto"></button>
         </div>
       </div>
 
-      <p style="font-size: 0.85rem; color: #666; margin-top: 1rem; margin-bottom: 0.5rem;"
-        *ngIf="imagenesPreviews.length > 0 || imagenesUrls.length > 0">Nuevas imágenes a subir:</p>
-      <div class="images-preview">
-        <!-- Previews de archivos locales -->
-        <div class="image-preview-item" *ngFor="let preview of imagenesPreviews; let i = index">
-          <img [src]="preview" alt="Preview nueva local" class="thumbnail-preview" />
-          <button pButton icon="pi pi-times" class="p-button-rounded p-button-danger p-button-sm btn-remove-img"
-            (click)="removeImage(i, true)"></button>
+      <div class="images-preview-wrapper mt-4">
+        <h5 class="mb-3 font-semibold text-gray-600" *ngIf="imagenesAntiguasUrls.length > 0">Imágenes Guardadas en Servidor</h5>
+        <div class="preview-grid flex flex-wrap gap-3 mb-4">
+          <div class="image-preview-item" *ngFor="let url of imagenesAntiguasUrls; let i = index">
+            <img [src]="url.startsWith('/api') ? baseUrl + url : url" alt="Previa antigua" class="thumbnail-preview modern-thumbnail" />
+            <button pButton icon="pi pi-times" class="p-button-rounded p-button-danger p-button-sm btn-remove-img"
+              (click)="removeImage(i, false)"></button>
+          </div>
         </div>
-        <!-- Previews de URLs externas -->
-        <div class="image-preview-item" *ngFor="let url of imagenesUrls; let i = index">
-          <img [src]="url" alt="Preview nueva URL" class="thumbnail-preview" />
-          <button pButton icon="pi pi-times" class="p-button-rounded p-button-danger p-button-sm btn-remove-img"
-            (click)="removeImageUrl(i)"></button>
+
+        <h5 class="mb-3 font-semibold text-gray-600" *ngIf="imagenesPreviews.length > 0 || imagenesUrls.length > 0">Nuevas por Subir</h5>
+        <div class="preview-grid flex flex-wrap gap-3">
+          <div class="image-preview-item" *ngFor="let preview of imagenesPreviews; let i = index">
+            <img [src]="preview" alt="Preview nueva local" class="thumbnail-preview modern-thumbnail" />
+            <button pButton icon="pi pi-times" class="p-button-rounded p-button-danger p-button-sm btn-remove-img"
+              (click)="removeImage(i, true)"></button>
+          </div>
+          <div class="image-preview-item" *ngFor="let url of imagenesUrls; let i = index">
+            <img [src]="url" alt="Preview nueva URL" class="thumbnail-preview modern-thumbnail" />
+            <button pButton icon="pi pi-times" class="p-button-rounded p-button-danger p-button-sm btn-remove-img"
+              (click)="removeImageUrl(i)"></button>
+          </div>
         </div>
       </div>
-    </div>
+    </p-card>
   </div>
 
   <ng-template pTemplate="footer">
-    <button pButton label="Cancelar" class="p-button-text" (click)="showEditDialog = false"></button>
-    <button pButton label="Guardar" (click)="editarAlojamiento()"></button>
+    <div class="flex justify-content-end gap-3 w-full border-top-1 border-gray-200 pt-3 mt-2">
+      <button pButton label="Cancelar" icon="pi pi-times" class="p-button-text p-button-secondary custom-hover-btn" (click)="showEditDialog = false"></button>
+      <button pButton label="Guardar Alojamiento" icon="pi pi-check" class="p-button-primary custom-hover-btn" (click)="editarAlojamiento()"></button>
+    </div>
   </ng-template>
 </p-dialog>
 

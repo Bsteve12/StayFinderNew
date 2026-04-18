@@ -1271,7 +1271,10 @@
                         font-weight: 600;
                         color: #374151;
                         font-size: 0.95rem;
-                        background: transparent !important;
+                        background: #ffffff !important;
+                        padding: 0 4px;
+                        margin-left: -4px;
+                        z-index: 2;
                     }
 
                     .p-inputtext,
@@ -1341,30 +1344,92 @@
 }
 
 // ============================================
-// 🔹 Imágenes Preview
+// 🔹 FloatLabel Overrides & Form Grids
 // ============================================
-.image-input-group {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 12px;
-
-    .btn-add-image {
-        width: auto;
-        justify-content: center;
+.grid-form-container {
+    .form-card {
+        border-radius: 12px;
+        border: 1px solid #e5e7eb;
+        
+        .p-card-header {
+            padding: 1rem 1.25rem 0;
+            font-weight: 700;
+            color: #374151;
+            font-size: 1.1rem;
+        }
+        .p-card-content {
+            padding: 0;
+        }
     }
-
-    .btn-add-image-url {
-        background: #7c3aed !important;
-        border: none !important;
-        width: 48px;
+    
+    .custom-shadow-card {
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03) !important;
     }
 }
 
-.images-preview {
+// ============================================
+// 🔹 Drag & Drop Zone (Imágenes)
+// ============================================
+.drop-zone-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.drop-zone {
+    border: 2px dashed #d1d5db;
+    border-radius: 12px;
+    padding: 2.5rem 1rem;
+    text-align: center;
+    background-color: #f9fafb;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    
+    .upload-icon {
+        font-size: 2.5rem;
+        color: #9ca3af;
+        margin-bottom: 1rem;
+        transition: color 0.3s ease;
+    }
+
+    h4 {
+        margin: 0 0 0.5rem 0;
+        color: #4b5563;
+        font-size: 1.1rem;
+        font-weight: 600;
+    }
+
+    .drop-zone-text {
+        margin: 0;
+        color: #6b7280;
+        font-size: 0.9rem;
+    }
+
+    &:hover, &.drag-over {
+        border-color: #7c3aed;
+        background-color: #f5f3ff;
+        
+        .upload-icon {
+            color: #7c3aed;
+        }
+    }
+}
+
+.images-preview-wrapper {
+    background: #f9fafb;
+    padding: 1.25rem;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+}
+
+.preview-grid {
     display: flex;
     flex-wrap: wrap;
     gap: 12px;
-    margin-top: 16px;
 
     .image-preview-item {
         position: relative;
@@ -1374,11 +1439,17 @@
         overflow: hidden;
         border: 2px solid #e5e7eb;
         background: #f3f4f6;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 
-        .thumbnail-preview {
+        .modern-thumbnail {
             width: 100%;
             height: 100%;
             object-fit: cover;
+            transition: transform 0.3s ease;
+            
+            &:hover {
+                transform: scale(1.05);
+            }
         }
 
         .btn-remove-img {
@@ -1387,6 +1458,7 @@
             right: 4px;
             width: 24px !important;
             height: 24px !important;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
 
             .p-button-icon {
                 font-size: 10px !important;

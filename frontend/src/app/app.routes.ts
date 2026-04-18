@@ -1,34 +1,19 @@
 import { Routes } from '@angular/router';
-import { Soporte } from './soporte/soporte';
-import { Inicio } from './inicio/inicio';
-import { Detalle } from './detalle/detalle';
-import { Login } from './login/login';
-import { Register } from './register/register';
-import { Password } from './password/password';
-import { MiCuenta } from './mi-cuenta/mi-cuenta';
-import { Anfitrion } from './anfitrion/anfitrion';
-import { Administrador } from './administrador/administrador';
-import { ConvertirseAnfitrion } from './convertirse-anfitrion/convertirse-anfitrion';
-import { InicioMiCuenta } from './inicio-mi-cuenta/inicio-mi-cuenta';
-import { ResetPassword } from './reset-password/reset-password';
-import { Oauth2Redirect } from './oauth2-redirect/oauth2-redirect';
-import { PagarReserva } from './pagar-reserva/pagar-reserva';
-
 
 export const routes: Routes = [
   { path: '', redirectTo: 'inicio', pathMatch: 'full' },
-  { path: 'inicio', component: Inicio },
-  { path: 'soporte', component: Soporte },
-  { path: 'detalle/:id', component: Detalle },
-  { path: 'login', component: Login },
-  { path: 'register', component: Register },
-  { path: 'forgot-password', component: Password },
-  { path: 'mi-cuenta', component: MiCuenta },
-  { path: 'anfitrion', component: Anfitrion },
-  { path: 'administrador', component: Administrador },
-  { path: 'convertirse-anfitrion', component: ConvertirseAnfitrion },
-  { path: 'inicio-mi-cuenta', component: InicioMiCuenta },
-  { path: 'reset-password', component: ResetPassword },
-  { path: 'oauth2/redirect', component: Oauth2Redirect },
-  { path: 'pagar-reserva', component: PagarReserva },
+  { path: 'inicio', loadComponent: () => import('./inicio/inicio').then(m => m.Inicio) },
+  { path: 'soporte', loadComponent: () => import('./soporte/soporte').then(m => m.Soporte) },
+  { path: 'detalle/:id', loadComponent: () => import('./detalle/detalle').then(m => m.Detalle) },
+  { path: 'login', loadComponent: () => import('./login/login').then(m => m.Login) },
+  { path: 'register', loadComponent: () => import('./register/register').then(m => m.Register) },
+  { path: 'forgot-password', loadComponent: () => import('./password/password').then(m => m.Password) },
+  { path: 'mi-cuenta', loadComponent: () => import('./mi-cuenta/mi-cuenta').then(m => m.MiCuenta) },
+  { path: 'anfitrion', loadComponent: () => import('./anfitrion/anfitrion').then(m => m.Anfitrion) },
+  { path: 'administrador', loadComponent: () => import('./administrador/administrador').then(m => m.Administrador) },
+  { path: 'convertirse-anfitrion', loadComponent: () => import('./convertirse-anfitrion/convertirse-anfitrion').then(m => m.ConvertirseAnfitrion) },
+  { path: 'inicio-mi-cuenta', loadComponent: () => import('./inicio-mi-cuenta/inicio-mi-cuenta').then(m => m.InicioMiCuenta) },
+  { path: 'reset-password', loadComponent: () => import('./reset-password/reset-password').then(m => m.ResetPassword) },
+  { path: 'oauth2/redirect', loadComponent: () => import('./oauth2-redirect/oauth2-redirect').then(m => m.Oauth2Redirect) },
+  { path: 'pagar-reserva', loadComponent: () => import('./pagar-reserva/pagar-reserva').then(m => m.PagarReserva) },
 ];
