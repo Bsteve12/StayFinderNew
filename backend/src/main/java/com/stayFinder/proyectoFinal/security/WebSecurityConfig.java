@@ -54,7 +54,9 @@ public class WebSecurityConfig {
         // 🟢 CONFIGURACIÓN DE ORIGENES PERMITIDOS
         configuration.setAllowedOrigins(List.of(
                 frontendUrl,
-                "https://stayfinder-backend-86433570710.us-central1.run.app"));
+                "https://stayfinder-frontend-86433570710.us-central1.run.app",
+                "http://localhost:4200"));
+
 
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
