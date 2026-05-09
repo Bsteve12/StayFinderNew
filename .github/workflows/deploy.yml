@@ -30,8 +30,7 @@ jobs:
           cache: maven
 
       - name: Make mvnw executable
-        working-directory: ./backend
-        run: chmod +x mvnw
+        run: chmod +x ./backend/mvnw
 
       - name: Run Backend Tests (JUnit 5 -> TestRail)
         working-directory: ./backend
@@ -61,31 +60,31 @@ jobs:
       # BACKEND
       - name: Build Backend Docker Image
         working-directory: ./backend
-        run: docker build -t ${REGION}-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/${BACKEND_SERVICE}:${GITHUB_SHA} .
+        run: docker build -t ${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/cloud-run-source-deploy/${{ env.BACKEND_SERVICE }}:${{ github.sha }} .
 
       - name: Push Backend Image
-        run: docker push ${REGION}-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/${BACKEND_SERVICE}:${GITHUB_SHA}
+        run: docker push ${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/cloud-run-source-deploy/${{ env.BACKEND_SERVICE }}:${{ github.sha }}
 
       - name: Deploy Backend to Cloud Run
         uses: google-github-actions/deploy-cloudrun@v1
         with:
           service: ${{ env.BACKEND_SERVICE }}
           region: ${{ env.REGION }}
-          image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/cloud-run-source-deploy/${{ env.BACKEND_SERVICE }}:${{ env.GITHUB_SHA }}
+          image: ${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/cloud-run-source-deploy/${{ env.BACKEND_SERVICE }}:${{ github.sha }}
           env_vars: |
             SPRING_PROFILES_ACTIVE=prod
 
       # FRONTEND
       - name: Build Frontend Docker Image
         working-directory: ./frontend
-        run: docker build -t ${REGION}-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/${FRONTEND_SERVICE}:${GITHUB_SHA} .
+        run: docker build -t ${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/cloud-run-source-deploy/${{ env.FRONTEND_SERVICE }}:${{ github.sha }} .
 
       - name: Push Frontend Image
-        run: docker push ${REGION}-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/${FRONTEND_SERVICE}:${GITHUB_SHA}
+        run: docker push ${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/cloud-run-source-deploy/${{ env.FRONTEND_SERVICE }}:${{ github.sha }}
 
       - name: Deploy Frontend to Cloud Run
         uses: google-github-actions/deploy-cloudrun@v1
         with:
           service: ${{ env.FRONTEND_SERVICE }}
           region: ${{ env.REGION }}
-          image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/cloud-run-source-deploy/${{ env.FRONTEND_SERVICE }}:${{ env.GITHUB_SHA }}
+          image: ${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/cloud-run-source-deploy/${{ env.FRONTEND_SERVICE }}:${{ github.sha }}
