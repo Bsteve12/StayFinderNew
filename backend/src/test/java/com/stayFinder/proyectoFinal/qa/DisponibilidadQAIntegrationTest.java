@@ -7,6 +7,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDate;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.mail.javamail.JavaMailSender;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -20,6 +22,9 @@ public class DisponibilidadQAIntegrationTest {
 
     @Autowired
     private DisponibilidadService disponibilidadService;
+
+    @MockBean
+    private JavaMailSender javaMailSender;
 
     @BeforeAll
     public static void setUp() {
