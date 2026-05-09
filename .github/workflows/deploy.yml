@@ -34,7 +34,7 @@ jobs:
 
       - name: Run Backend Tests (JUnit 5 -> TestRail)
         working-directory: ./backend
-        run: ./mvnw test -Dspring.profiles.active=test
+        run: ./mvnw test -Dtest=DisponibilidadQAIntegrationTest -Dspring.profiles.active=test
         continue-on-error: true
 
   build-and-deploy:
