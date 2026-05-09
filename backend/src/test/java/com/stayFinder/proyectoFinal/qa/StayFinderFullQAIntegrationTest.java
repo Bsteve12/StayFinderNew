@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
 @ActiveProfiles("test")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class DisponibilidadQAIntegrationTest {
+public class StayFinderFullQAIntegrationTest {
 
     private static TestRailReporter reporter;
     private static Long projectId = 1L;
@@ -30,7 +30,7 @@ public class DisponibilidadQAIntegrationTest {
         reporter = new TestRailReporter();
         // Solo creamos el Test Run si hay credenciales reales
         if (System.getenv("TESTRAIL_API_KEY") != null) {
-            reporter.createTestRun(projectId, "Automated QA Run - Disponibilidad & Calendario");
+            reporter.createTestRun(projectId, "Automated QA Full Suite - Usuarios, Reservas & Disponibilidad");
         } else {
             System.out.println("[QA] Ejecución local. TestRail ignorado (falta API Key en entorno).");
         }
