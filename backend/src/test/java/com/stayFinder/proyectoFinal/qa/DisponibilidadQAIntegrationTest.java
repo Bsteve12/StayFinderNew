@@ -2,23 +2,28 @@ package com.stayFinder.proyectoFinal.qa;
 
 import com.stayFinder.proyectoFinal.services.disponibilidadService.DisponibilidadService;
 import org.junit.jupiter.api.*;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.mail.javamail.JavaMailSender;
 
 import java.time.LocalDate;
 import static org.junit.jupiter.api.Assertions.*;
 
-@ExtendWith(MockitoExtension.class)
+@SpringBootTest
+@ActiveProfiles("test")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class DisponibilidadQAIntegrationTest {
 
     private static TestRailReporter reporter;
     private static Long projectId = 1L;
 
-    @Mock
+    @Autowired
     private DisponibilidadService disponibilidadService;
+
+    @MockBean
+    private JavaMailSender javaMailSender;
 
     @BeforeAll
     public static void setUp() {
@@ -38,7 +43,7 @@ public class DisponibilidadQAIntegrationTest {
         boolean passed = false;
         String comment = "El motor de reservas funciona correctamente. ";
         try {
-            Mockito.when(disponibilidadService.isDisponible(Mockito.anyLong(), Mockito.any(), Mockito.any())).thenReturn(true);
+            // Al tener el H2 levantado, este mock de Mockito ya no es necesario ni compatible si usamos Autowired real
             boolean disponible = disponibilidadService.isDisponible(9999L, LocalDate.now(), LocalDate.now().plusDays(5));
             assertTrue(disponible, "Las fechas deberían estar disponibles inicialmente");
             
@@ -82,7 +87,6 @@ public class DisponibilidadQAIntegrationTest {
         boolean passed = false;
         String comment = "La integridad del bloqueo de fechas manual funciona correctamente.";
         try {
-            Mockito.when(disponibilidadService.isDisponible(Mockito.anyLong(), Mockito.any(), Mockito.any())).thenReturn(true);
             boolean disponible = disponibilidadService.isDisponible(8888L, LocalDate.now(), LocalDate.now().plusDays(2));
             assertTrue(disponible);
             
