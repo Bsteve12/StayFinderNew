@@ -29,6 +29,10 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
+      - name: Make mvnw executable
+        working-directory: ./backend
+        run: chmod +x mvnw
+
       - name: Run Backend Tests (JUnit 5 -> TestRail)
         working-directory: ./backend
         run: ./mvnw test -Dspring.profiles.active=test
