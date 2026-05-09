@@ -19,7 +19,7 @@ public class DisponibilidadService {
     private final ReservaRepository reservaRepository;
     private final BloqueoDisponibilidadRepository bloqueoRepo;
 
-    public record RangoFecha(LocalDate inicio, LocalDate fin, String tipo) {}
+    public record RangoFecha(Long id, LocalDate inicio, LocalDate fin, String tipo) {}
 
     public List<RangoFecha> getFechasOcupadas(Long alojamientoId) {
         List<RangoFecha> ocupadas = new ArrayList<>();
@@ -31,13 +31,13 @@ public class DisponibilidadService {
 
         for (Reserva r : reservas) {
             String tipo = "RESERVA_" + r.getEstado().name();
-            ocupadas.add(new RangoFecha(r.getFechaInicio(), r.getFechaFin(), tipo));
+            ocupadas.add(new RangoFecha(r.getId(), r.getFechaInicio(), r.getFechaFin(), tipo));
         }
 
         // Obtener bloqueos manuales
         List<BloqueoDisponibilidad> bloqueos = bloqueoRepo.findByAlojamientoId(alojamientoId);
         for (BloqueoDisponibilidad b : bloqueos) {
-            ocupadas.add(new RangoFecha(b.getFechaInicio(), b.getFechaFin(), "BLOQUEO_MANUAL"));
+            ocupadas.add(new RangoFecha(b.getId(), b.getFechaInicio(), b.getFechaFin(), "BLOQUEO_MANUAL"));
         }
 
         return ocupadas;

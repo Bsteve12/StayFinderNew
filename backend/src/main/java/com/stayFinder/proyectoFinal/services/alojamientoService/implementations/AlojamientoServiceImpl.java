@@ -28,6 +28,7 @@ import com.stayFinder.proyectoFinal.entity.AlojamientoServicioId;
 import com.stayFinder.proyectoFinal.entity.Servicio;
 import com.stayFinder.proyectoFinal.entity.Reserva;
 import com.stayFinder.proyectoFinal.dto.outputDTO.ServicioResponseDTO;
+import com.stayFinder.proyectoFinal.services.disponibilidadService.DisponibilidadService;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -46,6 +47,7 @@ public class AlojamientoServiceImpl implements AlojamientoServiceInterface {
     private final BloqueoDisponibilidadRepository bloqueoRepo;
     private final ServicioRepository servicioRepo;
     private final AlojamientoServicioRepository alojamientoServicioRepo;
+    private final DisponibilidadService disponibilidadService;
 
     @Override
     public AlojamientoResponseDTO crear(AlojamientoRequestDTO req, Long ownerId) {
@@ -339,6 +341,11 @@ public class AlojamientoServiceImpl implements AlojamientoServiceInterface {
 
         if (!alojamiento.getOwner().getId().equals(owner.getId()) && owner.getRole() != Role.ADMIN) {
             throw new RuntimeException("No tienes permisos para bloquear fechas de este alojamiento");
+        }
+        
+        // Validar disponibilidad antes de bloquear (Proceso C - Integridad)
+        if (!disponibilidadService.isDisponible(alojamientoId, req.fechaInicio(), req.fechaFin())) {
+            throw new RuntimeException("Las fechas seleccionadas ya contienen una reserva activa u otro bloqueo.");
         }
         
         BloqueoDisponibilidad bloqueo = BloqueoDisponibilidad.builder()

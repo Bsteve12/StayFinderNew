@@ -166,6 +166,8 @@ export class Anfitrion implements OnInit {
   showEditDialog: boolean = false;
   showSolicitudDialog: boolean = false;
   showServicioDialog: boolean = false;
+  showConfirmDesbloqueoDialog: boolean = false;
+  idsABorrarTemporal: Set<number> = new Set();
 
   // Formulario Alojamiento
   alojamientoForm: FormGroup;
@@ -1031,9 +1033,12 @@ export class Anfitrion implements OnInit {
         return;
     }
 
-    if (!confirm(`¿Estás seguro de liberar estas fechas? Se eliminarán ${idsABorrar.size} registro(s) de bloqueo.`)) return;
+    this.idsABorrarTemporal = idsABorrar;
+    this.showConfirmDesbloqueoDialog = true;
+  }
 
-    const requests = Array.from(idsABorrar).map(id => 
+  confirmarDesbloqueo(): void {
+    const requests = Array.from(this.idsABorrarTemporal).map(id => 
         this.http.delete(`${this.API_URL}/alojamientos/bloqueos/${id}?ownerId=${this.ownerId}`)
     );
 
@@ -1041,11 +1046,14 @@ export class Anfitrion implements OnInit {
         next: () => {
             this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Fechas liberadas correctamente.' });
             this.bloqueoFechas = null;
+            this.showConfirmDesbloqueoDialog = false;
+            this.idsABorrarTemporal.clear();
             this.onCalendarioAlojamientoChange();
         },
         error: (err) => {
             console.error('Error al desbloquear:', err);
             this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudieron liberar todas las fechas.' });
+            this.showConfirmDesbloqueoDialog = false;
         }
     });
   }

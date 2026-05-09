@@ -725,3 +725,21 @@
     <button pButton label="Guardar" icon="pi pi-check" class="p-button-primary" (click)="guardarPerfil()"></button>
   </ng-template>
 </p-dialog>
+
+<!-- Dialog para Confirmar Desbloqueo de Fechas -->
+<p-dialog [(visible)]="showConfirmDesbloqueoDialog" header="Confirmar Liberación" [modal]="true" [style]="{width: '400px'}" styleClass="custom-dialog">
+  <div class="flex flex-column align-items-center justify-content-center text-center p-4">
+    <i class="pi pi-calendar-times" style="font-size: 3rem; color: #7c3aed; margin-bottom: 1rem;"></i>
+    <h3 style="margin: 0 0 1rem; color: #1e1b4b;">¿Estás seguro?</h3>
+    <p style="color: #6b7280; margin: 0; line-height: 1.5;">
+      Se van a liberar <b>{{ idsABorrarTemporal.size }}</b> registro(s) de bloqueo.<br>
+      Estas fechas quedarán disponibles inmediatamente para que los huéspedes puedan reservar.
+    </p>
+  </div>
+  <ng-template pTemplate="footer">
+    <div class="flex justify-content-end gap-2 w-full mt-2">
+      <button pButton label="Mantener Bloqueadas" icon="pi pi-times" class="p-button-text p-button-secondary" (click)="showConfirmDesbloqueoDialog = false"></button>
+      <button pButton label="Sí, Liberar Fechas" icon="pi pi-check" class="p-button-primary" style="background: #10b981; border: none;" (click)="confirmarDesbloqueo()"></button>
+    </div>
+  </ng-template>
+</p-dialog>
