@@ -1,11 +1,13 @@
 import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
+import { FloatLabelModule } from 'primeng/floatlabel';
 import { TextareaModule } from 'primeng/textarea';
 import { CarouselModule } from 'primeng/carousel';
 import { MultiSelectModule } from 'primeng/multiselect';
@@ -106,13 +108,16 @@ interface UpdateUserDTO {
     CardModule,
     DialogModule,
     InputTextModule,
+    FloatLabelModule,
     TextareaModule,
     CarouselModule,
     MultiSelectModule,
     ChartModule,
     DatePickerModule,
-    SelectModule
+    SelectModule,
+    ReactiveFormsModule
   ],
+
   templateUrl: './anfitrion.html',
   styleUrls: ['./anfitrion.scss'],
   encapsulation: ViewEncapsulation.None
@@ -161,9 +166,12 @@ export class Anfitrion implements OnInit {
   showEditDialog: boolean = false;
   showSolicitudDialog: boolean = false;
   showServicioDialog: boolean = false;
+  showConfirmDesbloqueoDialog: boolean = false;
+  idsABorrarTemporal: Set<number> = new Set();
 
   // Formulario Alojamiento
-  alojamientoForm: AlojamientoRequestDTO = this.getEmptyForm();
+  alojamientoForm: FormGroup;
+
   selectedAlojamiento: AlojamientoResponseDTO | null = null;
 
   // Formulario Servicio
@@ -178,6 +186,8 @@ export class Anfitrion implements OnInit {
 
   imageUrlInput: string = '';
   imagenesUrls: string[] = []; // URLs nuevas que se agregan manualmente
+  isDragOverCreate: boolean = false;
+  isDragOverEdit: boolean = false;
 
   showEditProfileDialog: boolean = false;
   profileForm: UpdateUserDTO = {
@@ -191,7 +201,16 @@ export class Anfitrion implements OnInit {
 
   public readonly baseUrl = environment.apiUrl;
 
-  constructor(private http: HttpClient, private auth: AuthService, private router: Router, private messageService: MessageService) { }
+  constructor(
+    private http: HttpClient, 
+    private auth: AuthService, 
+    private router: Router, 
+    private messageService: MessageService,
+    private fb: FormBuilder
+  ) { 
+    this.alojamientoForm = this.initAlojamientoForm();
+  }
+
 
   ngOnInit() {
     this.auth.currentUser$.subscribe(user => {
@@ -409,17 +428,50 @@ export class Anfitrion implements OnInit {
   // ============================================
   onFilesSelected(event: any) {
     const files: FileList = event.target.files;
-    if (files) {
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        this.imagenesArchivos.push(file);
+    this.processFiles(files);
+  }
 
-        // Crear preview
-        const reader = new FileReader();
-        reader.onload = (e: any) => {
-          this.imagenesPreviews.push(e.target.result);
-        };
-        reader.readAsDataURL(file);
+  onDragOver(event: DragEvent, type: 'create' | 'edit') {
+    event.preventDefault();
+    event.stopPropagation();
+    if (type === 'create') this.isDragOverCreate = true;
+    else this.isDragOverEdit = true;
+  }
+
+  onDragLeave(event: DragEvent, type: 'create' | 'edit') {
+    event.preventDefault();
+    event.stopPropagation();
+    if (type === 'create') this.isDragOverCreate = false;
+    else this.isDragOverEdit = false;
+  }
+
+  onDrop(event: DragEvent, type: 'create' | 'edit') {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    if (type === 'create') this.isDragOverCreate = false;
+    else this.isDragOverEdit = false;
+
+    if (event.dataTransfer?.files) {
+      this.processFiles(event.dataTransfer.files);
+    }
+  }
+
+  private processFiles(files: FileList) {
+    if (files) {
+      // Loop over the files using regular for loop to be safe across browsers
+      for (let i = 0; i < files.length; i++) {
+        const file = files.item(i);
+        if (file) {
+          this.imagenesArchivos.push(file);
+
+          // Crear preview miniatura inmediata en la UI
+          const reader = new FileReader();
+          reader.onload = (e: any) => {
+            this.imagenesPreviews.push(e.target.result);
+          };
+          reader.readAsDataURL(file);
+        }
       }
     }
   }
@@ -468,7 +520,9 @@ export class Anfitrion implements OnInit {
             const imgs = a.imagenes?.map(img => {
               return {
                 ...img,
-                url: img.url.startsWith('/api') ? `${environment.apiUrl}${img.url}` : img.url
+                url: img.url.startsWith('http') 
+                  ? img.url 
+                  : `${environment.apiUrl.replace(/\/$/, '')}/${img.url.replace(/^\/?(api\/)?/, '')}`
               };
             }) || [];
             return {
@@ -490,7 +544,14 @@ export class Anfitrion implements OnInit {
   // 🔹 Crear Alojamiento
   // ============================================
   openCreateDialog() {
-    this.alojamientoForm = this.getEmptyForm();
+    this.alojamientoForm.reset({
+      nombre: '',
+      descripcion: '',
+      direccion: '',
+      precio: 0,
+      capacidadMaxima: 1,
+      serviciosIds: []
+    });
     this.imagenesArchivos = [];
     this.imagenesPreviews = [];
     this.imagenesAntiguasUrls = [];
@@ -498,6 +559,7 @@ export class Anfitrion implements OnInit {
     this.imageUrlInput = '';
     this.showCreateDialog = true;
   }
+
 
   crearAlojamiento() {
     if (!this.ownerId || this.ownerId === 0) {
@@ -512,8 +574,9 @@ export class Anfitrion implements OnInit {
 
     this.http.post<AlojamientoResponseDTO>(
       `${this.API_URL}/alojamientos?ownerId=${this.ownerId}`,
-      this.alojamientoForm
+      this.alojamientoForm.value
     ).subscribe({
+
       next: (response) => {
         console.log('Alojamiento creado:', response);
         const newAlojamientoId = response.id;
@@ -557,14 +620,15 @@ export class Anfitrion implements OnInit {
   // ============================================
   openEditDialog(alojamiento: AlojamientoResponseDTO) {
     this.selectedAlojamiento = alojamiento;
-    this.alojamientoForm = {
+    this.alojamientoForm.patchValue({
       nombre: alojamiento.nombre,
       descripcion: alojamiento.descripcion,
       direccion: alojamiento.direccion,
       precio: alojamiento.precio,
       capacidadMaxima: alojamiento.capacidadMaxima || 1,
       serviciosIds: alojamiento.servicios ? alojamiento.servicios.map(s => s.id) : []
-    };
+    });
+
     this.imagenesAntiguasUrls = alojamiento.imagenes ? alojamiento.imagenes.map(i => i.url) : [];
     this.imagenesArchivos = [];
     this.imagenesPreviews = [];
@@ -583,8 +647,9 @@ export class Anfitrion implements OnInit {
 
     this.http.put<AlojamientoResponseDTO>(
       `${this.API_URL}/alojamientos/${this.selectedAlojamiento.id}?ownerId=${this.ownerId}`,
-      this.alojamientoForm
+      this.alojamientoForm.value
     ).subscribe({
+
       next: (response) => {
         console.log('Alojamiento editado:', response);
         const alojamientoId = response.id;
@@ -635,10 +700,10 @@ export class Anfitrion implements OnInit {
   }
 
   private finalizarGuardado() {
-    this.showCreateDialog = false;
     this.showEditDialog = false;
     this.selectedAlojamiento = null;
-    this.alojamientoForm = this.getEmptyForm();
+    this.alojamientoForm.reset();
+
     this.imagenesArchivos = [];
     this.imagenesPreviews = [];
     this.imagenesAntiguasUrls = [];
@@ -816,6 +881,17 @@ export class Anfitrion implements OnInit {
     return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
   }
 
+  initAlojamientoForm(): FormGroup {
+    return this.fb.group({
+      nombre: ['', [Validators.required, Validators.minLength(5)]],
+      descripcion: ['', [Validators.required, Validators.minLength(20)]],
+      direccion: ['', [Validators.required]],
+      precio: [0, [Validators.required, Validators.min(1)]],
+      capacidadMaxima: [1, [Validators.required, Validators.min(1)]],
+      serviciosIds: [[]]
+    });
+  }
+
   getEmptyForm(): AlojamientoRequestDTO {
     return {
       nombre: '',
@@ -826,6 +902,16 @@ export class Anfitrion implements OnInit {
       serviciosIds: []
     };
   }
+
+
+  /**
+   * Validación reactiva del formulario de alojamiento.
+   * Previene campos nulos/vacíos que generarían NullPointerException en el backend.
+   */
+  isFormValid(): boolean {
+    return this.alojamientoForm.valid;
+  }
+
 
   getEstadoClass(estado: string): string {
     switch (estado.toLowerCase()) {
@@ -947,9 +1033,12 @@ export class Anfitrion implements OnInit {
         return;
     }
 
-    if (!confirm(`¿Estás seguro de liberar estas fechas? Se eliminarán ${idsABorrar.size} registro(s) de bloqueo.`)) return;
+    this.idsABorrarTemporal = idsABorrar;
+    this.showConfirmDesbloqueoDialog = true;
+  }
 
-    const requests = Array.from(idsABorrar).map(id => 
+  confirmarDesbloqueo(): void {
+    const requests = Array.from(this.idsABorrarTemporal).map(id => 
         this.http.delete(`${this.API_URL}/alojamientos/bloqueos/${id}?ownerId=${this.ownerId}`)
     );
 
@@ -957,11 +1046,14 @@ export class Anfitrion implements OnInit {
         next: () => {
             this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Fechas liberadas correctamente.' });
             this.bloqueoFechas = null;
+            this.showConfirmDesbloqueoDialog = false;
+            this.idsABorrarTemporal.clear();
             this.onCalendarioAlojamientoChange();
         },
         error: (err) => {
             console.error('Error al desbloquear:', err);
             this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudieron liberar todas las fechas.' });
+            this.showConfirmDesbloqueoDialog = false;
         }
     });
   }

@@ -40,7 +40,7 @@ public class SolicitudPublicacionServiceImpl implements SolicitudPublicacionServ
 
     @Override
     public SolicitudPublicacionResponseDTO crearSolicitud(SolicitudPublicacionRequestDTO dto) {
-        Usuario usuario = usuarioRepo.findByUsuarioId(dto.usuarioId())
+        Usuario usuario = usuarioRepo.findAnyById(dto.usuarioId())
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
         if (usuario.getRole() != Role.OWNER) {
@@ -74,8 +74,8 @@ public class SolicitudPublicacionServiceImpl implements SolicitudPublicacionServ
         SolicitudPublicacion solicitud = solicitudRepo.findById(dto.solicitudId())
                 .orElseThrow(() -> new RuntimeException("Solicitud no encontrada"));
 
-        Usuario admin = usuarioRepo.findByUsuarioId(dto.adminId())
-                .orElseThrow(() -> new RuntimeException("Admin no encontrado"));
+        Usuario admin = usuarioRepo.findAnyById(dto.adminId())
+                .orElseThrow(() -> new RuntimeException("Admin no encontrado con ID/Cédula: " + dto.adminId()));
 
         if (admin.getRole() != Role.ADMIN) {
             throw new RuntimeException("Solo un ADMIN puede responder solicitudes");
