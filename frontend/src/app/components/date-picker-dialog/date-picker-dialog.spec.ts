@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { DatePickerDialog } from './date-picker-dialog';
 
-describe('DatePickerDialog', () => {
+describe('C48 DatePickerDialog', () => {
   let component: DatePickerDialog;
   let fixture: ComponentFixture<DatePickerDialog>;
 

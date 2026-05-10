@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { PagarReserva } from './pagar-reserva';
 
-describe('PagarReserva', () => {
+describe('C47 PagarReserva', () => {
   let component: PagarReserva;
   let fixture: ComponentFixture<PagarReserva>;
 
