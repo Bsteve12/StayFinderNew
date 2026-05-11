@@ -46,13 +46,13 @@ public class StayFinderFullQAIntegrationTest {
 
     @Test
     @Order(1)
-    @DisplayName("C49 - Validar flujo completo de reserva")
-    public void testFlujoReserva_C49() {
+    @DisplayName("C46 - Gestión de Alojamientos")
+    public void testGestionAlojamientos_C46() {
 
         boolean passed = false;
 
         String comment =
-                "Validación automática del flujo de disponibilidad para reservas.";
+                "Validación automática del flujo de disponibilidad para alojamientos.";
 
         try {
 
@@ -67,7 +67,7 @@ public class StayFinderFullQAIntegrationTest {
 
             assertTrue(
                     disponible,
-                    "La disponibilidad de la reserva debería ser TRUE."
+                    "La disponibilidad del alojamiento debería ser TRUE."
             );
 
             passed = true;
@@ -81,14 +81,14 @@ public class StayFinderFullQAIntegrationTest {
 
             comment += " Error encontrado: " + e.getMessage();
 
-            fail("Fallo en flujo de reserva: " + e.getMessage());
+            fail("Fallo en gestión de alojamientos: " + e.getMessage());
 
         } finally {
 
             if (System.getenv("TESTRAIL_API_KEY") != null) {
 
                 reporter.addResultForCase(
-                        49L,
+                        46L,
                         passed,
                         comment
                 );
@@ -98,13 +98,13 @@ public class StayFinderFullQAIntegrationTest {
 
     @Test
     @Order(2)
-    @DisplayName("C50 - Validar creación y carga de imágenes")
-    public void testAlojamientoImagenes_C50() {
+    @DisplayName("C47 - Sistema de Reservas")
+    public void testSistemaReservas_C47() {
 
         boolean passed = false;
 
         String comment =
-                "Validación automática de servicios asociados a alojamientos.";
+                "Validación automática del sistema de reservas.";
 
         try {
 
@@ -130,7 +130,7 @@ public class StayFinderFullQAIntegrationTest {
             passed = true;
 
             comment +=
-                    " Servicios y validaciones ejecutados correctamente.";
+                    " El sistema de reservas funcionó correctamente.";
 
         } catch (Exception e) {
 
@@ -138,14 +138,14 @@ public class StayFinderFullQAIntegrationTest {
 
             comment += " Error encontrado: " + e.getMessage();
 
-            fail("Fallo en validación de alojamientos: " + e.getMessage());
+            fail("Fallo en sistema de reservas: " + e.getMessage());
 
         } finally {
 
             if (System.getenv("TESTRAIL_API_KEY") != null) {
 
                 reporter.addResultForCase(
-                        50L,
+                        47L,
                         passed,
                         comment
                 );
@@ -155,8 +155,8 @@ public class StayFinderFullQAIntegrationTest {
 
     @Test
     @Order(3)
-    @DisplayName("C51 - Validar cierre de fechas por mantenimiento")
-    public void testBloqueoManual_C51() {
+    @DisplayName("C48 - Disponibilidad y Calendario")
+    public void testDisponibilidadCalendario_C48() {
 
         boolean passed = false;
 
@@ -190,14 +190,14 @@ public class StayFinderFullQAIntegrationTest {
 
             comment += " Error encontrado: " + e.getMessage();
 
-            fail("Fallo en validación del calendario: " + e.getMessage());
+            fail("Fallo en disponibilidad y calendario: " + e.getMessage());
 
         } finally {
 
             if (System.getenv("TESTRAIL_API_KEY") != null) {
 
                 reporter.addResultForCase(
-                        51L,
+                        48L,
                         passed,
                         comment
                 );
