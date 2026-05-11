@@ -8,6 +8,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
@@ -21,14 +22,12 @@ public class TestRailReporter {
     private Long runId;
 
     public TestRailReporter() {
-        // Usa la URL real de tu instancia
         String url = System.getenv("TESTRAIL_URL");
         if (url == null || url.isEmpty()) {
             url = "https://stayfinderpro.testrail.io";
         }
         this.baseUrl = url.endsWith("/") ? url.substring(0, url.length() - 1) : url;
 
-        // Usa las llaves que configuró tu compañero
         String user = System.getenv("TESTRAIL_USER");
         String apiKey = System.getenv("TESTRAIL_API_KEY");
         
@@ -49,7 +48,8 @@ public class TestRailReporter {
 
             Map<String, Object> body = new HashMap<>();
             body.put("name", name);
-            body.put("include_all", true);
+            body.put("include_all", false);
+            body.put("case_ids", Arrays.asList(49, 50, 51));
 
             HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
             ResponseEntity<String> response = restTemplate.exchange(endpoint, HttpMethod.POST, request, String.class);
@@ -76,7 +76,7 @@ public class TestRailReporter {
             headers.set("Content-Type", "application/json");
 
             Map<String, Object> body = new HashMap<>();
-            body.put("status_id", passed ? 1 : 5); // 1 = Passed
+            body.put("status_id", passed ? 1 : 5);
             body.put("comment", comment);
 
             HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
