@@ -66,7 +66,7 @@ public class TestRailReporter {
             body.put("include_all", false);
 
             // Casos reales de TestRail
-            body.put("case_ids", Arrays.asList(46, 47, 48));
+            body.put("case_ids", Arrays.asList(46, 47, 48, 49, 50, 51));
 
             HttpEntity<Map<String, Object>> request =
                     new HttpEntity<>(body, headers);
