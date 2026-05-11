@@ -18,7 +18,7 @@ public class StayFinderFullQAIntegrationTest {
 
     private static TestRailReporter reporter;
     // CONECTADO AL PROYECTO STAYFINDER REAL
-    private static Long projectId = 6L; 
+    private static Long projectId = 2L; 
 
     @Autowired
     private DisponibilidadService disponibilidadService;
