@@ -21,13 +21,14 @@ public class TestRailReporter {
     private Long runId;
 
     public TestRailReporter() {
-        // Obtenemos los credenciales inyectados por el Pipeline (.env o Secrets de GitHub)
+        // Usa la URL real de tu instancia
         String url = System.getenv("TESTRAIL_URL");
         if (url == null || url.isEmpty()) {
             url = "https://stayfinderpro.testrail.io";
         }
         this.baseUrl = url.endsWith("/") ? url.substring(0, url.length() - 1) : url;
 
+        // Usa las llaves que configuró tu compañero
         String user = System.getenv("TESTRAIL_USER");
         String apiKey = System.getenv("TESTRAIL_API_KEY");
         
@@ -56,18 +57,16 @@ public class TestRailReporter {
             if (response.getStatusCode().is2xxSuccessful()) {
                 JsonNode root = objectMapper.readTree(response.getBody());
                 this.runId = root.get("id").asLong();
-                System.out.println("[TestRail] Creado Test Run ID: " + this.runId);
+                System.out.println("[TestRail] Conectado a Proyecto ID: " + projectId);
+                System.out.println("[TestRail] Nuevo Run Creado ID: " + this.runId);
             }
         } catch (Exception e) {
-            System.err.println("[TestRail Error] No se pudo crear el Test Run: " + e.getMessage());
+            System.err.println("[TestRail Error] No se pudo conectar al proyecto real: " + e.getMessage());
         }
     }
 
     public void addResultForCase(Long caseId, boolean passed, String comment) {
-        if (this.runId == null) {
-            System.err.println("[TestRail Error] No hay un Run ID activo para reportar.");
-            return;
-        }
+        if (this.runId == null) return;
         
         try {
             String endpoint = baseUrl + "/index.php?/api/v2/add_result_for_case/" + this.runId + "/" + caseId;
@@ -77,14 +76,14 @@ public class TestRailReporter {
             headers.set("Content-Type", "application/json");
 
             Map<String, Object> body = new HashMap<>();
-            body.put("status_id", passed ? 1 : 5); // 1 = Passed, 5 = Failed
+            body.put("status_id", passed ? 1 : 5); // 1 = Passed
             body.put("comment", comment);
 
             HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
             restTemplate.exchange(endpoint, HttpMethod.POST, request, String.class);
-            System.out.println("[TestRail] Resultado enviado para el caso C" + caseId + " -> " + (passed ? "PASS" : "FAIL"));
+            System.out.println("[TestRail] Sincronizado: Caso C" + caseId + " -> " + (passed ? "VERDE ✅" : "ROJO ❌"));
         } catch (Exception e) {
-            System.err.println("[TestRail Error] Falló al enviar resultado para C" + caseId + ": " + e.getMessage());
+            System.err.println("[TestRail Error] Error al reportar caso C" + caseId);
         }
     }
 }
