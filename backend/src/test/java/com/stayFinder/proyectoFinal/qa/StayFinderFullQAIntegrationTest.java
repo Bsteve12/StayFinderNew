@@ -46,8 +46,8 @@ public class StayFinderFullQAIntegrationTest {
 
     @Test
     @Order(1)
-    @DisplayName("C49 - Validar flujo completo de reserva")
-    public void testFlujoReserva_C49() {
+    @DisplayName("C47 - Validar flujo completo de reserva")
+    public void testFlujoReserva_C47() {
 
         boolean passed = false;
 
@@ -88,7 +88,7 @@ public class StayFinderFullQAIntegrationTest {
             if (System.getenv("TESTRAIL_API_KEY") != null) {
 
                 reporter.addResultForCase(
-                        49L,
+                        47L,
                         passed,
                         comment
                 );
@@ -98,8 +98,8 @@ public class StayFinderFullQAIntegrationTest {
 
     @Test
     @Order(2)
-    @DisplayName("C50 - Validar creación y carga de imágenes")
-    public void testAlojamientoImagenes_C50() {
+    @DisplayName("C46 - Validar creación y carga de imágenes")
+    public void testAlojamientoImagenes_C46() {
 
         boolean passed = false;
 
@@ -145,7 +145,7 @@ public class StayFinderFullQAIntegrationTest {
             if (System.getenv("TESTRAIL_API_KEY") != null) {
 
                 reporter.addResultForCase(
-                        50L,
+                        46L,
                         passed,
                         comment
                 );
@@ -155,8 +155,8 @@ public class StayFinderFullQAIntegrationTest {
 
     @Test
     @Order(3)
-    @DisplayName("C51 - Validar cierre de fechas por mantenimiento")
-    public void testBloqueoManual_C51() {
+    @DisplayName("C48 - Validar cierre de fechas por mantenimiento")
+    public void testBloqueoManual_C48() {
 
         boolean passed = false;
 
@@ -197,7 +197,7 @@ public class StayFinderFullQAIntegrationTest {
             if (System.getenv("TESTRAIL_API_KEY") != null) {
 
                 reporter.addResultForCase(
-                        51L,
+                        48L,
                         passed,
                         comment
                 );
