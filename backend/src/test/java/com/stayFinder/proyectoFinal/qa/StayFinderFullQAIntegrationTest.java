@@ -71,7 +71,7 @@ public class StayFinderFullQAIntegrationTest {
             fail("Fallo en flujo de reserva: " + e.getMessage());
         } finally {
             if (System.getenv("TESTRAIL_API_KEY") != null) {
-                reporter.addResultForCase(47L, passed, comment);
+                reporter.addResultForCase(50L, passed, comment);
             }
         }
     }
@@ -96,7 +96,7 @@ public class StayFinderFullQAIntegrationTest {
             fail("Fallo en validación de alojamientos: " + e.getMessage());
         } finally {
             if (System.getenv("TESTRAIL_API_KEY") != null) {
-                reporter.addResultForCase(46L, passed, comment);
+                reporter.addResultForCase(49L, passed, comment);
             }
         }
     }
@@ -120,7 +120,7 @@ public class StayFinderFullQAIntegrationTest {
             fail("Fallo en validación del calendario: " + e.getMessage());
         } finally {
             if (System.getenv("TESTRAIL_API_KEY") != null) {
-                reporter.addResultForCase(48L, passed, comment);
+                reporter.addResultForCase(51L, passed, comment);
             }
         }
     }
@@ -167,7 +167,7 @@ public class StayFinderFullQAIntegrationTest {
             throw new RuntimeException(e);
         } finally {
             if (System.getenv("TESTRAIL_API_KEY") != null) {
-                reporter.addResultForCase(49L, passed, comment);
+                reporter.addResultForCase(52L, passed, comment);
             }
         }
     }
@@ -206,7 +206,7 @@ public class StayFinderFullQAIntegrationTest {
             throw new RuntimeException(e);
         } finally {
             if (System.getenv("TESTRAIL_API_KEY") != null) {
-                reporter.addResultForCase(50L, passed, comment);
+                reporter.addResultForCase(53L, passed, comment);
             }
         }
     }
@@ -245,8 +245,80 @@ public class StayFinderFullQAIntegrationTest {
             throw new RuntimeException(e);
         } finally {
             if (System.getenv("TESTRAIL_API_KEY") != null) {
-                reporter.addResultForCase(51L, passed, comment);
+                reporter.addResultForCase(54L, passed, comment);
+            }
+        }
+    }
+
+    @Test
+    @Order(7)
+    @DisplayName("C52 - Disponibilidad: Rechazar consulta con fechas invertidas")
+    public void testDisponibilidadFechasInvertidas_C52() {
+        boolean passed = false;
+        String comment = "Validación de rechazo de consulta de disponibilidad con fechas inválidas (fin antes de inicio).";
+
+        try {
+            LocalDate fechaInicio = LocalDate.now().plusDays(5);
+            LocalDate fechaFin = LocalDate.now();
+
+            Exception exception = assertThrows(
+                    Exception.class,
+                    () -> disponibilidadService.isDisponible(1000L, fechaInicio, fechaFin),
+                    "El sistema debe rechazar la consulta si la fecha de fin es anterior a la fecha de inicio"
+            );
+
+            passed = true;
+            comment += " El sistema rechazó correctamente las fechas invertidas.";
+
+        } catch (AssertionError e) {
+            passed = false;
+            comment += " Falló la aserción: " + e.getMessage();
+            throw e;
+        } catch (Exception e) {
+            passed = false;
+            comment += " Error encontrado: " + e.getMessage();
+            throw new RuntimeException(e);
+        } finally {
+            if (System.getenv("TESTRAIL_API_KEY") != null) {
+                reporter.addResultForCase(55L, passed, comment);
+            }
+        }
+    }
+
+    @Test
+    @Order(8)
+    @DisplayName("C53 - Disponibilidad: Rechazar consulta con ID de alojamiento nulo")
+    public void testDisponibilidadIdInvalido_C53() {
+        boolean passed = false;
+        String comment = "Validación de rechazo de consulta de disponibilidad sin un ID de alojamiento válido.";
+
+        try {
+            LocalDate fechaInicio = LocalDate.now();
+            LocalDate fechaFin = fechaInicio.plusDays(3);
+
+            Exception exception = assertThrows(
+                    Exception.class,
+                    () -> disponibilidadService.isDisponible(null, fechaInicio, fechaFin),
+                    "El sistema debe rechazar la consulta si el ID de alojamiento es nulo"
+            );
+
+            passed = true;
+            comment += " El sistema validó correctamente la ausencia de un ID de alojamiento válido.";
+
+        } catch (AssertionError e) {
+            passed = false;
+            comment += " Falló la aserción: " + e.getMessage();
+            throw e;
+        } catch (Exception e) {
+            passed = false;
+            comment += " Error encontrado: " + e.getMessage();
+            throw new RuntimeException(e);
+        } finally {
+            if (System.getenv("TESTRAIL_API_KEY") != null) {
+                reporter.addResultForCase(56L, passed, comment);
             }
         }
     }
 }
+
+

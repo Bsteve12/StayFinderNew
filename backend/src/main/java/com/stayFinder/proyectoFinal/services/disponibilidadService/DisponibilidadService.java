@@ -44,6 +44,13 @@ public class DisponibilidadService {
     }
 
     public boolean isDisponible(Long alojamientoId, LocalDate inicio, LocalDate fin) {
+        if (alojamientoId == null) {
+            throw new IllegalArgumentException("El ID del alojamiento no puede ser nulo");
+        }
+        if (fin.isBefore(inicio) || fin.isEqual(inicio)) {
+            throw new IllegalArgumentException("La fecha de fin debe ser posterior a la fecha de inicio");
+        }
+
         List<RangoFecha> ocupadas = getFechasOcupadas(alojamientoId);
         for (RangoFecha r : ocupadas) {
             if (inicio.isBefore(r.fin()) && r.inicio().isBefore(fin)) {
